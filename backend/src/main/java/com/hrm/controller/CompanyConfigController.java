@@ -1,0 +1,28 @@
+package com.hrm.controller;
+
+import com.hrm.dto.CompanyConfigDTO;
+import com.hrm.service.CompanyService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/company/config")
+@RequiredArgsConstructor
+public class CompanyConfigController {
+
+    private final CompanyService companyService;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    public ResponseEntity<CompanyConfigDTO> getConfig() {
+        return ResponseEntity.ok(companyService.getConfig());
+    }
+
+    @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CompanyConfigDTO> updateConfig(@RequestBody CompanyConfigDTO dto) {
+        return ResponseEntity.ok(companyService.updateConfig(dto));
+    }
+}

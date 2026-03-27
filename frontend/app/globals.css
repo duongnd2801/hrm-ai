@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@variant theme-dark {
+  &:where(.theme-dark, .theme-dark *) {
+    @slot;
+  }
+}
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --app-bg: #f8fafc;
+  --app-fg: #0f172a;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(15, 23, 42, 0.1);
+  --glass-dark-bg: rgba(255, 255, 255, 0.9);
+  --glass-dark-border: rgba(15, 23, 42, 0.12);
+  --muted-fg: #475569;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --accent: #8b5cf6;
+}
+
+.theme-light {
+  color-scheme: light;
+  --app-bg: #e2e8f0;
+  --app-fg: #020617;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(15, 23, 42, 0.15);
+  --muted-fg: #334155;
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --app-bg: #030712;
+  --app-fg: #ffffff;
+  --glass-bg: rgba(17, 24, 39, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-dark-bg: rgba(11, 15, 26, 0.8);
+  --glass-dark-border: rgba(255, 255, 255, 0.15);
+  --muted-fg: #94a3b8;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--app-bg);
+  color: var(--app-fg);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+}
+
+.theme-light .glass {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+}
+
+.theme-dark .glass {
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
+  background: rgba(17, 24, 39, 0.8);
+}
+
+.glass-dark {
+  background: var(--glass-dark-bg);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid var(--glass-dark-border);
+}
+
+.theme-dark .glass-dark {
+  background: rgba(11, 15, 26, 0.9);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #f43f5e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.theme-dark .nav-item {
+  color: #c4d1e2;
+}
+
+.nav-item:hover {
+  color: var(--app-fg);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  border-color: transparent;
+  box-shadow: 0 10px 15px -3px rgba(52, 211, 153, 0.3);
+  transform: scale(1.05);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge-on-time      { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.3); }
+.badge-late         { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+.badge-insufficient { background: rgba(139,92,246,0.15); color: #8b5cf6; border-color: rgba(139,92,246,0.3); }
+.badge-absent       { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.badge-approved     { background: rgba(59,130,246,0.15); color: #3b82f6; border-color: rgba(59,130,246,0.3); }
+.badge-pending      { background: rgba(234,179,8,0.15);  color: #eab308; border-color: rgba(234,179,8,0.3); }
+.badge-day-off      { background: rgba(100,116,139,0.15);color: #94a3b8; border-color: rgba(100,116,139,0.3); }
+
+/* Calendar Grid Custom Styles */
+.calendar-grid {
+   display: grid;
+   grid-template-columns: repeat(7, 1fr);
+   gap: 2px;
+}
+
+.calendar-cell {
+   aspect-ratio: 1/1;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 0.75rem;
+   font-weight: 600;
+   border-radius: 4px;
+   cursor: pointer;
+   transition: all 0.2s;
+}
+
+.calendar-cell-other {
+   color: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-cell-active {
+   background: rgba(255, 255, 255, 0.05);
+   color: rgba(255, 255, 255, 0.8);
+}
+
+.calendar-cell-active:hover {
+   background: rgba(255, 255, 255, 0.15);
+   color: white;
+}
+
+.calendar-holiday {
+   background: #f43f5e !important;
+   color: white !important;
+}
+
+.calendar-today {
+   background: #34d399 !important;
+   color: #064e3b !important;
+}

@@ -1,0 +1,20 @@
+{
+  "project": "hrm-app",
+  "version": "1.0",
+  "defaultRole": "fullstack",
+  "workflow": ["plan", "approve", "code", "test", "memory"],
+  "approvalRequired": true,
+  "roles": {
+    "frontend": ".gemini/frontend.md",
+    "backend": ".gemini/backend.md",
+    "qa": ".gemini/qa.md"
+  },
+  "hardRules": [
+    "No code before human approves plan",
+    "No schema change without new Flyway migration",
+    "No Float/Double for money — Long only",
+    "No simplify PayrollService or AttendanceService",
+    "No edit existing Flyway migration files",
+    "Append to plan.md instead of overwriting, keep old plans intact unless change is required"
+  ]
+}
