@@ -31,4 +31,10 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 - [2026-03-27T13:20:00+07:00] Nâng cấp giao diện Premium (Slate & Indigo Palette), sửa lỗi typo theme và tối ưu Glassmorphism.
 - [2026-03-28T10:00:00+07:00] Đại tu toàn bộ UI/UX theo phong cách "Glass & Glow" với lưới lịch 12 tháng, Sidebar mỏng, Header dạng Pills và sửa lỗi Tiếng Việt có dấu toàn hệ thống.
 - [2026-03-28T16:20:00+07:00] Sửa lỗi logic chấm công: Không đánh dấu 'Thiếu giờ' nếu chưa check-out ngày hiện tại. Tích hợp ThemeToggle hỗ trợ chuyển đổi giao diện Sáng/Tối/Hệ thống trơn tru.
-
+- [2026-03-30T14:55:00+07:00] Hoàn thành Phase Nhỏ: Tính năng tìm kiếm nhân viên, cập nhật BE API và FE debounce table.
+- [2026-03-30T15:13:00+07:00] Tạo migration V5__more_fake_data.sql để điền đầy dữ liệu chấm công thật tế, nghỉ phép, OT, tha tội của HR và Manager phục vụ test lương.
+- [2026-03-30T15:19:00+07:00] Tạo migration V6__mass_fake_data.sql để sinh ngẫu nhiên 10 nhân sự mới và 2 tháng chấm công lộn xộn phục vụ giả lập hệ thống thật.
+- [2026-03-30T15:35:00+07:00] Bổ sung Note (Info Card) giải thích tỷ lệ đóng BHXH, BHYT, BHTN và bảng Thuế TNCN lũy tiến 7 bậc Việt Nam ngay dưới Bảng lương để HR/nhân viên dễ theo dõi.
+- [2026-03-30T15:45:00+07:00] Thay đổi lõi logic tính thuế: Nâng mức giảm trừ gia cảnh bản thân từ 11.000.000đ lên 17.000.000đ theo luật mới nhất được yêu cầu, cập nhật tương ứng text giải thích trên UI.
+- [2026-03-30T15:58:00+07:00] Đính chính logic Thuế TNCN: Áp dụng chuẩn xác mức giảm trừ bản thân là 15.500.000đ và phụ thuộc 6.200.000đ. Do khoản thuế được tính sau khi đã trừ đi BHXH (10.5%), ngưỡng lương Gross để bắt đầu nộp thuế thực tế là ~17,3 triệu đồng (khớp với thông tin 17 triệu không phải nộp thuế).
+- [2026-03-30T16:08:00+07:00] Quick bugfix: Xử lý lỗi 500 `operator does not exist: ot_status = character varying` khi gọi API GET /api/ot-requests/pending do mapping sai loại dữ liệu Postgres Enum. Thêm `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` vào entity `OTRequest.java`.

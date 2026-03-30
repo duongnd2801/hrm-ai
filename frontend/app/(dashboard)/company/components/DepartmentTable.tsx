@@ -58,7 +58,7 @@ export default function DepartmentTable() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Tn phòng ban không c - trêng.");
+      setError("Tên phòng ban không được để trống.");
       return;
     }
 
@@ -100,44 +100,57 @@ export default function DepartmentTable() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Danh sách phòng ban</h3>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Cấu trúc phòng ban</h3>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium"
+          className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
         >
           + Thêm phòng ban
         </button>
       </div>
 
       {loading ? (
-        <div className="py-6 text-center text-gray-300">Đang tải...</div>
+        <div className="py-20 text-center text-slate-500/60 dark:text-white/50 font-black uppercase tracking-widest animate-pulse">Đang đồng bộ dữ liệu...</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-white/10">
-          <table className="min-w-full divide-y divide-gray-700 bg-white/5">
-            <thead>
-              <tr className="bg-black/40 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-4">Tn phòng ban</th>
-                <th className="px-6 py-4 text-right">Thao tc</th>
+        <div className="overflow-x-auto rounded-[32px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl mx-2 lg:mx-6 overflow-hidden">
+          <table className="min-w-full divide-y divide-black/5 dark:divide-white/5">
+            <thead className="bg-black/[0.03] dark:bg-black/40">
+              <tr className="text-[11px] uppercase text-slate-500/60 dark:text-white/50 tracking-[0.2em] border-b border-black/5 dark:border-white/10">
+                <th className="px-8 py-6 font-black">Mã & Tên phòng ban</th>
+                <th className="px-8 py-6 font-black text-right">Quản lý thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {departments.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="px-6 py-6 text-center text-gray-500">Chưa có dữ liệu</td>
+                  <td colSpan={2} className="px-8 py-10 text-center text-slate-500/60 dark:text-white/50 font-bold uppercase text-xs">Hiện tại chưa có phòng ban nào được thiết lập</td>
                 </tr>
               ) : (
                 departments.map((department) => (
-                  <tr key={department.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-white">{department.name}</td>
-                    <td className="px-6 py-4 text-right text-sm font-medium space-x-4">
-                      <button onClick={() => openEditModal(department)} className="text-blue-400 hover:text-blue-300">
-                        Sửa
-                      </button>
-                      <button onClick={() => openDeleteModal(department)} className="text-red-400 hover:text-red-300">
-                        Xóa
-                      </button>
+                  <tr key={department.id} className="hover:bg-black/[0.02] dark:hover:bg-white/5 transition-all duration-300 group">
+                    <td className="px-8 py-6">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-white/5 flex items-center justify-center text-indigo-600 dark:text-white text-xs font-black ring-1 ring-indigo-500/20">
+                             {department.name.substring(0,2).toUpperCase()}
+                          </div>
+                          <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{department.name}</span>
+                       </div>
+                    </td>
+                    <td className="px-8 py-6 text-right space-x-2">
+                       <button 
+                         onClick={() => openEditModal(department)} 
+                         className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 hover:bg-blue-500 hover:text-white transition-all active:scale-95"
+                       >
+                         Sửa
+                       </button>
+                       <button 
+                         onClick={() => openDeleteModal(department)} 
+                         className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
+                       >
+                         Xóa
+                       </button>
                     </td>
                   </tr>
                 ))
@@ -152,31 +165,35 @@ export default function DepartmentTable() {
           title={editingDepartment ? "Sửa phòng ban" : "Thêm phòng ban"}
           onClose={() => setShowFormModal(false)}
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Tn phòng ban</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 mb-2 ml-1">Tên định danh phòng ban</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-md p-2 text-white"
-                placeholder="V- d: IT, Nhơn s, K- toàn"
+                className="w-full bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all font-bold text-sm tracking-tight uppercase"
+                placeholder="Ví dụ: IT, Nhân sự, Kế toán..."
               />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <div className="flex justify-end gap-3 pt-2">
+            {error && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 dark:text-rose-400 text-xs font-black uppercase tracking-widest animate-shake">
+                {error}
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-8">
               <button
                 type="button"
                 onClick={() => setShowFormModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+                className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
+                className="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 text-white shadow-2xl shadow-indigo-500/30 transition-all disabled:opacity-30 active:scale-95 duration-300"
               >
-                {submitting ? "ang lưu..." : editingDepartment ? "Cập nhật" : "Thêm mới"}
+                {submitting ? "Đang đồng bộ..." : editingDepartment ? "Cập nhật hồ sơ" : "Xác nhận thêm mới"}
               </button>
             </div>
           </form>
@@ -184,27 +201,34 @@ export default function DepartmentTable() {
       )}
 
       {showDeleteModal && targetDelete && (
-        <DraggableModal title="Xc nhơn xóa" onClose={() => setShowDeleteModal(false)}>
-          <p className="text-sm text-gray-300 mb-5">
-            Bạn c- chắc muốn xóa phòng ban <span className="font-semibold text-white">{targetDelete.name}</span> không?
-          </p>
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
-            >
-              Hủy
-            </button>
-            <button
-              type="button"
-              onClick={() => void confirmDelete()}
-              disabled={submitting}
-              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
-            >
-              {submitting ? "ang xóa..." : "Xóa"}
-            </button>
-          </div>
+        <DraggableModal title="Xác nhận gỡ bỏ" onClose={() => setShowDeleteModal(false)}>
+           <div className="text-center py-4">
+              <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-8 animate-bounce">
+                 <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <p className="text-sm font-bold text-slate-500 dark:text-white/60 mb-10 leading-relaxed uppercase tracking-widest">
+                Bạn có chắc chắn muốn xóa phòng ban <br/> 
+                <span className="font-black text-slate-900 dark:text-white mt-2 block text-xl tracking-tighter italic ring-1 ring-rose-500/20 bg-rose-500/5 py-2 px-4 rounded-xl">{targetDelete.name}</span> <br/>
+                Hành động này không thể hoàn tác.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void confirmDelete()}
+                  disabled={submitting}
+                  className="px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-rose-600 hover:bg-rose-500 text-white shadow-2xl shadow-rose-500/30 transition-all active:scale-95 duration-300"
+                >
+                  {submitting ? "Đang xóa..." : "Xác nhận xóa"}
+                </button>
+              </div>
+           </div>
         </DraggableModal>
       )}
     </div>

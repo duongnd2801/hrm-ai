@@ -64,7 +64,7 @@ export default function PositionTable() {
 
   function openEditModal(position: Position) {
     if (position.isLocked) {
-      alert("Vị trí này - b- khóa, không thể chọnh sa.");
+      alert("Vị trí này đã bị khóa, không thể chỉnh sửa.");
       return;
     }
     setEditingPosition(position);
@@ -81,7 +81,7 @@ export default function PositionTable() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.name.trim()) {
-      setError("Tn chức vụ không c - trêng.");
+      setError("Tên chức vụ không được để trống.");
       return;
     }
 
@@ -112,7 +112,7 @@ export default function PositionTable() {
 
   function openDeleteModal(position: Position) {
     if (position.isLocked) {
-      alert("Vị trí này - b- khóa, không thể xóa.");
+      alert("Vị trí này đã bị khóa, không thể xóa.");
       return;
     }
     setTargetDelete(position);
@@ -144,60 +144,64 @@ export default function PositionTable() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Danh sách chức vụ</h3>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none italic">Danh mục vị trí</h3>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium"
+          className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
         >
-          + Thêm chức vụ
+          + Thêm chức vụ mới
         </button>
       </div>
 
       {loading ? (
-        <div className="py-6 text-center text-gray-300">Đang tải...</div>
+        <div className="py-20 text-center text-slate-500/60 dark:text-white/50 font-black uppercase tracking-widest animate-pulse">Đang nạp dữ liệu phân cấp...</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-white/10">
-          <table className="min-w-full divide-y divide-gray-700 bg-white/5">
-            <thead>
-              <tr className="bg-black/40 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-4">Chức vụ</th>
-                <th className="px-6 py-4">M- t</th>
-                <th className="px-6 py-4 text-center">Khóa</th>
-                <th className="px-6 py-4 text-right">Thao tc</th>
+        <div className="overflow-x-auto rounded-[32px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl bg-white/80 dark:bg-white/5 backdrop-blur-3xl mx-2 lg:mx-6 overflow-hidden">
+          <table className="min-w-full divide-y divide-black/5 dark:divide-white/5 text-slate-900 dark:text-white">
+            <thead className="bg-black/[0.03] dark:bg-black/40">
+              <tr className="text-[11px] uppercase text-slate-500/60 dark:text-white/50 tracking-[0.2em] border-b border-black/5 dark:border-white/10">
+                <th className="px-8 py-6 font-black">Chức vụ & Vị trí</th>
+                <th className="px-8 py-6 font-black text-center">Trạng thái khóa</th>
+                <th className="px-8 py-6 font-black text-right">Quản lý thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {positions.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-6 text-center text-gray-500">Chưa có dữ liệu</td>
+                  <td colSpan={3} className="px-8 py-10 text-center text-slate-500/60 dark:text-white/50 font-bold uppercase text-xs italic tracking-[0.2em] animate-pulse">Hệ thống chưa thiết lập danh mục vị trí</td>
                 </tr>
               ) : (
                 positions.map((position) => (
-                  <tr key={position.id} className={`hover:bg-white/5 transition-colors ${position.isLocked ? "opacity-80" : ""}`}>
-                    <td className="px-6 py-4 text-sm font-medium text-white">{position.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-300">{position.description || "-"}</td>
-                    <td className="px-6 py-4 text-center">
+                  <tr key={position.id} className={`hover:bg-black/[0.02] dark:hover:bg-white/5 transition-all duration-300 group ${position.isLocked ? "bg-slate-50 dark:bg-black/20" : ""}`}>
+                    <td className="px-8 py-6">
+                       <span className={`text-sm font-black uppercase tracking-tight ${position.isLocked ? "text-slate-400 dark:text-white/30" : "text-slate-900 dark:text-white"}`}>{position.name}</span>
+                    </td>
+                    <td className="px-8 py-6 text-center">
                       <button
                         onClick={() => void toggleLock(position.id, position.isLocked)}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          position.isLocked ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                          position.isLocked 
+                            ? "bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white shadow-rose-500/20" 
+                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white shadow-emerald-500/20"
                         }`}
                       >
-                        {position.isLocked ? "- khóa" : "Hot ng"}
+                        {position.isLocked ? "Bị khóa" : "Sẵn dụng"}
                       </button>
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium space-x-4">
-                      {!position.isLocked && (
+                    <td className="px-8 py-6 text-right text-sm font-bold space-x-3">
+                      {!position.isLocked ? (
                         <>
-                          <button onClick={() => openEditModal(position)} className="text-blue-400 hover:text-blue-300">
+                          <button onClick={() => openEditModal(position)} className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 hover:bg-blue-500 hover:text-white transition-all active:scale-95">
                             Sửa
                           </button>
-                          <button onClick={() => openDeleteModal(position)} className="text-red-400 hover:text-red-300">
+                          <button onClick={() => openDeleteModal(position)} className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white transition-all active:scale-95">
                             Xóa
                           </button>
                         </>
+                      ) : (
+                         <span className="text-[10px] font-black text-rose-500/40 uppercase tracking-widest">Không thể can thiệp</span>
                       )}
                     </td>
                   </tr>
@@ -212,58 +216,72 @@ export default function PositionTable() {
         <DraggableModal
           title={editingPosition ? "Sửa chức vụ" : "Thêm chức vụ"}
           onClose={() => setShowFormModal(false)}
-          widthClassName="max-w-lg"
+          widthClassName="max-w-xl"
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">Tn chức vụ</label>
-              <input
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                className="w-full bg-white/10 border border-white/20 rounded-md p-2 text-white"
-              />
+          <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6">
+                <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 mb-2 ml-1">Tên vị trí công việc</label>
+                <input
+                    value={formData.name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    className="w-full bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500/50 transition-all font-bold text-sm tracking-tight uppercase"
+                    placeholder="Ví dụ: Giám đốc, Lập trình viên, Kế toán trưởng..."
+                />
+                </div>
+                <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 mb-2 ml-1">Mô tả chi tiết</label>
+                <textarea
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-6 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500/50 transition-all font-bold text-sm resize-none"
+                    placeholder="Mô tả trách nhiệm hoặc yêu cầu công việc..."
+                />
+                </div>
             </div>
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">M- t</label>
-              <input
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                className="w-full bg-white/10 border border-white/20 rounded-md p-2 text-white"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-300">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-black/[0.02] dark:bg-black/20 p-6 rounded-3xl border border-black/5 dark:border-white/5">
+              <label className="flex items-center gap-4 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={formData.multiPerDept}
                   onChange={(e) => setFormData((prev) => ({ ...prev, multiPerDept: e.target.checked }))}
+                  className="w-5 h-5 rounded-md border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
                 />
-                Cho phép nhiu người/phòng ban
+                <span className="text-[11px] font-black text-slate-500 dark:text-white/60 uppercase tracking-widest group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">Đa nhiệm/Phòng</span>
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-300">
+              <label className="flex items-center gap-4 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={formData.standalone}
                   onChange={(e) => setFormData((prev) => ({ ...prev, standalone: e.target.checked }))}
+                  className="w-5 h-5 rounded-md border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
                 />
-                C- thể dùng c lp
+                <span className="text-[11px] font-black text-slate-500 dark:text-white/60 uppercase tracking-widest group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">Chạy độc lập</span>
               </label>
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <div className="flex justify-end gap-3 pt-2">
+
+            {error && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 dark:text-rose-400 text-xs font-black uppercase tracking-widest animate-shake">
+                {error}
+              </div>
+            )}
+            
+            <div className="flex justify-between items-center pt-8">
               <button
                 type="button"
                 onClick={() => setShowFormModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+                className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
+                className="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 text-white shadow-2xl shadow-indigo-500/30 transition-all disabled:opacity-30 active:scale-95 duration-300"
               >
-                {submitting ? "ang lưu..." : editingPosition ? "Cập nhật" : "Thêm mới"}
+                {submitting ? "Đang nạp..." : editingPosition ? "Cập nhật vị trí" : "Xác nhận tạo mới"}
               </button>
             </div>
           </form>
@@ -271,27 +289,34 @@ export default function PositionTable() {
       )}
 
       {showDeleteModal && targetDelete && (
-        <DraggableModal title="Xc nhơn xóa" onClose={() => setShowDeleteModal(false)}>
-          <p className="text-sm text-gray-300 mb-5">
-            Bạn c- chắc muốn xóa chức vụ <span className="font-semibold text-white">{targetDelete.name}</span> không?
-          </p>
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
-            >
-              Hủy
-            </button>
-            <button
-              type="button"
-              onClick={() => void confirmDelete()}
-              disabled={submitting}
-              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
-            >
-              {submitting ? "ang xóa..." : "Xóa"}
-            </button>
-          </div>
+        <DraggableModal title="Loại bỏ vị trí" onClose={() => setShowDeleteModal(false)}>
+           <div className="text-center py-4">
+              <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-8 animate-bounce">
+                 <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </div>
+              <p className="text-sm font-bold text-slate-500 dark:text-white/60 mb-10 leading-relaxed uppercase tracking-widest italic">
+                Bạn có chắc chắn muốn xóa vị trí <br/> 
+                <span className="font-black text-slate-900 dark:text-white mt-4 block text-3xl tracking-tighter mix-blend-overlay animate-pulse ring-1 ring-amber-500/20 py-4 rounded-2xl bg-amber-500/5">{targetDelete.name}</span> <br/>
+                Hành động này sẽ gỡ bỏ vị trí khỏi danh mục chung.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                >
+                  Hủy thao tác
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void confirmDelete()}
+                  disabled={submitting}
+                  className="px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-rose-600 hover:bg-rose-500 text-white shadow-2xl shadow-rose-500/30 transition-all active:scale-95 duration-300"
+                >
+                  {submitting ? "Đang xóa..." : "Xác nhận xóa"}
+                </button>
+              </div>
+           </div>
         </DraggableModal>
       )}
     </div>

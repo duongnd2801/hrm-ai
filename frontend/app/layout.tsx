@@ -22,8 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
               var resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode;
               var root = document.documentElement;
-              root.classList.remove('theme-light', 'theme-dark');
-              root.classList.add(resolved === 'dark' ? 'theme-dark' : 'theme-light');
+              root.classList.remove('theme-light', 'theme-dark', 'dark');
+              var appClass = resolved === 'dark' ? 'theme-dark' : 'theme-light';
+              root.classList.add(appClass);
+              if (resolved === 'dark') root.classList.add('dark');
               root.style.colorScheme = resolved;
             } catch (e) {}
           `}
@@ -31,8 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} font-sans antialiased app-body relative overflow-x-hidden`}>
         {/* Background Decorative Orbs */}
-        <div className="fixed -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] orb z-0 pointer-events-none" />
-        <div className="fixed -bottom-24 -left-24 w-96 h-96 bg-violet-500/20 rounded-full blur-[100px] orb-delay z-0 pointer-events-none" />
+        <div className="fixed -top-24 -right-24 w-[500px] h-[500px] bg-indigo-500/20 dark:bg-indigo-500/30 rounded-full blur-[120px] orb z-0 pointer-events-none" />
+        <div className="fixed -bottom-24 -left-24 w-[500px] h-[500px] bg-violet-500/20 dark:bg-violet-500/30 rounded-full blur-[120px] orb-delay z-0 pointer-events-none" />
         
         <ThemeInitializer />
         <div className="relative z-1">

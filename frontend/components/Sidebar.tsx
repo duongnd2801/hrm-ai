@@ -55,7 +55,7 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
   const visibleItems = NAV_ITEMS.filter((item) => hasRole(session.role, ...item.roles));
 
   return (
-    <aside className={`h-screen glass-dark flex flex-col border-r border-white/10 z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl relative ${collapsed ? 'w-[88px]' : 'w-[280px]'}`}>
+    <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl relative ${collapsed ? 'w-[88px]' : 'w-[280px]'}`}>
       
       {/* Glow Effect */}
       {!collapsed && (
@@ -63,15 +63,16 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
       )}
 
       {/* Top Logo Section */}
-      <div className={`h-28 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'justify-between px-8'}`}>
-         <div className="flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-indigo-400 to-indigo-700 flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.3)] ring-1 ring-white/30 transition-transform group-hover:scale-110 active:scale-95 duration-500">
-               <span className="text-white font-black text-2xl tracking-tighter drop-shadow-md">H</span>
+      <div className={`h-32 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'px-8'}`}>
+         <div className="flex items-center gap-5 group cursor-pointer">
+            <div className="w-14 h-14 rounded-[22px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
+               <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
+               <span className="text-white font-black text-3xl tracking-tighter drop-shadow-lg relative z-10">H</span>
             </div>
             {!collapsed && (
                <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500 delay-150">
-                  <span className="text-white font-black text-xl tracking-tighter leading-none uppercase drop-shadow-sm">HRM System</span>
-                  <p className="text-indigo-400 text-[9px] font-black tracking-[0.3em] uppercase mt-1 px-0.5">Premium Suite</p>
+                  <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-widest leading-none uppercase">HRM SYSTEM</h1>
+                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400/50 uppercase tracking-[0.35em] mt-2 ml-0.5 leading-none">Premium Suite</p>
                </div>
             )}
          </div>
@@ -90,7 +91,7 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
                  } ${
                    isActive 
                      ? 'bg-indigo-600 text-white shadow-[0_10px_30px_rgba(79,70,229,0.3)] ring-1 ring-white/10' 
-                     : 'text-white/40 hover:bg-white/5 hover:text-white hover:translate-x-1.5'
+                     : 'text-slate-900 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 hover:text-indigo-600 dark:hover:text-white hover:translate-x-1.5'
                  }`}
                >
                   <div className={`shrink-0 transition-all duration-500 ${isActive ? 'scale-110 rotate-3' : 'group-hover:scale-110'}`}>
@@ -108,7 +109,7 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
                   )}
 
                   {collapsed && (
-                    <div className={`absolute left-0 bottom-3 top-3 w-[3px] bg-indigo-400 rounded-r-full transition-all duration-500 ${isActive ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 group-hover:opacity-100 group-hover:scale-y-100'}`} />
+                    <div className={`absolute left-0 bottom-3 top-3 w-[3px] bg-indigo-600 dark:bg-indigo-400 rounded-r-full transition-all duration-500 ${isActive ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 group-hover:opacity-100 group-hover:scale-y-100'}`} />
                   )}
                </Link>
             );
@@ -116,29 +117,31 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
       </div>
 
       {/* Footer Profile Section */}
-      <div className={`shrink-0 pb-10 transition-all duration-500 border-t border-white/5 pt-8 ${collapsed ? 'flex flex-col items-center gap-6' : 'px-8'}`}>
+      <div className={`shrink-0 pb-10 transition-all duration-500 border-t border-black/5 dark:border-white/5 pt-8 ${collapsed ? 'flex flex-col items-center gap-6' : 'px-8'}`}>
           {!collapsed ? (
-            <div className="flex items-center gap-4 bg-white/[0.03] p-4 rounded-[28px] border border-white/5 group cursor-pointer hover:bg-white/5 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-4 bg-black/[0.03] dark:bg-white/[0.03] p-4 rounded-[28px] border border-black/5 dark:border-white/5 group cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
                <div className="relative shrink-0">
                   <Avatar name={session.email.split('@')[0]} size="md" />
-                  <div className="absolute -right-1 -bottom-1 w-4 h-4 bg-emerald-400 border-[3px] border-slate-900 rounded-full shadow-lg" />
+                  <div className="absolute -right-1 -bottom-1 w-4 h-4 bg-emerald-400 border-[3px] border-white dark:border-slate-950 rounded-full shadow-lg" />
                </div>
                <div className="flex flex-col min-w-0">
-                  <span className="text-white font-black text-xs uppercase tracking-tighter truncate">{session.email.split('@')[0]}</span>
-                  <span className="text-indigo-400 text-[9px] font-black tracking-widest uppercase mt-0.5">{session.role}</span>
+                  <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tighter truncate">{session.email.split('@')[0]}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black tracking-widest uppercase mt-0.5">
+                    {session.role === 'ADMIN' ? 'Quản trị' : session.role === 'HR' ? 'Nhân sự' : session.role === 'MANAGER' ? 'Quản lý' : 'Nhân viên'}
+                  </span>
                </div>
-                <Link href={`/employees/${session.employeeId}`} className="ml-auto p-2 opacity-0 group-hover:opacity-100 text-white/30 hover:text-white transition-all transform hover:scale-110">
+                <Link href={`/employees/${session.employeeId}`} className="ml-auto p-2 opacity-0 group-hover:opacity-100 text-slate-400 dark:text-white/30 hover:text-indigo-600 dark:hover:text-white transition-all transform hover:scale-110">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-               </Link>
+                </Link>
             </div>
           ) : (
             <Link href={`/employees/${session.employeeId}`} className="relative group transition-transform hover:scale-110 duration-300">
                <Avatar name={session.email.split('@')[0]} size="md" />
-               <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full shadow-lg" />
-               <div className="absolute left-full ml-4 px-4 py-2 bg-white text-slate-900 text-[10px] font-black rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 translate-x-4 group-hover:translate-x-0 duration-500">
+               <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-emerald-400 border-2 border-white dark:border-slate-950 rounded-full shadow-lg" />
+               <div className="absolute left-full ml-4 px-4 py-2 bg-indigo-600 text-white text-[10px] font-black rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-2xl z-50 translate-x-4 group-hover:translate-x-0 duration-500">
                   <div className="flex flex-col">
                      <span className="uppercase tracking-tighter">{session.email.split('@')[0]}</span>
-                     <span className="text-[8px] opacity-40 tracking-widest leading-none mt-1 uppercase">Xem hồ sơ</span>
+                     <span className="text-[8px] opacity-70 tracking-widest leading-none mt-1 uppercase">Xem hồ sơ</span>
                   </div>
                </div>
             </Link>

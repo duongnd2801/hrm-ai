@@ -29,8 +29,14 @@ public class EmployeeService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<EmployeeDTO> getAllEmployees(Authentication authentication) {
-        return employeeRepository.findAll().stream()
+    public List<EmployeeDTO> getAllEmployees(String search, Authentication authentication) {
+        List<Employee> emps;
+        if (search != null && !search.trim().isEmpty()) {
+            emps = employeeRepository.searchEmployees(search.trim().toLowerCase());
+        } else {
+            emps = employeeRepository.findAll();
+        }
+        return emps.stream()
                 .map(emp -> filterSensitiveData(mapToDTO(emp), authentication))
                 .collect(Collectors.toList());
     }

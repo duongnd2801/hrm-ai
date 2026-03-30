@@ -99,8 +99,8 @@ public class PayrollService {
         long totalInsurance = bhxh + bhyt + bhtn;
 
         // Taxable Income
-        long personalDeduction = 11000000L;
-        long dependentDeduction = (emp.getTaxDependents() != null ? emp.getTaxDependents() : 0) * 4400000L;
+        long personalDeduction = 15500000L;
+        long dependentDeduction = (emp.getTaxDependents() != null ? emp.getTaxDependents() : 0) * 6200000L;
         long taxableIncome = Math.max(0, grossSalary - totalInsurance - personalDeduction - dependentDeduction);
 
         long incomeTax = calculateIncomeTax(taxableIncome);

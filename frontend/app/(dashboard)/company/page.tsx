@@ -39,49 +39,49 @@ function ReadOnlyCompanyInfo() {
   const lockedPositions = useMemo(() => positions.filter((p) => p.isLocked), [positions]);
 
   if (loading) {
-    return <div className="text-gray-400">Đang tải tháng tin công ty...</div>;
+    return <div className="text-gray-400">Đang tải thông tin công ty...</div>;
   }
 
   if (!config) {
-    return <div className="text-red-400">Không thể tải tháng tin công ty.</div>;
+    return <div className="text-red-400">Không thể tải thông tin công ty.</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="rounded-xl border border-white/10 bg-black/25 p-5">
-          <h3 className="text-lg font-semibold text-white mb-4">Thông s- lm vic</h3>
+        <section className="rounded-xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 p-5 shadow-xl dark:shadow-3xl backdrop-blur-3xl">
+          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 uppercase tracking-widest">Thông số làm việc</h3>
           <div className="space-y-2 text-sm">
-            <p className="text-gray-300">Giờ lm vic: <span className="text-white">{config.workStartTime} - {config.workEndTime}</span></p>
-            <p className="text-gray-300">Nghệ tra: <span className="text-white">{config.lunchBreakStart} - {config.lunchBreakEnd}</span></p>
-            <p className="text-gray-300">Check-in sm tải a: <span className="text-white">{config.earlyCheckinMinutes} phệt</span></p>
-            <p className="text-gray-300">Số gi- chuẩn/ngày: <span className="text-white">{config.standardHours}</span></p>
-            <p className="text-gray-300">Ngày công chuẩn/tháng: <span className="text-white">{config.standardDaysPerMonth}</span></p>
-            <p className="text-gray-300">Ngày chệt công: <span className="text-white">{config.cutoffDay}</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Giờ làm việc: <span className="text-slate-900 dark:text-white">{config.workStartTime} - {config.workEndTime}</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Nghỉ trưa: <span className="text-slate-900 dark:text-white">{config.lunchBreakStart} - {config.lunchBreakEnd}</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Check-in sớm tối đa: <span className="text-slate-900 dark:text-white">{config.earlyCheckinMinutes} phút</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Số giờ chuẩn/ngày: <span className="text-slate-900 dark:text-white">{config.standardHours}</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Ngày công chuẩn/tháng: <span className="text-slate-900 dark:text-white">{config.standardDaysPerMonth}</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Ngày chốt công: <span className="text-slate-900 dark:text-white">{config.cutoffDay}</span></p>
           </div>
         </section>
 
-        <section className="rounded-xl border border-white/10 bg-black/25 p-5">
-          <h3 className="text-lg font-semibold text-white mb-4">Hồ sơ lương & OT</h3>
+        <section className="rounded-xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 p-5 shadow-xl dark:shadow-3xl backdrop-blur-3xl">
+          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 uppercase tracking-widest">Hệ số lương & OT</h3>
           <div className="space-y-2 text-sm">
-            <p className="text-gray-300">OT ngày thường: <span className="text-white">{config.otRateWeekday}x</span></p>
-            <p className="text-gray-300">OT cui tun: <span className="text-white">{config.otRateWeekend}x</span></p>
-            <p className="text-gray-300">OT ngày l: <span className="text-white">{config.otRateHoliday}x</span></p>
-            <p className="text-gray-300">OT nghỉ b- l: <span className="text-white">{config.otRateHolidayComp}x</span></p>
-            <p className="text-gray-300">Na ngày sng: <span className="text-white">{config.halfDayMorningRate} ngày công</span></p>
-            <p className="text-gray-300">Na ngày chiu: <span className="text-white">{config.halfDayAfternoonRate} ngày công</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">OT ngày thường: <span className="text-slate-900 dark:text-white">{config.otRateWeekday}x</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">OT cuối tuần: <span className="text-slate-900 dark:text-white">{config.otRateWeekend}x</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">OT ngày lễ: <span className="text-slate-900 dark:text-white">{config.otRateHoliday}x</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">OT nghỉ bù lễ: <span className="text-slate-900 dark:text-white">{config.otRateHolidayComp}x</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Nửa ngày sáng: <span className="text-slate-900 dark:text-white">{config.halfDayMorningRate} ngày công</span></p>
+            <p className="text-slate-500 dark:text-gray-300 font-bold uppercase tracking-tight">Nửa ngày chiều: <span className="text-slate-900 dark:text-white">{config.halfDayAfternoonRate} ngày công</span></p>
           </div>
         </section>
       </div>
 
-      <section className="rounded-xl border border-white/10 bg-black/25 p-5">
-        <h3 className="text-lg font-semibold text-white mb-4">Phòng ban ({departments.length})</h3>
+      <section className="rounded-xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 p-5 shadow-xl dark:shadow-3xl backdrop-blur-3xl">
+        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 uppercase tracking-widest">Phòng ban ({departments.length})</h3>
         <div className="flex flex-wrap gap-2">
           {departments.length === 0 ? (
-            <span className="text-sm text-gray-400">Chưa c- phòng ban.</span>
+            <span className="text-sm text-gray-400">Chưa có phòng ban.</span>
           ) : (
             departments.map((department) => (
-              <span key={department.id} className="px-3 py-1 rounded-full text-sm bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+              <span key={department.id} className="px-3 py-1 rounded-full text-sm bg-indigo-500/20 text-indigo-900 dark:text-indigo-200 border border-indigo-400/30">
                 {department.name}
               </span>
             ))
@@ -89,19 +89,19 @@ function ReadOnlyCompanyInfo() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-black/25 p-5">
-        <h3 className="text-lg font-semibold text-white mb-4">Chức vụ & v- tr</h3>
+      <section className="rounded-xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/5 p-5 shadow-xl dark:shadow-3xl backdrop-blur-3xl">
+        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 uppercase tracking-widest">Chức vụ & vị trí</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-semibold text-emerald-300 mb-2">ang hot ng ({activePositions.length})</h4>
+            <h4 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 mb-2">Đang hoạt động ({activePositions.length})</h4>
             <div className="space-y-2">
               {activePositions.length === 0 ? (
                 <span className="text-sm text-gray-400">Không có dữ liệu.</span>
               ) : (
                 activePositions.map((position) => (
                   <div key={position.id} className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3">
-                    <p className="text-sm text-white font-medium">{position.name}</p>
-                    <p className="text-xs text-gray-300 mt-1">{position.description || "Không c- m- t"}</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">{position.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-gray-300 mt-1">{position.description || "Không có mô tả"}</p>
                   </div>
                 ))
               )}
@@ -109,15 +109,15 @@ function ReadOnlyCompanyInfo() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-rose-300 mb-2">- khóa ({lockedPositions.length})</h4>
+            <h4 className="text-sm font-semibold text-rose-700 dark:text-rose-300 mb-2">Đã khóa ({lockedPositions.length})</h4>
             <div className="space-y-2">
               {lockedPositions.length === 0 ? (
                 <span className="text-sm text-gray-400">Không có dữ liệu.</span>
               ) : (
                 lockedPositions.map((position) => (
                   <div key={position.id} className="rounded-lg border border-rose-400/20 bg-rose-500/10 p-3">
-                    <p className="text-sm text-white font-medium">{position.name}</p>
-                    <p className="text-xs text-gray-300 mt-1">{position.description || "Không c- m- t"}</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">{position.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-gray-300 mt-1">{position.description || "Không có mô tả"}</p>
                   </div>
                 ))
               )}
@@ -135,43 +135,46 @@ export default function CompanyPage() {
   const [activeTab, setActiveTab] = useState("config");
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full h-full flex flex-col text-white">
-      <h1 className="text-3xl font-bold mb-6">{isAdmin ? "Cấu hình Tổ chức & Công ty" : "Thông tin công ty"}</h1>
+    <div className="space-y-12 pb-20 px-2 lg:px-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
+        <div>
+          <h1 className="text-[clamp(3rem,8vw,6rem)] font-black text-white dark:text-white dark:mix-blend-overlay uppercase leading-none tracking-tighter" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>CẤU HÌNH</h1>
+          <p className="text-lg font-bold text-white uppercase tracking-widest mt-6 ml-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Tổ chức & Thiết lập hệ thống</p>
+        </div>
 
-      {isAdmin ? (
-        <>
-          <div className="flex space-x-4 border-b border-gray-700 mb-6 font-medium">
-            <button
-              className={`py-2 px-4 transition-colors ${activeTab === "config" ? "border-b-2 border-blue-400 text-blue-400" : "text-gray-400 hover:text-gray-200"}`}
-              onClick={() => setActiveTab("config")}
-            >
-              Tham s- chuẩng
-            </button>
-            <button
-              className={`py-2 px-4 transition-colors ${activeTab === "departments" ? "border-b-2 border-blue-400 text-blue-400" : "text-gray-400 hover:text-gray-200"}`}
-              onClick={() => setActiveTab("departments")}
-            >
-              Phòng ban
-            </button>
-            <button
-              className={`py-2 px-4 transition-colors ${activeTab === "positions" ? "border-b-2 border-blue-400 text-blue-400" : "text-gray-400 hover:text-gray-200"}`}
-              onClick={() => setActiveTab("positions")}
-            >
-              Chức vụ & V- tr
-            </button>
-          </div>
+        <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-8 md:mt-0 px-4 py-3">
+          <button
+            onClick={() => setActiveTab("config")}
+            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "config" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+          >
+            THAM SỐ
+          </button>
+          <button
+            onClick={() => setActiveTab("departments")}
+            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "departments" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+          >
+            PHÒNG BAN
+          </button>
+          <button
+            onClick={() => setActiveTab("positions")}
+            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "positions" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+          >
+            VỊ TRÍ
+          </button>
+        </div>
+      </div>
 
-          <div className="bg-black/30 backdrop-blur-md p-6 rounded-xl border border-white/10 flex-1 overflow-auto shadow-2xl">
+      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl p-10 rounded-[40px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
+        {isAdmin ? (
+          <>
             {activeTab === "config" && <CompanyConfigForm />}
             {activeTab === "departments" && <DepartmentTable />}
             {activeTab === "positions" && <PositionTable />}
-          </div>
-        </>
-      ) : (
-        <div className="bg-black/30 backdrop-blur-md p-6 rounded-xl border border-white/10 flex-1 overflow-auto shadow-2xl">
+          </>
+        ) : (
           <ReadOnlyCompanyInfo />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

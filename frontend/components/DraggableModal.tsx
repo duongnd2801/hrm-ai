@@ -53,7 +53,7 @@ export default function DraggableModal({
   if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] bg-black/60 dark:bg-black/70 backdrop-blur-sm">
       <button
         type="button"
         aria-label="Close modal backdrop"
@@ -61,25 +61,25 @@ export default function DraggableModal({
         onClick={onClose}
       />
       <div
-        className={`absolute left-1/2 top-1/2 w-[92vw] ${widthClassName} rounded-2xl border border-white/10 bg-[#0f172a] shadow-2xl`}
+        className={`absolute left-1/2 top-1/2 w-[92vw] ${widthClassName} rounded-[32px] glass-dark shadow-3xl overflow-hidden animate-in fade-in zoom-in duration-200`}
         style={{
           transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
         }}
       >
         <div
-          className="flex items-center justify-between border-b border-white/10 px-5 py-3 cursor-move select-none"
+          className="flex items-center justify-between border-b border-black/5 dark:border-white/10 px-8 py-5 cursor-move select-none bg-black/[0.02] dark:bg-white/[0.02]"
           onMouseDown={onHeaderMouseDown}
         >
-          <h4 className="text-lg font-semibold text-white">{title}</h4>
+          <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">{title}</h4>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-sm text-gray-300 hover:bg-white/10"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 dark:text-white/20 hover:text-rose-500 hover:bg-rose-500/10 transition-all font-black"
           >
-            x
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-8">{children}</div>
       </div>
     </div>,
     document.body

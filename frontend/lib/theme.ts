@@ -18,7 +18,7 @@ export function setThemeMode(mode: ThemeMode) {
 export function applyTheme(mode: ThemeMode) {
   if (typeof window === 'undefined') return;
   const root = document.documentElement;
-  root.classList.remove('theme-light', 'theme-dark');
+  root.classList.remove('theme-light', 'theme-dark', 'dark');
 
   const resolved =
     mode === 'system'
@@ -27,6 +27,10 @@ export function applyTheme(mode: ThemeMode) {
         : 'light'
       : mode;
 
-  root.classList.add(resolved === 'dark' ? 'theme-dark' : 'theme-light');
+  const appClass = resolved === 'dark' ? 'theme-dark' : 'theme-light';
+  root.classList.add(appClass);
+  if (resolved === 'dark') {
+    root.classList.add('dark');
+  }
   root.style.colorScheme = resolved;
 }

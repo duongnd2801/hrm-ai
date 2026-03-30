@@ -104,19 +104,19 @@ export default function ApologiesPage() {
       {/* Hero Header */}
       <div className="pt-10 mb-2 relative flex flex-col md:flex-row md:items-end justify-between gap-6">
          <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]">
+            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
               Trung tâm<br/>giải trình
             </h1>
             <div className="flex items-center gap-4 mt-6 ml-2">
                <span className="w-8 h-1 bg-indigo-500 rounded-full" />
-               <p className="text-sm font-bold text-white/40 uppercase tracking-[0.4em] italic">Duyệt & Quản lý sai lệch chấm công</p>
+               <p className="text-sm font-bold uppercase tracking-[0.4em] italic" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Duyệt & Quản lý sai lệch chấm công</p>
             </div>
          </div>
          
          {isAdminOrHR && (
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+              className="px-8 py-4 bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl border border-black/5 dark:border-white/10 text-slate-900 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl dark:shadow-none"
             >
               {showForm ? 'Hủy viết đơn' : 'Viết đơn cá nhân'}
             </button>
@@ -128,32 +128,32 @@ export default function ApologiesPage() {
          {/* Left Side: Creation Form (Only if shown) */}
          {showForm && (
             <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
-               <div className="bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-white/10 shadow-3xl hover:bg-white-[0.07] transition-all">
-                  <h3 className="text-lg font-black text-white/90 uppercase tracking-widest mb-8 flex items-center gap-2">
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl hover:bg-white/90 dark:hover:bg-white/[0.07] transition-all">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white/90 uppercase tracking-widest mb-8 flex items-center gap-2">
                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                      Soạn thảo đơn
                   </h3>
 
                   <div className="space-y-6">
                      <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Thời gian gặp sự cố</label>
+                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Thời gian gặp sự cố</label>
                        <input
                          type="date"
                          value={attendanceDate}
                          onChange={(e) => setAttendanceDate(e.target.value)}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
+                         className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
                        />
                      </div>
                      
                      <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Hình thức giải trình</label>
+                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Hình thức giải trình</label>
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {typeOptions.map(opt => (
                             <button
                               key={opt.value}
                               type="button"
                               onClick={() => setType(opt.value)}
-                              className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${type === opt.value ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' : 'bg-white/5 border-white/10 text-white/30 hover:text-white'}`}
+                              className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${type === opt.value ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/10 text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
                             >
                               {opt.label}
                             </button>
@@ -162,20 +162,20 @@ export default function ApologiesPage() {
                      </div>
 
                      <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Lý do giải trình</label>
+                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Lý do giải trình</label>
                        <textarea
                          rows={4}
                          value={reason}
                          onChange={(e) => setReason(e.target.value)}
                          placeholder="Trình bày lý do của bạn..."
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none shadow-inner"
+                         className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none shadow-inner"
                        />
                      </div>
 
                      <button
                        onClick={() => void submit()}
                        disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-white/10 disabled:text-white/20 text-white rounded-[26px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-indigo-500/20 active:scale-95"
+                       className="w-full py-5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-black/5 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-white rounded-[26px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-indigo-500/20 active:scale-95"
                      >
                        {loading ? '...' : 'GỬI ĐƠN NGAY'}
                      </button>
@@ -203,46 +203,46 @@ export default function ApologiesPage() {
          {/* Center/Right Side: Approval Console (Full width if no form) */}
          <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
             {canReview ? (
-               <div className="bg-white/5 backdrop-blur-3xl rounded-[48px] border border-white/10 shadow-3xl flex flex-col h-full overflow-hidden min-h-[600px]">
-                  <div className="p-10 border-b border-white/10 flex items-center justify-between bg-white-[0.02]">
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[600px]">
+                  <div className="p-10 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-white/[0.02]">
                      <div>
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Phê duyệt đơn</h3>
-                        <p className="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mt-1">Danh sách nhân viên đang chờ quyết định</p>
+                        <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">PHÊ DUYỆT ĐƠN</h3>
+                        <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1">Danh sách nhân viên đang chờ quyết định</p>
                      </div>
                      <div className="px-6 py-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex items-center gap-4">
                         <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                        <span className="text-indigo-400 font-black text-sm tracking-widest">{pendingItems.length} ĐƠN CẦN XỬ LÝ</span>
+                        <span className="text-indigo-600 dark:text-indigo-400 font-black text-sm tracking-widest">{pendingItems.length} ĐƠN CẦN XỬ LÝ</span>
                      </div>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-10 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
                      {!pendingItems.length && (
-                        <div className="flex flex-col items-center justify-center py-32 opacity-20">
-                           <svg className="w-20 h-20 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                           <p className="text-xl font-black uppercase tracking-widest text-center">Tất cả hồ sơ<br/>đã được duyệt xong</p>
+                        <div className="flex flex-col items-center justify-center py-32 opacity-30 dark:opacity-20">
+                           <svg className="w-20 h-20 mb-6 text-slate-400 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                           <p className="text-xl font-black uppercase tracking-widest text-center text-slate-400 dark:text-white">Tất cả hồ sơ<br/>đã được duyệt xong</p>
                         </div>
                      )}
                      
                      <div className={`grid grid-cols-1 ${!showForm ? 'md:grid-cols-2 gap-8' : 'gap-6'}`}>
                         {pendingItems.map(item => (
-                          <div key={item.id} className="group relative bg-slate-900/60 p-8 rounded-[40px] border border-white/10 hover:border-indigo-500/50 transition-all duration-500 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                          <div key={item.id} className="group relative bg-white/80 dark:bg-slate-900/60 p-8 rounded-[40px] border border-black/5 dark:border-white/10 hover:border-indigo-500/50 transition-all duration-500 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
                              <div className="flex-1 space-y-6">
                                 <div className="flex items-center gap-5">
                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-800 flex items-center justify-center text-white font-black text-lg shadow-xl ring-2 ring-white/5">
                                       {item.employeeName?.charAt(0) || '?'}
                                    </div>
                                    <div>
-                                      <h4 className="text-2xl font-black text-white leading-none mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{item.employeeName}</h4>
+                                      <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{item.employeeName}</h4>
                                       <div className="flex items-center gap-3">
-                                         <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">
+                                         <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">
                                             {typeOptions.find(t=>t.value===item.type)?.label}
                                          </span>
-                                         <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest italic">{new Date(item.attendanceDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}</span>
+                                         <span className="text-[10px] font-bold text-slate-500 dark:text-white/30 uppercase tracking-widest italic">{new Date(item.attendanceDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}</span>
                                       </div>
                                    </div>
                                 </div>
                                 
-                                <p className="text-base text-white/60 italic leading-relaxed py-5 px-6 bg-white/5 rounded-[28px] border border-white/5 flex-1 min-h-[100px]">
+                                <p className="text-base text-slate-600 dark:text-white/60 italic leading-relaxed py-5 px-6 bg-slate-900/5 dark:bg-white/5 rounded-[28px] border border-black/5 dark:border-white/5 flex-1 min-h-[100px]">
                                    "{item.reason || 'Không có lý do chi tiết.'}"
                                 </p>
                              </div>
@@ -271,8 +271,8 @@ export default function ApologiesPage() {
                   <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-indigo-400">
                      <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                   </div>
-                  <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Hồ sơ cá nhân</h2>
-                  <p className="text-lg text-white/40 max-w-sm italic">Mọi yêu cầu của bạn sẽ được ban lãnh đạo xem xét và phản hồi sớm nhất.</p>
+                  <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Hồ sơ cá nhân</h2>
+                  <p className="text-lg text-slate-500 dark:text-white/40 max-w-sm italic">Mọi yêu cầu của bạn sẽ được ban lãnh đạo xem xét và phản hồi sớm nhất.</p>
                   
                   <div className="w-full max-w-sm pt-10">
                     <h4 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">Lịch sử của bạn</h4>

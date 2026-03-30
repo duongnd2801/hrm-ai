@@ -114,14 +114,14 @@ export default function LeavePage() {
             </h1>
             <div className="flex items-center gap-4 mt-6 ml-2">
                <span className="w-8 h-1 bg-emerald-500 rounded-full" />
-               <p className="text-sm font-bold text-white/40 uppercase tracking-[0.4em] italic">Đăng ký & Phê duyệt vắng mặt</p>
+               <p className="text-sm font-bold uppercase tracking-[0.4em] italic" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Đăng ký & Phê duyệt vắng mặt</p>
             </div>
          </div>
          
          {isAdminOrHR && (
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+              className="px-8 py-4 bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl border border-black/5 dark:border-white/10 text-slate-900 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl dark:shadow-none"
             >
               {showForm ? 'Hủy' : 'Đăng ký nghỉ cá nhân'}
             </button>
@@ -132,20 +132,20 @@ export default function LeavePage() {
          {/* Left Side: Registration Form */}
          {showForm && (
             <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
-               <div className="bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-white/10 shadow-3xl">
-                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-8 flex items-center gap-3">
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-widest mb-8 flex items-center gap-3">
                      <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
                      Đăng ký nghỉ
                   </h3>
 
                   <div className="space-y-6">
                      <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Loại hình nghỉ</label>
+                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Loại hình nghỉ</label>
                        <div className="relative">
                           <select
                             value={type}
                             onChange={(e) => setType(e.target.value as LeaveType)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none shadow-inner select-none"
+                            className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none shadow-inner select-none"
                           >
                             {leaveTypeOptions.map((option) => (
                               <option key={option.value} value={option.value} className="bg-slate-900">
@@ -153,7 +153,7 @@ export default function LeavePage() {
                               </option>
                             ))}
                           </select>
-                          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-white/30">
+                          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-white/30">
                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                           </div>
                        </div>
@@ -161,39 +161,39 @@ export default function LeavePage() {
                      
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        <div>
-                         <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Bắt đầu</label>
+                         <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Bắt đầu</label>
                          <input
                            type="date"
                            value={startDate}
                            onChange={(e) => setStartDate(e.target.value)}
-                           className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner"
+                           className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner"
                          />
                        </div>
                        <div>
-                         <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Kết thúc</label>
+                         <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Kết thúc</label>
                          <input
                            type="date"
                            value={endDate}
                            onChange={(e) => setEndDate(e.target.value)}
-                           className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner"
+                           className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner"
                          />
                        </div>
                      </div>
 
                      <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Lý do cụ thể</label>
+                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Lý do cụ thể</label>
                        <textarea
                          rows={4}
                          value={reason}
                          onChange={(e) => setReason(e.target.value)}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none shadow-inner"
+                         className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none shadow-inner"
                        />
                      </div>
 
                      <button
                        onClick={() => void submit()}
                        disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-white/10 disabled:text-white/20 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-2xl active:scale-95"
+                       className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-200 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-2xl active:scale-95"
                      >
                        {loading ? '...' : 'GỬI ĐƠN XÉT DUYỆT'}
                      </button>
@@ -201,14 +201,14 @@ export default function LeavePage() {
                </div>
 
                {/* Snapshot Section */}
-               <div className="bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-white/5 shadow-3xl max-h-[300px] flex flex-col">
-                  <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 px-1">Lịch sử cá nhân</h3>
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
+               <div className="bg-white/80 dark:bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/5 shadow-xl dark:shadow-3xl max-h-[300px] flex flex-col">
+                  <h3 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4 px-1">Lịch sử cá nhân</h3>
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10">
                      {myItems.map(item => (
-                        <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group hover:bg-white/[0.08] transition-all">
+                        <div key={item.id} className="p-4 bg-slate-100 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 flex justify-between items-center group hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-all">
                            <div className="text-left">
-                              <p className="text-white font-bold text-[10px] truncate w-32">{leaveTypeOptions.find(t=>t.value===item.type)?.label}</p>
-                              <p className="text-[9px] text-white/30 font-black tracking-widest mt-0.5">{formatDate(item.startDate)}</p>
+                              <p className="text-slate-900 dark:text-white font-bold text-[10px] truncate w-32">{leaveTypeOptions.find(t=>t.value===item.type)?.label}</p>
+                              <p className="text-[9px] text-slate-500 dark:text-white/30 font-black tracking-widest mt-0.5">{formatDate(item.startDate)}</p>
                            </div>
                            <StatusBadge status={item.status} />
                         </div>
@@ -221,49 +221,48 @@ export default function LeavePage() {
          {/* Center/Right Side: Approval Console (Full width if no form) */}
          <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
             {canReview ? (
-               <div className="bg-white/5 backdrop-blur-3xl rounded-[48px] border border-white/10 shadow-3xl flex flex-col h-full overflow-hidden min-h-[600px]">
-                  <div className="p-10 border-b border-white/10 flex items-center justify-between bg-white-[0.02]">
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[600px]">
+                  <div className="p-10 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-white/[0.02]">
                      <div>
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Phê duyệt vắng mặt</h3>
-                        <p className="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mt-1">Đơn đăng ký nghỉ phép của nhân viên</p>
+                        <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">PHÊ DUYỆT VẮNG MẶT</h3>
+                        <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1">Đơn đăng ký nghỉ phép của nhân viên</p>
                      </div>
                      <div className="px-6 py-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-4">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                        <span className="text-emerald-400 font-black text-sm tracking-widest">{pendingItems.length} ĐƠN CHỜ DUYỆT</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm tracking-widest">{pendingItems.length} ĐƠN CHỜ DUYỆT</span>
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
+                  <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10">
                      {!pendingItems.length && (
                         <div className="flex flex-col items-center justify-center py-32 opacity-20">
                            <svg className="w-20 h-20 mb-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 13l4 4L19 7" /></svg>
-                           <p className="text-xl font-black uppercase tracking-widest text-center">Không có đơn nghỉ phép<br/>nào cần xử lý</p>
+                           <p className="text-xl font-black uppercase tracking-widest text-center text-slate-900 dark:text-white">Không có đơn nghỉ phép<br/>nào cần xử lý</p>
                         </div>
                      )}
 
                      <div className={`grid grid-cols-1 ${!showForm ? 'md:grid-cols-2 gap-8' : 'gap-6'}`}>
                         {pendingItems.map(item => (
-                          <div key={item.id} className="group relative bg-slate-900/60 p-8 rounded-[48px] border border-white/10 hover:border-emerald-500/50 transition-all duration-500 flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4">
+                          <div key={item.id} className="group relative bg-white/80 dark:bg-slate-900/60 p-8 rounded-[48px] border border-black/5 dark:border-white/10 hover:border-emerald-500/50 transition-all duration-500 flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4">
                              <div className="space-y-6 flex-1">
                                 <div className="flex items-center gap-6">
-                                   <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-emerald-500 to-teal-800 flex items-center justify-center text-slate-900 font-black text-2xl shadow-xl shadow-emerald-500/10">
+                                   <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-emerald-500 to-teal-800 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-emerald-500/10">
                                       {item.employeeName?.charAt(0) || '?'}
                                    </div>
                                    <div>
-                                      <h4 className="text-2xl font-black text-white leading-none mb-2 group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{item.employeeName}</h4>
+                                      <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{item.employeeName}</h4>
                                       <div className="flex items-center gap-3">
-                                         <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-2.5 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 shadow-sm">
+                                         <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest px-2.5 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 shadow-sm">
                                             {leaveTypeOptions.find(t=>t.value===item.type)?.label}
                                          </span>
-                                         <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em]">{formatDate(item.startDate)} — {formatDate(item.endDate)}</span>
+                                         <span className="text-[10px] font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.1em]">{formatDate(item.startDate)} — {formatDate(item.endDate)}</span>
                                       </div>
                                    </div>
                                 </div>
                                 
-                                <blockquote className="text-base text-white/50 italic leading-relaxed py-6 px-8 bg-white/5 rounded-[32px] border border-white/5 relative min-h-[120px] shadow-inner">
-                                   <span className="absolute -left-2 -top-2 text-4xl text-white/5">"</span>
-                                   {item.reason || 'Nhân viên không để lại lý do chi tiết.'}
-                                </blockquote>
+                                <p className="text-base text-slate-600 dark:text-white/60 italic leading-relaxed py-8 px-10 bg-slate-900/5 dark:bg-white/10 rounded-[40px] border border-black/5 dark:border-white/10 flex-1 shadow-inner">
+                                   "{item.reason || 'Không có thông tin lý do cụ thể.'}"
+                                </p>
                              </div>
                              
                              <div className="flex flex-row gap-4 shrink-0">

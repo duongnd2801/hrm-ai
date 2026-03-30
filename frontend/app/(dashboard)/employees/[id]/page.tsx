@@ -87,20 +87,20 @@ function SearchableSelect({
 
   return (
     <div ref={boxRef} className="relative">
-      <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">{label}</label>
+      <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">{label}</label>
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-left text-white font-bold hover:border-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-left text-slate-900 dark:text-white font-bold hover:border-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
       >
         {selected ? (
-          <span>
+          <span className="text-slate-900 dark:text-white">
             {selected.label}
-            {selected.subLabel ? <span className="text-white/40 text-xs font-normal ml-2">({selected.subLabel})</span> : null}
+            {selected.subLabel ? <span className="text-slate-500 dark:text-white/40 text-xs font-normal ml-2">({selected.subLabel})</span> : null}
           </span>
         ) : (
-          <span className="text-white/20 font-normal italic">{placeholder}</span>
+          <span className="text-slate-400 dark:text-white/20 font-normal italic">{placeholder}</span>
         )}
       </button>
 
@@ -313,54 +313,54 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
          {/* Left Column: Essential Info */}
          <div className="lg:col-span-2 space-y-10">
-            <div className="bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-white/10 shadow-3xl">
+            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
                <div className="flex items-center gap-3 mb-8">
                   <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                  <h3 className="text-xl font-bold text-white uppercase tracking-widest">Thông tin cá nhân</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Thông tin cá nhân</h3>
                </div>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
                   <div>
-                    <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Số điện thoại</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Số điện thoại</label>
                     <input
                       type="text"
                       value={emp.phone || ''}
                       placeholder="Chưa cập nhật"
                       onChange={(e) => setEmp({ ...emp, phone: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
                     />
                   </div>
                   <div>
-                    <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Ngày sinh</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Ngày sinh</label>
                     <input
                       type="date"
                       value={emp.birthDate || ''}
                       onChange={(e) => setEmp({ ...emp, birthDate: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Địa chỉ thường trú</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Địa chỉ thường trú</label>
                     <input
                       type="text"
                       value={emp.address || ''}
                       placeholder="Chưa cập nhật địa chỉ"
                       onChange={(e) => setEmp({ ...emp, address: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Tiểu sử / Ghi chú</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Tiểu sử / Ghi chú</label>
                     <textarea
                       rows={4}
                       value={emp.bio || ''}
                       placeholder="Giới thiệu ngắn về bản thân..."
                       onChange={(e) => setEmp({ ...emp, bio: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50 resize-none"
+                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50 resize-none"
                     />
                   </div>
                </div>
@@ -369,10 +369,10 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
 
          {/* Right Column: Work & System info */}
          <div className="space-y-10">
-            <div className="bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-white/10 shadow-3xl">
+            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
                <div className="flex items-center gap-3 mb-8">
                   <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                  <h3 className="text-xl font-bold text-white uppercase tracking-widest">Cơ cấu & Lương</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Cơ cấu & Lương</h3>
                </div>
 
                <div className="space-y-6">
@@ -401,24 +401,24 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         }}
                       />
                       <div>
-                        <label className="block text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Lương cơ bản (VND)</label>
+                        <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Lương cơ bản (VND)</label>
                         <input
                           type="number"
                           value={emp.baseSalary || 0}
                           onChange={(e) => setEmp({ ...emp, baseSalary: Number(e.target.value) })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-indigo-400 font-black text-lg focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                          className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-indigo-500 dark:text-indigo-400 font-black text-lg focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
                         />
                       </div>
                     </>
                   ) : (
                     <div className="space-y-4">
-                       <div className="p-5 bg-white/5 rounded-2xl border border-white/5">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Mức lương hiện tại</p>
-                          <p className="text-2xl font-black text-emerald-400 tracking-tighter">{formatVND(emp.baseSalary)}</p>
+                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Mức lương hiện tại</p>
+                          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{formatVND(emp.baseSalary)}</p>
                        </div>
-                       <div className="p-5 bg-white/5 rounded-2xl border border-white/5">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
-                          <p className="text-lg font-black text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
+                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
+                          <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
                        </div>
                     </div>
                   )}

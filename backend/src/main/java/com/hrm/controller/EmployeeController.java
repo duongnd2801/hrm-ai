@@ -26,8 +26,10 @@ public class EmployeeController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployees(Authentication authentication) {
-        return ResponseEntity.ok(employeeService.getAllEmployees(authentication));
+    public ResponseEntity<List<EmployeeDTO>> getAllEmployees(
+            @RequestParam(required = false) String search,
+            Authentication authentication) {
+        return ResponseEntity.ok(employeeService.getAllEmployees(search, authentication));
     }
 
     @GetMapping("/{id}")
@@ -58,8 +60,10 @@ public class EmployeeController {
 
     @GetMapping("/export")
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public ResponseEntity<byte[]> exportEmployees(Authentication authentication) throws Exception {
-        byte[] excelData = importExportService.exportEmployeesToExcel(employeeService.getAllEmployees(authentication));
+    public ResponseEntity<byte[]> exportEmployees(
+            @RequestParam(required = false) String search,
+            Authentication authentication) throws Exception {
+        byte[] excelData = importExportService.exportEmployeesToExcel(employeeService.getAllEmployees(search, authentication));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
