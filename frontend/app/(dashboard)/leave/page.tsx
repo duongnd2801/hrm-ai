@@ -148,7 +148,7 @@ export default function LeavePage() {
                             className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none shadow-inner select-none"
                           >
                             {leaveTypeOptions.map((option) => (
-                              <option key={option.value} value={option.value} className="bg-slate-900">
+                              <option key={option.value} value={option.value} className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
                                 {option.label}
                               </option>
                             ))}

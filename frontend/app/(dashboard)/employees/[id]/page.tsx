@@ -105,16 +105,16 @@ function SearchableSelect({
       </button>
 
       {open && !disabled && (
-        <div className="absolute z-50 mt-3 w-full rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-3xl shadow-3xl overflow-hidden ring-1 ring-white/10">
-          <div className="p-3 border-b border-white/10">
+        <div className="absolute z-50 mt-3 w-full rounded-2xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl shadow-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
+          <div className="p-3 border-b border-black/5 dark:border-white/10">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm danh mục..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/50"
             />
           </div>
-          <div className="max-h-64 overflow-auto p-1.5 scrollbar-thin scrollbar-thumb-white/10">
+          <div className="max-h-64 overflow-auto p-1.5 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10">
             {allowClear && (
               <button
                 type="button"
@@ -123,13 +123,13 @@ function SearchableSelect({
                   setOpen(false);
                   setQuery('');
                 }}
-                className="w-full text-left px-4 py-3 rounded-xl text-white/40 hover:bg-white/5 text-xs font-bold transition-all"
+                className="w-full text-left px-4 py-3 rounded-xl text-slate-500 dark:text-white/40 hover:bg-slate-900/5 dark:hover:bg-white/5 text-xs font-bold transition-all"
               >
                 {clearLabel}
               </button>
             )}
             {filtered.length === 0 ? (
-              <div className="px-4 py-3 text-xs text-white/20 font-bold uppercase tracking-widest text-center">Không tìm thấy</div>
+              <div className="px-4 py-3 text-xs text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest text-center">Không tìm thấy</div>
             ) : (
               filtered.map((item) => (
                 <button
@@ -141,7 +141,7 @@ function SearchableSelect({
                     setQuery('');
                   }}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-1 ${
-                    value === item.id ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/60 hover:bg-white/10 hover:text-white'
+                    value === item.id ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-600 dark:text-white/60 hover:bg-slate-900/5 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <div className="font-bold text-sm">{item.label}</div>
@@ -400,6 +400,17 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                           setEmp({ ...emp, positionId: nextId, positionName: selected?.name });
                         }}
                       />
+                      <SearchableSelect
+                        label="Người quản lý trực tiếp"
+                        value={emp.managerId}
+                        options={managerSelectOptions}
+                        placeholder="Chọn người quản lý..."
+                        allowClear
+                        onSelect={(nextId) => {
+                          const selected = managerOptions.find((m) => m.id === nextId);
+                          setEmp({ ...emp, managerId: nextId, managerName: selected?.fullName });
+                        }}
+                      />
                       <div>
                         <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Lương cơ bản (VND)</label>
                         <input
@@ -419,6 +430,10 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
                           <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
+                       </div>
+                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Người quản lý trực tiếp</p>
+                          <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.managerName || 'Không có'}</p>
                        </div>
                     </div>
                   )}
