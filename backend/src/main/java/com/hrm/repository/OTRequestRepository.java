@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface OTRequestRepository extends JpaRepository<OTRequest, UUID> {
-    List<OTRequest> findByEmployeeId(UUID employeeId);
-    List<OTRequest> findByStatus(OTStatus status);
+    List<OTRequest> findByEmployeeIdOrderByCreatedAtDesc(UUID employeeId);
+    List<OTRequest> findByStatusOrderByCreatedAtAsc(OTStatus status);
+    List<OTRequest> findByStatusNotOrderByCreatedAtDesc(OTStatus status);
 }

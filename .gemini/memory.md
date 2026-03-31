@@ -78,3 +78,12 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
   - **D15 FIX ADDED:** `Math.max(0, netSalary)` to prevent negative payroll
   - Backend: Clean compile ✓
   - **System Status: 🚀 PRODUCTION READY**
+- [2026-03-31T14:02:00+07:00] Fix lỗi `FlywayValidateException`: Revert file `V2__seed.sql` về checksum cũ và chuyển logic mới sang `V8__fix_company_config_defaults.sql` để tuân thủ rule không sửa migration đã chạy.
+- [2026-03-31T14:31:00+07:00] Fix lỗi build Frontend: Xóa dòng `export { fetchUnreadCount: getFetchUnreadCount };` sai cú pháp tại `NotificationPanel.tsx`.
+- [2026-03-31T14:34:00+07:00] Bổ sung thư viện `xlsx` (SheetJS) bị thiếu vào dependencies của Frontend để hỗ trợ Excel Preview.
+- [2026-03-31T15:40:00+07:00] Tối ưu Dashboard: Widget Chấm công tự động hiển thị Giờ ra/Giờ vào linh hoạt tùy theo dữ liệu thực tế.
+- [2026-03-31T15:45:00+07:00] **Đại tu UI Phê duyệt (Approval Console)**:
+  - Chuyển đổi 3 trang **Nghỉ phép, Giải trình, Tăng ca** từ dạng Cards sang **Table Layout** chuyên nghiệp.
+  - Tích hợp **Tabs (Chờ duyệt / Lịch sử)** giúp HR/Manager quản lý hàng trăm đơn dễ dàng.
+  - BE: Bổ sung repository/service support query history/reviewed requests.
+  - FE: Thiết kế lại toàn bộ CSS Glassmorphism cho Bảng dữ liệu, tối ưu hóa không gian hiển thị.

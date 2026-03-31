@@ -39,6 +39,12 @@ public class LeaveRequestController {
         return ResponseEntity.ok(leaveRequestService.getPendingRequests(authentication));
     }
 
+    @GetMapping("/reviewed")
+    @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
+    public ResponseEntity<List<LeaveRequestDTO>> reviewed(Authentication authentication) {
+        return ResponseEntity.ok(leaveRequestService.getReviewedRequests(authentication));
+    }
+
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
     public ResponseEntity<LeaveRequestDTO> approve(@PathVariable UUID id, Authentication authentication) {

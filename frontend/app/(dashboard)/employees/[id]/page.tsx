@@ -92,7 +92,7 @@ function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-left text-slate-900 dark:text-white font-bold hover:border-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+        className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-left text-slate-900 dark:text-white font-bold hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {selected ? (
           <span className="text-slate-900 dark:text-white">
@@ -105,13 +105,13 @@ function SearchableSelect({
       </button>
 
       {open && !disabled && (
-        <div className="absolute z-[100] mt-3 w-full rounded-2xl border border-black/5 dark:border-white/20 bg-white dark:bg-slate-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden">
+        <div className="absolute z-[100] mt-3 w-full rounded-2xl glass-dark shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden">
           <div className="p-3 border-b border-black/5 dark:border-white/10">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm danh mục..."
-              className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
             />
           </div>
           <div className="max-h-64 overflow-auto p-1.5 scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10">
@@ -123,7 +123,7 @@ function SearchableSelect({
                   setOpen(false);
                   setQuery('');
                 }}
-                className="w-full text-left px-4 py-3 rounded-xl text-slate-500 dark:text-white/40 hover:bg-slate-900/5 dark:hover:bg-white/5 text-xs font-bold transition-all"
+                className="w-full text-left px-4 py-3 rounded-xl text-slate-500 dark:text-white/40 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/15 text-xs font-bold transition-all"
               >
                 {clearLabel}
               </button>
@@ -285,84 +285,109 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
     <div className="space-y-10 pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
-      {/* Title Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
-         <div className="flex items-center gap-8">
-            <div className="relative group">
-               <Avatar name={emp.fullName} size="xl" />
-               <div className="absolute inset-0 rounded-full bg-indigo-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-all" />
+      {/* Title Section with Enhanced Styling */}
+      <div className="pt-10">
+        {/* Gradient Background */}
+        <div className="absolute -z-10 top-0 left-1/2 w-full h-96 bg-gradient-to-b from-indigo-500/5 via-purple-500/5 to-transparent blur-3xl translate-x-0" />
+        
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="flex items-center gap-6 md:gap-8">
+            <div className="relative group flex-shrink-0">
+              <Avatar name={emp.fullName} size="xl" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 blur-xl opacity-0 group-hover:opacity-30 transition-all duration-300" />
+              <div className="absolute inset-2 rounded-full border-2 border-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
             </div>
-            <div>
-               <h1 className="text-6xl font-black text-white/90 tracking-tighter mix-blend-overlay uppercase leading-[0.8] mb-4">{emp.fullName}</h1>
-               <div className="flex items-center gap-4">
-                  <span className="text-xs font-black bg-indigo-500 text-white px-3 py-1 rounded-full uppercase tracking-widest">{emp.positionName || 'Nhân viên'}</span>
-                  <span className="text-xs font-bold text-white/40 uppercase tracking-widest border-l border-white/10 pl-4">{emp.departmentName || 'Chung'}</span>
-               </div>
+            <div className="space-y-4">
+              <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight">
+                {emp.fullName}
+              </h1>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/30">
+                  {emp.positionName || 'Nhân viên'}
+                </span>
+                <span className="px-4 py-2 rounded-full bg-indigo-500/10 backdrop-blur-sm border border-indigo-500/20 text-slate-900/70 dark:text-white/70 text-xs font-bold uppercase tracking-widest">
+                  {emp.departmentName || 'Chung'}
+                </span>
+                <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
+                  emp.status === 'ACTIVE' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' :
+                  emp.status === 'INACTIVE' ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' :
+                  'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                }`}>
+                  {emp.status === 'ACTIVE' ? 'Đang làm việc' : 
+                   emp.status === 'INACTIVE' ? 'Ngưng hoạt động' :
+                   emp.status === 'PROBATION' ? 'Thử việc' : emp.status}
+                </span>
+              </div>
             </div>
-         </div>
+          </div>
 
-         <div className="flex gap-3 mt-8 md:mt-0">
+          <div className="flex gap-3 mt-4 md:mt-0">
             <button
-               type="button"
-               onClick={() => router.push('/employees')}
-               className="px-6 py-3 rounded-2xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 font-bold text-xs uppercase tracking-widest transition-all"
+              type="button"
+              onClick={() => router.push('/employees')}
+              className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white font-black text-xs uppercase tracking-widest transition-all duration-300 border border-white/10 hover:border-white/20"
             >
-               QUAY LẠI
+              ← QUAY LẠI
             </button>
-         </div>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
          {/* Left Column: Essential Info */}
          <div className="lg:col-span-2 space-y-10">
-            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
-               <div className="flex items-center gap-3 mb-8">
-                  <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Thông tin cá nhân</h3>
+            {/* Personal Info Card */}
+            <div className="relative group glass-dark rounded-[40px] p-10 shadow-lg dark:shadow-2xl hover:shadow-xl dark:hover:shadow-3xl transition-all duration-300 overflow-hidden">
+               {/* Gradient overlay on hover */}
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[40px] transition-all duration-300" />
+               
+               <div className="relative z-10 flex items-center gap-3 mb-10">
+                  <div className="w-2 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full" />
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Thông tin cá nhân</h3>
                </div>
                
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
                   <div>
-                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Số điện thoại</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📱 Số điện thoại</label>
                     <input
                       type="text"
                       value={emp.phone || ''}
                       placeholder="Chưa cập nhật"
                       onChange={(e) => setEmp({ ...emp, phone: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Ngày sinh</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🎂 Ngày sinh</label>
                     <input
                       type="date"
                       value={emp.birthDate || ''}
                       onChange={(e) => setEmp({ ...emp, birthDate: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Địa chỉ thường trú</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🏠 Địa chỉ thường trú</label>
                     <input
                       type="text"
                       value={emp.address || ''}
                       placeholder="Chưa cập nhật địa chỉ"
                       onChange={(e) => setEmp({ ...emp, address: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50"
+                      className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Tiểu sử / Ghi chú</label>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">✍️ Tiểu sử / Ghi chú</label>
                     <textarea
                       rows={4}
                       value={emp.bio || ''}
-                      placeholder="Giới thiệu ngắn về bản thân..."
+                      placeholder="Giới thiệu ngắn về bản thân, kỹ năng, thành tựu..."
                       onChange={(e) => setEmp({ ...emp, bio: e.target.value })}
                       disabled={!canEditPersonal}
-                      className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all disabled:opacity-50 resize-none"
+                      className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-4 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
                     />
                   </div>
                </div>
@@ -371,17 +396,20 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
 
          {/* Right Column: Work & System info */}
          <div className="space-y-10">
-            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
-               <div className="flex items-center gap-3 mb-8">
-                  <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Cơ cấu & Lương</h3>
+            {/* Work Structure Card */}
+            <div className="relative group glass-dark backdrop-blur-xl rounded-[40px] p-10 shadow-lg dark:shadow-2xl hover:shadow-xl dark:hover:shadow-3xl transition-all duration-300 overflow-hidden">
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[40px] transition-all duration-300" />
+               
+               <div className="relative z-10 flex items-center gap-3 mb-10">
+                  <div className="w-2 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full" />
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Cơ cấu & Lương</h3>
                </div>
 
-               <div className="space-y-6">
+               <div className="relative z-10 space-y-6">
                   {canEditStructure ? (
                     <>
                       <SearchableSelect
-                        label="Phòng ban"
+                        label="🏢 Phòng ban"
                         value={emp.departmentId}
                         options={departmentSelectOptions}
                         placeholder="Chọn bộ phận..."
@@ -392,7 +420,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         }}
                       />
                       <SearchableSelect
-                        label="Chức danh"
+                        label="👔 Chức danh"
                         value={emp.positionId}
                         options={positionSelectOptions}
                         placeholder="Chọn chức vụ..."
@@ -403,7 +431,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         }}
                       />
                       <SearchableSelect
-                        label="Người quản lý trực tiếp"
+                        label="👨‍💼 Người quản lý trực tiếp"
                         value={emp.managerId}
                         options={managerSelectOptions}
                         placeholder="Chọn người quản lý..."
@@ -414,7 +442,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         }}
                       />
                       <SearchableSelect
-                        label="Trạng thái hồ sơ"
+                        label="✅ Trạng thái hồ sơ"
                         value={emp.status}
                         options={[
                           { id: 'ACTIVE', label: 'Đang làm việc' },
@@ -427,76 +455,97 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         onSelect={(nextId) => setEmp({ ...emp, status: nextId as any })}
                       />
                       <div>
-                        <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Lương cơ bản (VND)</label>
-                        <input
-                          type="number"
-                          value={emp.baseSalary || 0}
-                          onChange={(e) => setEmp({ ...emp, baseSalary: Number(e.target.value) })}
-                          className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-4 text-indigo-500 dark:text-indigo-400 font-black text-lg focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                        />
+                        <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">💰 Lương cơ bản (VND)</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 font-black">₫</span>
+                          <input
+                            type="number"
+                            value={emp.baseSalary || 0}
+                            onChange={(e) => setEmp({ ...emp, baseSalary: Number(e.target.value) })}
+                            className="w-full pl-8 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-emerald-600 dark:text-emerald-400 font-black text-lg focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300"
+                          />
+                        </div>
                       </div>
                     </>
                   ) : (
                      <div className="space-y-4">
-                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Bộ phận / Phòng ban</p>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">🏢 Bộ phận / Phòng ban</p>
                            <p className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{emp.departmentName || 'Chung'}</p>
                         </div>
-                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Chức danh / Vị trí</p>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👔 Chức danh / Vị trí</p>
                            <p className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{emp.positionName || 'Nhân viên'}</p>
                         </div>
-                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Mức lương hiện tại</p>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-emerald-300/60 uppercase tracking-widest mb-2">💰 Mức lương hiện tại</p>
                            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{formatVND(emp.baseSalary)}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                           <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                              <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
+                           <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                              <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">📅 Tham gia từ</p>
                               <p className="text-sm font-black text-slate-900 dark:text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
                            </div>
-                           <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                              <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Trạng thái</p>
-                              <p className="text-sm font-black text-indigo-500 uppercase tracking-widest">
+                           <div className={`p-5 rounded-2xl border backdrop-blur-sm hover:shadow-lg transition-all duration-300 ${
+                              emp.status === 'ACTIVE' ? 'bg-emerald-500/20 border-emerald-500/30 dark:bg-emerald-500/10 dark:border-emerald-500/20' :
+                              emp.status === 'INACTIVE' ? 'bg-rose-500/20 border-rose-500/30 dark:bg-rose-500/10 dark:border-rose-500/20' :
+                              'bg-amber-500/20 border-amber-500/30 dark:bg-amber-500/10 dark:border-amber-500/20'
+                           }`}>
+                              <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">✅ Trạng thái</p>
+                              <p className={`text-sm font-black uppercase tracking-widest ${
+                                 emp.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' :
+                                 emp.status === 'INACTIVE' ? 'text-rose-600 dark:text-rose-400' :
+                                 'text-amber-600 dark:text-amber-400'
+                              }`}>
                                  {emp.status === 'ACTIVE' ? 'Làm việc' : emp.status === 'PROBATION' ? 'Thử việc' : 'Hợp đồng/Khác'}
                               </p>
                            </div>
                         </div>
-                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Người quản lý trực tiếp</p>
+                           <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👨‍💼 Người quản lý trực tiếp</p>
                            <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.managerName || 'Không có'}</p>
                         </div>
                      </div>
                   )}
 
-                  <hr className="border-black/5 dark:border-white/5 mt-10 mb-8" />
+                  <hr className="border-white/10 dark:border-white/5 mt-10 mb-8" />
 
                   <button
                     type="submit"
                     disabled={saving || !canEditPersonal}
-                    className="w-full py-4 bg-indigo-500 hover:bg-indigo-400 disabled:bg-white/10 disabled:text-white/20 text-white rounded-[24px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 disabled:from-white/10 disabled:via-white/10 disabled:to-white/10 disabled:text-white/20 text-white rounded-[24px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-purple-500/40 active:scale-95 disabled:active:scale-100 flex items-center justify-center gap-3"
                   >
                     {saving && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                    {saving ? 'ĐANG LƯU...' : 'LƯU HỒ SƠ'}
+                    {saving ? 'ĐANG LƯU...' : '💾 LƯU HỒ SƠ'}
                   </button>
                </div>
             </div>
 
-            {/* Account Card */}
-            <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[40px] p-10 border border-white/5 shadow-3xl text-center">
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-4">Tài khoản hệ thống</p>
-                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest mb-4 ${
-                   emp.status === 'ACTIVE' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                   emp.status === 'INACTIVE' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                   'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                }`}>
-                   {emp.status === 'ACTIVE' ? 'Đang hoạt động' : 
-                    emp.status === 'INACTIVE' ? 'Ngưng hoạt động / Khóa' :
-                    emp.status === 'PROBATION' ? 'Đang thử việc' :
-                    'Chính thức / Hợp đồng'}
+            {/* Account Status Card */}
+            <div className="relative group glass-dark backdrop-blur-3xl rounded-[40px] p-10 shadow-2xl dark:shadow-3xl hover:shadow-3xl dark:hover:shadow-4xl transition-all duration-300 overflow-hidden">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[40px] transition-all duration-300" />
+                
+                <div className="relative z-10 text-center space-y-6">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-600/60 dark:text-white/30 uppercase tracking-[0.2em] mb-5">🔑 Tài khoản hệ thống</p>
+                      <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full border text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                         emp.status === 'ACTIVE' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-500/10' :
+                         emp.status === 'INACTIVE' ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-lg shadow-rose-500/10' :
+                         'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-lg shadow-amber-500/10'
+                      }`}>
+                         {emp.status === 'ACTIVE' ? '✓ Đang hoạt động' : 
+                          emp.status === 'INACTIVE' ? '✕ Ngưng hoạt động / Khóa' :
+                          emp.status === 'PROBATION' ? '⏳ Đang thử việc' :
+                          '📄 Chính thức / Hợp đồng'}
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-black/10 dark:border-white/10">
+                      <h4 className="text-slate-900 dark:text-white font-black text-lg truncate mb-2">{emp.email}</h4>
+                      <p className="text-slate-700/60 dark:text-white/40 text-xs font-bold tracking-widest">
+                        ID: <span className="font-black text-indigo-400">{emp.id.split('-')[0].toUpperCase()}</span>
+                      </p>
+                    </div>
                 </div>
-                <h4 className="text-white font-bold truncate mb-1">{emp.email}</h4>
-                <p className="text-white/30 text-xs">Mã nhân viên: {emp.id.split('-')[0].toUpperCase()}</p>
             </div>
          </div>
       </form>

@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface ApologyRepository extends JpaRepository<Apology, UUID> {
     List<Apology> findByEmployeeOrderByCreatedAtDesc(Employee employee);
     List<Apology> findByStatusOrderByCreatedAtAsc(ApologyStatus status);
+    List<Apology> findByStatusNotOrderByCreatedAtDesc(ApologyStatus status);
     long countByEmployeeAndStatus(Employee employee, ApologyStatus status);
     long countByStatus(ApologyStatus status);
 }

@@ -3,11 +3,13 @@ package com.hrm.service;
 import com.hrm.dto.ApologyCreateRequest;
 import com.hrm.dto.ApologyDTO;
 import com.hrm.entity.*;
+import com.hrm.event.RequestStatusChangedEvent;
 import com.hrm.repository.ApologyRepository;
 import com.hrm.repository.AttendanceRepository;
 import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class ApologyService {
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ApologyDTO createMyApology(ApologyCreateRequest request, Authentication authentication) {
@@ -73,6 +76,12 @@ public class ApologyService {
         return apologyRepository.findByStatusOrderByCreatedAtAsc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ApologyDTO> getReviewedApologies(Authentication authentication) {
+        ensureReviewer(authentication);
+        return apologyRepository.findByStatusNotOrderByCreatedAtDesc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
+    }
+
     @Transactional
     public ApologyDTO review(UUID apologyId, boolean approved, String note, Authentication authentication) {
         ensureReviewer(authentication);
@@ -95,7 +104,18 @@ public class ApologyService {
             attendanceRepository.save(attendance);
         }
 
-        return toDto(apologyRepository.save(apology));
+        Apology saved = apologyRepository.save(apology);
+        
+        // D30: Publish event to trigger notification
+        eventPublisher.publishEvent(new RequestStatusChangedEvent(
+            apology.getId(),
+            "APOLOGY",
+            approved ? "APPROVED" : "REJECTED",
+            apology.getEmployee().getUser().getId(),
+            note
+        ));
+
+        return toDto(saved);
     }
 
     private Employee resolveCurrentEmployee(Authentication authentication) {

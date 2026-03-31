@@ -38,9 +38,11 @@ export default function ApologiesPage() {
   const [reason, setReason] = useState('');
   const [myItems, setMyItems] = useState<Apology[]>([]);
   const [pendingItems, setPendingItems] = useState<Apology[]>([]);
+  const [reviewedItems, setReviewedItems] = useState<Apology[]>([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
 
   const role = session?.role ?? null;
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
@@ -50,11 +52,17 @@ export default function ApologiesPage() {
   const loadData = useCallback(async () => {
     try {
       const tasks: Promise<any>[] = [api.get<Apology[]>('/api/apologies/my')];
-      if (canReview) tasks.push(api.get<Apology[]>('/api/apologies/pending'));
+      if (canReview) {
+        tasks.push(api.get<Apology[]>('/api/apologies/pending'));
+        tasks.push(api.get<Apology[]>('/api/apologies/reviewed'));
+      }
       
-      const [myRes, pendingRes] = await Promise.all(tasks);
-      setMyItems(myRes.data ?? []);
-      if (canReview && pendingRes) setPendingItems(pendingRes.data ?? []);
+      const res = await Promise.all(tasks);
+      setMyItems(res[0].data ?? []);
+      if (canReview) {
+        setPendingItems(res[1]?.data ?? []);
+        setReviewedItems(res[2]?.data ?? []);
+      }
     } catch {
       pushToast('error', 'Không thể tải danh sách đơn giải trình.');
     }
@@ -64,13 +72,11 @@ export default function ApologiesPage() {
     if (session) {
       void loadData();
       setAttendanceDate(new Date().toISOString().split('T')[0]);
-      // Admins don't see form by default
       setShowForm(!isAdminOrHR);
     }
   }, [session, loadData, isAdminOrHR]);
 
   async function submit() {
-    // D23: Complete form validation
     if (!attendanceDate || !type || !reason.trim()) {
       pushToast('error', 'Vui lòng điền đầy đủ thông tin (ngày, loại, nội dung)');
       return;
@@ -101,6 +107,8 @@ export default function ApologiesPage() {
 
   if (!session) return null;
 
+  const currentDisplayItems = activeTab === 'pending' ? pendingItems : reviewedItems;
+
   return (
     <div className="space-y-12 pb-24">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
@@ -113,26 +121,25 @@ export default function ApologiesPage() {
             </h1>
             <div className="flex items-center gap-4 mt-6 ml-2">
                <span className="w-8 h-1 bg-indigo-500 rounded-full" />
-               <p className="text-sm font-bold uppercase tracking-[0.4em] italic" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Duyệt & Quản lý sai lệch chấm công</p>
+               <p className="text-sm font-bold uppercase tracking-[0.4em] italic text-white/80" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Duyệt & Quản lý sai lệch chấm công</p>
             </div>
          </div>
          
          {isAdminOrHR && (
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl border border-black/5 dark:border-white/10 text-slate-900 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl dark:shadow-none"
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl dark:shadow-none"
             >
-              {showForm ? 'Hủy viết đơn' : 'Viết đơn cá nhân'}
+              {showForm ? 'Hủy' : 'Viết đơn cá nhân'}
             </button>
          )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-         
-         {/* Left Side: Creation Form (Only if shown) */}
+         {/* Left Side: Creation Form */}
          {showForm && (
             <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
-               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl hover:bg-white/90 dark:hover:bg-white/[0.07] transition-all">
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/10 shadow-xl">
                   <h3 className="text-lg font-black text-slate-900 dark:text-white/90 uppercase tracking-widest mb-8 flex items-center gap-2">
                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                      Soạn thảo đơn
@@ -145,7 +152,7 @@ export default function ApologiesPage() {
                          type="date"
                          value={attendanceDate}
                          onChange={(e) => setAttendanceDate(e.target.value)}
-                         className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
+                         className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none shadow-inner"
                        />
                      </div>
                      
@@ -179,24 +186,24 @@ export default function ApologiesPage() {
                      <button
                        onClick={() => void submit()}
                        disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-black/5 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-white rounded-[26px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-indigo-500/20 active:scale-95"
+                       className="w-full py-5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-black/5 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-white rounded-[26px] font-black uppercase tracking-[0.2em] transition-all"
                      >
                        {loading ? '...' : 'GỬI ĐƠN NGAY'}
                      </button>
                   </div>
                </div>
 
-               {/* My History Section (Mini) */}
-               <div className="bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-white/5 shadow-3xl max-h-[300px] flex flex-col">
-                  <h3 className="text-lg font-black text-emerald-400 uppercase tracking-widest mb-6 px-1 text-xs">Phản hồi gần đây</h3>
+               {/* My History Section */}
+               <div className="bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-white/5 shadow-3xl max-h-[350px] flex flex-col">
+                  <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 px-1">Phản hồi của tôi</h3>
                   <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                     {myItems.slice(0, 5).map(item => (
-                        <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                     {myItems.map(item => (
+                        <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all cursor-default">
                            <div className="flex justify-between items-center mb-1">
-                              <p className="text-[9px] font-black text-white/30 uppercase">{new Date(item.attendanceDate).toLocaleDateString('vi-VN')}</p>
+                              <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">{new Date(item.attendanceDate).toLocaleDateString('vi-VN')}</p>
                               <StatusBadge status={item.status} />
                            </div>
-                           <p className="text-white/60 text-[10px] font-bold truncate">{item.reason}</p>
+                           <p className="text-white/80 dark:text-white/60 text-[11px] font-bold truncate uppercase">{typeOptions.find(t=>t.value===item.type)?.label}</p>
                         </div>
                      ))}
                   </div>
@@ -204,93 +211,126 @@ export default function ApologiesPage() {
             </div>
          )}
 
-         {/* Center/Right Side: Approval Console (Full width if no form) */}
+         {/* Center/Right Side: Approval Console */}
          <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
             {canReview ? (
-               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[600px]">
-                  <div className="p-10 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-white/[0.02]">
-                     <div>
-                        <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">PHÊ DUYỆT ĐƠN</h3>
-                        <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1">Danh sách nhân viên đang chờ quyết định</p>
-                     </div>
-                     <div className="px-6 py-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex items-center gap-4">
-                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                        <span className="text-indigo-600 dark:text-indigo-400 font-black text-sm tracking-widest">{pendingItems.length} ĐƠN CẦN XỬ LÝ</span>
+               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
+                  {/* Header & Tabs */}
+                  <div className="p-10 border-b border-black/5 dark:border-white/10 space-y-10">
+                     <div className="flex items-center justify-between">
+                        <div>
+                           <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Duyệt giải trình</h3>
+                           <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1 italic">Phê duyệt các vấn đề phát sinh khi chấm công</p>
+                        </div>
+                        <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-[24px] border border-black/5 dark:border-white/10">
+                           <button 
+                             onClick={() => setActiveTab('pending')}
+                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
+                           >
+                              Cần xử lý ({pendingItems.length})
+                           </button>
+                           <button 
+                             onClick={() => setActiveTab('history')}
+                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
+                           >
+                              Lịch sử ({reviewedItems.length})
+                           </button>
+                        </div>
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-10 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
-                     {!pendingItems.length && (
-                        <div className="flex flex-col items-center justify-center py-32 opacity-30 dark:opacity-20">
-                           <svg className="w-20 h-20 mb-6 text-slate-400 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                           <p className="text-xl font-black uppercase tracking-widest text-center text-slate-400 dark:text-white">Tất cả hồ sơ<br/>đã được duyệt xong</p>
-                        </div>
-                     )}
-                     
-                     <div className={`grid grid-cols-1 ${!showForm ? 'md:grid-cols-2 gap-8' : 'gap-6'}`}>
-                        {pendingItems.map(item => (
-                          <div key={item.id} className="group relative bg-white/80 dark:bg-slate-900/60 p-8 rounded-[40px] border border-black/5 dark:border-white/10 hover:border-indigo-500/50 transition-all duration-500 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-                             <div className="flex-1 space-y-6">
-                                <div className="flex items-center gap-5">
-                                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-800 flex items-center justify-center text-white font-black text-lg shadow-xl ring-2 ring-white/5">
-                                      {item.employeeName?.charAt(0) || '?'}
-                                   </div>
-                                   <div>
-                                      <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{item.employeeName}</h4>
-                                      <div className="flex items-center gap-3">
-                                         <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">
-                                            {typeOptions.find(t=>t.value===item.type)?.label}
-                                         </span>
-                                         <span className="text-[10px] font-bold text-slate-500 dark:text-white/30 uppercase tracking-widest italic">{new Date(item.attendanceDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}</span>
-                                      </div>
-                                   </div>
-                                </div>
-                                
-                                <p className="text-base text-slate-600 dark:text-white/60 italic leading-relaxed py-5 px-6 bg-slate-900/5 dark:bg-white/5 rounded-[28px] border border-black/5 dark:border-white/5 flex-1 min-h-[100px]">
-                                   "{item.reason || 'Không có lý do chi tiết.'}"
-                                </p>
-                             </div>
-                             
-                             <div className="flex flex-row gap-4 shrink-0">
-                                <button 
-                                  onClick={() => void review(item.id, true)}
-                                  className="flex-1 py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-[0.15em] rounded-[22px] transition-all shadow-xl shadow-emerald-500/10 active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                   DUYỆT
-                                </button>
-                                <button 
-                                  onClick={() => void review(item.id, false)}
-                                  className="flex-1 py-5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 text-sm font-black uppercase tracking-[0.15em] rounded-[22px] transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                   TỪ CHỐI
-                                </button>
-                             </div>
-                          </div>
-                        ))}
-                     </div>
+                  <div className="flex-1 overflow-x-auto">
+                     <table className="w-full border-collapse">
+                        <thead>
+                           <tr className="border-b border-black/5 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.02]">
+                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/4">Nhân viên</th>
+                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Sự cố</th>
+                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Ngày ghi nhận</th>
+                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Nội dung giải trình</th>
+                              {activeTab === 'pending' && <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Tác vụ</th>}
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                           {!currentDisplayItems.length && (
+                              <tr>
+                                 <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold text-slate-900 dark:text-white">
+                                    Không có đơn nào cần hiển thị.
+                                 </td>
+                              </tr>
+                           )}
+                           {currentDisplayItems.map(item => (
+                              <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
+                                 <td className="px-8 py-6">
+                                    <div className="flex items-center gap-4">
+                                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-800 flex items-center justify-center text-white font-black text-sm uppercase">
+                                          {item.employeeName?.charAt(0) || '?'}
+                                       </div>
+                                       <div>
+                                          <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
+                                          <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Thành viên Team</p>
+                                       </div>
+                                    </div>
+                                 </td>
+                                 <td className="px-8 py-6">
+                                    <span className="text-[10px] font-black bg-slate-100 dark:bg-white/5 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/10 uppercase tracking-widest">
+                                       {typeOptions.find(t=>t.value===item.type)?.label}
+                                    </span>
+                                 </td>
+                                 <td className="px-8 py-6">
+                                    <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">
+                                       {new Date(item.attendanceDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
+                                    </p>
+                                 </td>
+                                 <td className="px-8 py-6">
+                                    {activeTab === 'pending' ? (
+                                       <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                                    ) : (
+                                       <StatusBadge status={item.status} />
+                                    )}
+                                 </td>
+                                 {activeTab === 'pending' && (
+                                    <td className="px-8 py-6 text-right">
+                                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button 
+                                            onClick={() => void review(item.id, true)}
+                                            className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all font-black"
+                                          >
+                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                          </button>
+                                          <button 
+                                            onClick={() => void review(item.id, false)}
+                                            className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all"
+                                          >
+                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                          </button>
+                                       </div>
+                                    </td>
+                                 )}
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
                   </div>
                </div>
             ) : (
                <div className="bg-indigo-900/40 backdrop-blur-3xl rounded-[48px] border border-white/5 p-16 flex flex-col items-center text-center space-y-8 h-full justify-center">
-                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-indigo-400">
+                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-indigo-400 shadow-3xl border border-white/5">
                      <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                   </div>
-                  <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Hồ sơ cá nhân</h2>
-                  <p className="text-lg text-slate-500 dark:text-white/40 max-w-sm italic">Mọi yêu cầu của bạn sẽ được ban lãnh đạo xem xét và phản hồi sớm nhất.</p>
+                  <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Trung tâm<br/>giải trình cá nhân</h2>
+                  <p className="text-lg text-slate-500 dark:text-white/40 max-w-sm italic">Mọi sai sót chấm công của bạn sẽ được đội ngũ nhân sự kiểm tra và phản hồi.</p>
                   
-                  <div className="w-full max-w-sm pt-10">
-                    <h4 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">Lịch sử của bạn</h4>
-                    <div className="space-y-3">
-                       {myItems.map(item => (
-                          <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group hover:bg-white/10 transition-all">
-                             <div className="text-left">
-                                <p className="text-white font-bold text-xs">{typeOptions.find(t=>t.value===item.type)?.label}</p>
-                                <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-0.5">{new Date(item.attendanceDate).toLocaleDateString('vi-VN')}</p>
-                             </div>
-                             <StatusBadge status={item.status} />
-                          </div>
-                       ))}
-                    </div>
+                  <div className="w-full max-w-sm pt-4">
+                     <div className="flex gap-4 items-center justify-center">
+                        <div className="px-8 py-5 bg-white/5 rounded-[30px] border border-white/10 flex-1">
+                           <span className="block text-2xl font-black text-indigo-400">{myItems.length}</span>
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">Đơn đã gửi</span>
+                        </div>
+                        <div className="px-8 py-5 bg-white/5 rounded-[30px] border border-white/10 flex-1">
+                           <span className="block text-2xl font-black text-emerald-400">{myItems.filter(i=>i.status==='APPROVED').length}</span>
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">Đã chấp nhận</span>
+                        </div>
+                     </div>
                   </div>
                </div>
             )}

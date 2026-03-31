@@ -67,6 +67,12 @@ public class LeaveRequestService {
         return leaveRequestRepository.findByStatusOrderByCreatedAtAsc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<LeaveRequestDTO> getReviewedRequests(Authentication authentication) {
+        ensureReviewer(authentication);
+        return leaveRequestRepository.findByStatusNotOrderByCreatedAtDesc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
+    }
+
     @Transactional
     public LeaveRequestDTO review(UUID requestId, boolean approved, Authentication authentication) {
         ensureReviewer(authentication);

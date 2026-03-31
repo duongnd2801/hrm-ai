@@ -40,6 +40,12 @@ public class ApologyController {
         return ResponseEntity.ok(apologyService.getPendingApologies(authentication));
     }
 
+    @GetMapping("/reviewed")
+    @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
+    public ResponseEntity<List<ApologyDTO>> reviewed(Authentication authentication) {
+        return ResponseEntity.ok(apologyService.getReviewedApologies(authentication));
+    }
+
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
     public ResponseEntity<ApologyDTO> approve(@PathVariable UUID id, @RequestBody(required = false) ReviewRequest request, Authentication authentication) {

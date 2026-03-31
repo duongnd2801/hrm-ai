@@ -28,13 +28,19 @@ public class OTRequestService {
     public List<OTRequestDTO> getMyRequests(UUID userId) {
         Employee emp = employeeRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Chưa có hồ sơ nhân viên."));
-        return otRequestRepository.findByEmployeeId(emp.getId()).stream()
+        return otRequestRepository.findByEmployeeIdOrderByCreatedAtDesc(emp.getId()).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public List<OTRequestDTO> getPendingRequests() {
-        return otRequestRepository.findByStatus(OTStatus.PENDING).stream()
+        return otRequestRepository.findByStatusOrderByCreatedAtAsc(OTStatus.PENDING).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<OTRequestDTO> getReviewedRequests() {
+        return otRequestRepository.findByStatusNotOrderByCreatedAtDesc(OTStatus.PENDING).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

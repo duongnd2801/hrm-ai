@@ -34,3 +34,17 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// Auth API Functions
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}) {
+  try {
+    const response = await api.post('/api/auth/change-password', data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to change password');
+  }
+}

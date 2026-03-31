@@ -29,8 +29,13 @@ public class CompanyService {
     // --- Company Config ---
     @Transactional(readOnly = true)
     public CompanyConfigDTO getConfig() {
-        CompanyConfig config = configRepository.findById("default")
-                .orElseGet(() -> configRepository.save(new CompanyConfig()));
+        CompanyConfig config = configRepository.findAll().stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    CompanyConfig newConfig = new CompanyConfig();
+                    newConfig.setId("default");
+                    return configRepository.save(newConfig);
+                });
         CompanyConfigDTO dto = new CompanyConfigDTO();
         BeanUtils.copyProperties(config, dto);
         return dto;
@@ -38,11 +43,14 @@ public class CompanyService {
 
     @Transactional
     public CompanyConfigDTO updateConfig(CompanyConfigDTO dto) {
-        CompanyConfig config = configRepository.findById("default")
+        CompanyConfig config = configRepository.findAll().stream()
+                .findFirst()
                 .orElse(new CompanyConfig());
-        // Do not update ID
-        dto.setId("default");
-        BeanUtils.copyProperties(dto, config);
+        // Preserve existing ID if present, otherwise set default
+        if (config.getId() == null) {
+            config.setId("default");
+        }
+        BeanUtils.copyProperties(dto, config, "id");
         config = configRepository.save(config);
         
         CompanyConfigDTO resultDto = new CompanyConfigDTO();

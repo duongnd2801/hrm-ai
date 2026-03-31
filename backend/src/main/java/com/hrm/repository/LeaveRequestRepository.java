@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, UUID> {
     List<LeaveRequest> findByEmployeeOrderByCreatedAtDesc(Employee employee);
     List<LeaveRequest> findByStatusOrderByCreatedAtAsc(ApologyStatus status);
+    List<LeaveRequest> findByStatusNotOrderByCreatedAtDesc(ApologyStatus status);
     long countByEmployeeAndStatus(Employee employee, ApologyStatus status);
     long countByStatus(ApologyStatus status);
     

@@ -8,6 +8,8 @@ import { clearSession, hasRole } from '@/lib/auth';
 import type { UserSession } from '@/types';
 import { NAV_ITEMS } from './Sidebar';
 import ThemeToggle from './ThemeToggle';
+import ChangePasswordModal from './ChangePasswordModal';
+import NotificationPanel from './NotificationPanel';
 
 interface HeaderProps {
   session: UserSession;
@@ -21,11 +23,31 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   const [clock, setClock] = useState(new Date());
   const [temp, setTemp] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number>(0);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await axios.get(
+          'http://localhost:8080/api/notifications/my/unread-count',
+          { headers: { Authorization: `Bearer ${session?.token}` } }
+        );
+        setUnreadCount(response.data);
+      } catch (error) {
+        // silently fail
+      }
+    };
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [session]);
 
   useEffect(() => {
     async function fetchWeather() {
@@ -123,6 +145,25 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <button
+              title="Thông báo"
+              onClick={() => setShowNotificationPanel(!showNotificationPanel)}
+              className="relative p-3.5 text-slate-400 dark:text-white/30 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-2xl transition-all"
+            >
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            </button>
+            <button 
+              title="Đổi mật khẩu"
+              onClick={() => setShowChangePasswordModal(true)}
+              className="p-3.5 text-slate-400 dark:text-white/30 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-2xl transition-all"
+            >
+               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+            </button>
             <button 
               title="Đăng xuất"
               onClick={handleLogout}
@@ -132,6 +173,16 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
             </button>
           </div>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={showChangePasswordModal} 
+        onClose={() => setShowChangePasswordModal(false)} 
+      />
+
+      <NotificationPanel
+        isOpen={showNotificationPanel}
+        onClose={() => setShowNotificationPanel(false)}
+      />
     </header>
   );
 }

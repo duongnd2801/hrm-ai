@@ -2,6 +2,8 @@ package com.hrm.service;
 
 import com.hrm.dto.EmployeeDTO;
 import com.hrm.dto.PayrollDTO;
+import com.hrm.dto.ImportErrorResponse;
+import com.hrm.dto.ImportResultResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.commons.io.input.BOMInputStream;
@@ -287,5 +289,136 @@ public class ImportExportService {
             }
         }
         return list;
+    }
+
+    /**
+     * Parse employee Excel with detailed error tracking per row
+     */
+    public ImportResultResponse parseEmployeeExcelWithValidation(MultipartFile file) throws Exception {
+        List<EmployeeDTO> validRows = new ArrayList<>();
+        List<ImportErrorResponse> errors = new ArrayList<>();
+        int totalRows = 0;
+
+        try (BOMInputStream bomIn = new BOMInputStream(file.getInputStream());
+             Workbook workbook = new XSSFWorkbook(bomIn)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                totalRows++;
+                int excelRowNum = i + 1; // 1-based Excel row number
+                String email = "";
+                List<String> rowErrors = new ArrayList<>();
+
+                try {
+                    EmployeeDTO dto = new EmployeeDTO();
+
+                    // Col 0: Full Name (required)
+                    Cell nameCell = row.getCell(0);
+                    String name = (nameCell != null) ? nameCell.getStringCellValue().trim() : "";
+                    if (name.isEmpty()) {
+                        rowErrors.add("Tên nhân viên không được để trống");
+                    } else {
+                        dto.setFullName(name);
+                    }
+
+                    // Col 1: Email (required)
+                    Cell emailCell = row.getCell(1);
+                    email = (emailCell != null) ? emailCell.getStringCellValue().trim() : "";
+                    if (email.isEmpty()) {
+                        rowErrors.add("Email không được để trống");
+                    } else if (!email.contains("@")) {
+                        rowErrors.add("Email không hợp lệ");
+                    } else {
+                        dto.setEmail(email);
+                    }
+
+                    // Col 2: Phone
+                    Cell phoneCell = row.getCell(2);
+                    if (phoneCell != null) {
+                        String phone = phoneCell.getStringCellValue().trim();
+                        if (!phone.isEmpty()) dto.setPhone(phone);
+                    }
+
+                    // Col 3: Status
+                    Cell statusCell = row.getCell(3);
+                    if (statusCell != null) {
+                        try {
+                            String statusStr = statusCell.getStringCellValue().trim();
+                            if (!statusStr.isEmpty()) {
+                                dto.setStatus(com.hrm.entity.EmpStatus.valueOf(statusStr.toUpperCase()));
+                            }
+                        } catch (IllegalArgumentException e) {
+                            rowErrors.add("Status không hợp lệ: " + statusCell.getStringCellValue());
+                        }
+                    }
+
+                    // Col 4: Contract Type
+                    Cell contractCell = row.getCell(4);
+                    if (contractCell != null) {
+                        try {
+                            String contractStr = contractCell.getStringCellValue().trim();
+                            if (!contractStr.isEmpty()) {
+                                dto.setContractType(com.hrm.entity.ContractType.valueOf(contractStr.toUpperCase()));
+                            }
+                        } catch (IllegalArgumentException e) {
+                            rowErrors.add("Contract type không hợp lệ: " + contractCell.getStringCellValue());
+                        }
+                    }
+
+                    // Col 5: Base Salary
+                    Cell salaryCell = row.getCell(5);
+                    if (salaryCell != null) {
+                        try {
+                            double salary = salaryCell.getNumericCellValue();
+                            if (salary > 0) {
+                                dto.setBaseSalary((long) salary);
+                            } else {
+                                rowErrors.add("Lương cơ bản phải > 0");
+                            }
+                        } catch (IllegalStateException e) {
+                            rowErrors.add("Lương cơ bản phải là số");
+                        }
+                    }
+
+                    // Col 6: Start Date
+                    Cell startDateCell = row.getCell(6);
+                    if (startDateCell != null) {
+                        try {
+                            String dateStr = startDateCell.getStringCellValue().trim();
+                            if (!dateStr.isEmpty()) {
+                                dto.setStartDate(LocalDate.parse(dateStr));
+                            } else {
+                                dto.setStartDate(LocalDate.now());
+                            }
+                        } catch (Exception e) {
+                            rowErrors.add("Ngày vào làm phải định dạng YYYY-MM-DD");
+                        }
+                    } else {
+                        dto.setStartDate(LocalDate.now());
+                    }
+
+                    // If no errors, add to valid rows
+                    if (rowErrors.isEmpty()) {
+                        validRows.add(dto);
+                    } else {
+                        errors.add(new ImportErrorResponse(excelRowNum, email, String.join("; ", rowErrors)));
+                    }
+
+                } catch (Exception e) {
+                    errors.add(new ImportErrorResponse(excelRowNum, email, "Lỗi xử lý dòng: " + e.getMessage()));
+                }
+            }
+        }
+
+        return ImportResultResponse.builder()
+                .totalRows(totalRows)
+                .successCount(validRows.size())
+                .failureCount(errors.size())
+                .errors(errors)
+                .message(validRows.size() + " hàng hợp lệ, " + errors.size() + " hàng có lỗi")
+                .build();
     }
 }

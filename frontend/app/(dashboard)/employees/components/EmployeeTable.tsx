@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: Employee['status'] }) {
   );
 }
 
-export default function EmployeeTable({ search = '' }: { search?: string }) {
+export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?: string; refreshKey?: number }) {
   const { session } = useSession();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,7 @@ export default function EmployeeTable({ search = '' }: { search?: string }) {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [search, currentPage, pageSize]);
+  }, [search, currentPage, pageSize, refreshKey]);
 
   useEffect(() => {
     const handler = setTimeout(() => {

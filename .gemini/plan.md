@@ -121,24 +121,38 @@
 
 #### PHẦN E: GỢI Ý TÍNH NĂNG MỚI
 
-| # | Tính năng | Mô tả | Độ ưu tiên |
-|---|---|---|---|
-| E1 | **Đổi mật khẩu** | API + UI cho phép user đổi mật khẩu. Hiện tại NV import dùng Emp@123 mãi | 🔴 Cần ngay |
-| E3 | **Thông báo (Notification)** | Push notification khi có đơn chờ duyệt, khi đơn được duyệt/từ chối | 🟠 Nên có |
-| E7 | **Quản lý ngày lễ (Holiday Calendar)** | CRUD ngày lễ → tự động đánh DAY_OFF + ảnh hưởng OT rate | 🟡 Nice-to-have |
-| E8 | **Xuất phiếu lương PDF cá nhân** | Mỗi NV tải phiếu lương tháng dạng PDF chuyên nghiệp | 🟡 Nice-to-have |
-| E9 | **Dashboard biểu đồ** | Chart ra/vào, tỉ lệ đi muộn, lương trung bình... | 🟡 Nice-to-have |
-| E11 | **Excel preview trước khi import** | FE parse file xlsx trước → hiện bảng preview → user confirm → mới gửi lên BE | 🔴 Cần ngay |
-| E12 | **Validate import chi tiết** | BE trả về danh sách lỗi từng dòng (dòng 3: email trùng, dòng 5: thiếu tên...) | 🔴 Cần ngay |
-| E13 | **Quản lý tài khoản (User management)** | ADMIN xem danh sách tài khoản, đổi role, vô hiệu hóa, reset mật khẩu | 🟠 Nên có |
-| E14 | **Export attendance report** | Báo cáo chấm công tháng theo phòng ban → Excel | 🟡 Nice-to-have |
+| # | Tính năng | Mô tả | Độ ưu tiên | Status |
+|---|---|---|---|---|
+| E1 | **Đổi mật khẩu** | API + UI cho phép user đổi mật khẩu. Hiện tại NV import dùng Emp@123 mãi | 🔴 Cần ngay | ✅ COMPLETED |
+| E3 | **Thông báo (Notification)** | Push notification khi có đơn chờ duyệt, khi đơn được duyệt/từ chối | 🟠 Nên có | ✅ COMPLETED |
+| E7 | **Quản lý ngày lễ (Holiday Calendar)** | CRUD ngày lễ → tự động đánh DAY_OFF + ảnh hưởng OT rate | 🟡 Nice-to-have | ⏳ Future |
+| E8 | **Xuất phiếu lương PDF cá nhân** | Mỗi NV tải phiếu lương tháng dạng PDF chuyên nghiệp | 🟡 Nice-to-have | ⏳ Future |
+| E9 | **Dashboard biểu đồ** | Chart ra/vào, tỉ lệ đi muộn, lương trung bình... | 🟡 Nice-to-have | ⏳ Future |
+| E11 | **Excel preview trước khi import** | FE parse file xlsx trước → hiện bảng preview → user confirm → mới gửi lên BE | 🔴 Cần ngay | ✅ COMPLETED |
+| E12 | **Validate import chi tiết** | BE trả về danh sách lỗi từng dòng (dòng 3: email trùng, dòng 5: thiếu tên...) | 🔴 Cần ngay | ✅ COMPLETED |
+| E13 | **Quản lý tài khoản (User management)** | ADMIN xem danh sách tài khoản, đổi role, vô hiệu hóa, reset mật khẩu | 🟠 Nên có | ✅ COMPLETED |
+| E14 | **Export attendance report** | Báo cáo chấm công tháng theo phòng ban → Excel | 🟡 Nice-to-have | ⏳ Future |
 
 **Thứ tự thực hiện:** 
 1. ✅ Chạy test manual RBAC (Phần A) — 29/29 PASSED
 2. ✅ Test Import Excel (Phần B) — 10/10 PASSED (sau fix D3, D1, D2)
 3. ✅ Kiểm tra chức năng core (Phần C) — 26/26 PASSED (sau fix D16)
 4. ✅ Review bug (Phần D) — 5/5 FIXED (D1, D2, D3, D13, D16)
-5. ✅ Tính năng mới (Phần E) — cataloged for future phases
+5. ✅ Tính năng mới (Phần E) — **5/5 IMPLEMENTED** (E1, E3, E11, E12, E13)
+
+**Status Phần E:**
+- ✅ E1 Đổi mật khẩu — Backend (Service, Controller, DTOs) + Frontend (Modal, API, Header integration)
+- ✅ E3 Thông báo — Backend (Entity, Service, Controller, Repository) + Frontend (Panel, Header bell icon)
+- ✅ E11 Excel preview — Client-side parsing + modal, validation per row
+- ✅ E12 Validate chi tiết — Backend detailed error tracking per row (ImportResultResponse)
+- ✅ E13 User management — ADMIN dashboard, change role, reset password, delete user (paginated + search)
+
+**Backend Build Status:** ✅ COMPILE SUCCESS (mvn clean compile -q)
+
+**Files Implemented:**
+- Backend: AuthService, NotificationService/Entity/Repository/Controller, UserManagementService/Controller, ImportExportService (enhanced)
+- Frontend: ChangePasswordModal, NotificationPanel, ExcelPreviewModal, UserManagementPage, Header (enhanced), Sidebar (enhanced)
+
 
 **Rủi ro / cần chú ý:**
 - ✅ Bug D1-D3 (Backend import/export) — FIXED ✓
@@ -174,3 +188,22 @@
 - 🔶 MEDIUM Backlog (1): D14
 
 **QA Status:** ✅ PASSED — System ready for production (18/27 total items)
+
+#### PHẦN F: FIX LỖI FLYWAY CHECKSUM (BUG PHÁT SINH)
+
+| # | Test Case | Verify |
+|---|---|---|
+| F1 | Revert V2__seed.sql về trạng thái gốc | [x] PASSED |
+| F2 | Tạo V8__fix_company_config_defaults.sql chứa logic config mới | [x] PASSED |
+| F3 | Khởi động app để verify Flyway migrate thành công | [x] PASSED |
+
+#### PHẦN G: TỐI ƯU HÓA UI/UX PHÊ DUYỆT (CHUYÊN NGHIỆP)
+
+| # | Task | Status |
+|---|---|---|
+| G1 | [BE] Thêm support query đơn đã xử lý (Status != PENDING) | [x] PASSED |
+| G2 | [BE] Expose endpoint /reviewed (Leave, Apology, OT) | [x] PASSED |
+| G3 | [FE] Refactor LeavePage sang Table Layout + Tabs History | [x] PASSED |
+| G4 | [FE] Refactor ApologiesPage sang Table Layout + Tabs History | [x] PASSED |
+| G5 | [FE] Refactor OTPage sang Table Layout + Tabs History | [x] PASSED |
+| G6 | [FE] Dashboard Attendance Widget hiển thị động Check-in/Check-out | [x] PASSED |

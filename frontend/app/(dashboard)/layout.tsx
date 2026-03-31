@@ -57,7 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="relative z-10 flex w-full h-full">
            <Sidebar session={session} collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
-           <div className="flex flex-col flex-1 overflow-hidden">
+           <div className="flex flex-col flex-1 overflow-hidden min-w-0">
               <Header
                  session={session}
                  collapsed={collapsed}
@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  pathname={pathname}
               />
 
-              <main className="flex-1 overflow-y-auto px-6 py-2 relative scrollbar-thin scrollbar-thumb-white/10">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-2 relative scrollbar-thin scrollbar-thumb-white/10 min-w-0">
                  {children}
               </main>
            </div>

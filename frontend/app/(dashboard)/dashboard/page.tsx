@@ -234,23 +234,35 @@ export default function DashboardPage() {
     <div className="space-y-12 pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
-      {/* Hero Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10 px-2 lg:px-6">
-         <div className="relative">
-            <h1 className="text-[clamp(3rem,8vw,6rem)] font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.9]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Chào {namePrefix}</h1>
-            <p className="text-base lg:text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 italic" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Hệ thống quản trị nhân sự cao cấp</p>
-         </div>
-
-         <div className="flex items-center gap-6 mt-10 md:mt-0 p-8 bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-black/5 dark:border-white/10 rounded-[40px] shadow-xl dark:shadow-3xl group hover:bg-white dark:hover:bg-white/10 transition-all duration-700">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-3xl flex items-center justify-center text-white shadow-2xl group-hover:rotate-12 transition-transform">
-               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      {/* Hero Welcome Section - Premium Styling */}
+      <div className="relative pt-10 px-2 lg:px-6">
+         {/* Gradient background effect */}
+         <div className="absolute -z-10 inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl" />
+         
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div>
+               <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white uppercase leading-none tracking-tighter mb-4">
+                  Chào {namePrefix}
+               </h1>
+               <p className="text-base md:text-lg font-bold text-white/70 uppercase tracking-widest ml-1">
+                  ⏰ Hệ thống quản trị nhân sự cao cấp
+               </p>
             </div>
-            <div className="flex flex-col">
-               <div className="flex items-baseline gap-3">
-                  <span className="text-4xl lg:text-5xl font-black text-[#1a1d2e] dark:text-white tracking-widest font-mono leading-none">{timeText}</span>
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+
+            <div className="relative group flex items-center gap-6 p-8 bg-gradient-to-br from-white/90 via-white/70 to-indigo-50 dark:from-white/10 dark:via-indigo-500/10 dark:to-purple-500/10 backdrop-blur-2xl border border-white/40 dark:border-indigo-500/20 rounded-[40px] shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-indigo-500/30 transition-all duration-500">
+               {/* Gradient overlay */}
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[40px] transition-all duration-500" />
+               
+               <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/40 group-hover:shadow-indigo-500/60 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                </div>
-               <span className="text-sm font-black text-[#1a1d2e] dark:text-white/30 tracking-[0.2em] mt-3 uppercase">{dateText}</span>
+               <div className="relative z-10 flex flex-col">
+                  <div className="flex items-baseline gap-3 mb-2">
+                     <span className="text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-widest font-mono leading-none">{timeText}</span>
+                     <div className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50" />
+                  </div>
+                  <span className="text-xs font-black text-slate-500 dark:text-white/40 tracking-[0.3em] uppercase">{dateText}</span>
+               </div>
             </div>
          </div>
       </div>
@@ -355,9 +367,11 @@ export default function DashboardPage() {
                </div>
 
                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] ml-1">Thời gian ghi nhận</p>
+                  <p className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] ml-1">
+                    {summary?.todayCheckOut ? 'Giờ ra (Check-out)' : 'Giờ vào (Check-in)'}
+                  </p>
                   <h3 className="text-5xl lg:text-6xl font-black text-slate-900 dark:text-white font-mono tracking-tighter leading-none">
-                     {formatTime(summary?.todayCheckIn)}
+                     {formatTime(summary?.todayCheckOut || summary?.todayCheckIn)}
                   </h3>
                </div>
             </div>
@@ -366,10 +380,10 @@ export default function DashboardPage() {
                <button 
                   onClick={() => void handleAttendanceAction()}
                   disabled={loadingAction}
-                  className="w-full py-8 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 text-white rounded-[32px] font-black text-2xl tracking-[0.2em] transition-all shadow-2xl shadow-indigo-600/30 active:scale-95 group/btn border border-indigo-400/20 disabled:bg-slate-100 dark:disabled:bg-white/5 disabled:text-slate-400 dark:disabled:text-white/10"
+                  className="w-full py-8 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 dark:hover:from-indigo-400 dark:hover:via-purple-400 dark:hover:to-pink-400 text-white rounded-[32px] font-black text-2xl tracking-[0.2em] transition-all shadow-2xl shadow-indigo-600/40 hover:shadow-2xl hover:shadow-purple-600/50 active:scale-95 group/btn border border-indigo-400/20 dark:border-indigo-300/30 disabled:bg-gradient-to-r disabled:from-slate-100 dark:disabled:from-white/5 disabled:via-slate-100 dark:disabled:via-white/5 disabled:to-slate-100 dark:disabled:to-white/5 disabled:text-slate-400 dark:disabled:text-white/10"
                >
                   <span className="group-hover/btn:scale-110 block transition-transform">
-                    {loadingAction ? '...' : (nextAction === 'checkin' ? 'CHECK-IN' : 'CHECK-OUT')}
+                    {loadingAction ? '...' : (nextAction === 'checkin' ? '✓ CHECK-IN' : '✓ CHECK-OUT')}
                   </span>
                </button>
                <p className="text-center text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] italic">Ghi nhận theo thời gian thực</p>

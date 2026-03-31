@@ -82,7 +82,7 @@ public class PayrollService {
 
     private Payroll calculateForEmployee(Employee emp, int month, int year, CompanyConfig config) {
         long baseSalary = emp.getBaseSalary() != null ? emp.getBaseSalary() : 0L;
-        int standardDays = config.getStandardDaysPerMonth();
+        int standardDays = config.getStandardDaysPerMonth() != null ? config.getStandardDaysPerMonth() : 22;
         
         // Fetch attendances for month
         LocalDate start = LocalDate.of(year, month, 1);
@@ -110,7 +110,8 @@ public class PayrollService {
         double dailyRate = (double)baseSalary / standardDays;
         long attendanceSalary = (long)(actualDays * dailyRate);
         
-        long otAmount = (long)(otHours * (dailyRate / 8.0) * config.getOtRateWeekday().doubleValue());
+        double otRate = config.getOtRateWeekday() != null ? config.getOtRateWeekday().doubleValue() : 1.5;
+        long otAmount = (long)(otHours * (dailyRate / 8.0) * otRate);
         long allowance = 0; // Can expand from employee entity if needed
         long grossSalary = attendanceSalary + otAmount + allowance;
 
@@ -190,8 +191,9 @@ public class PayrollService {
     }
 
     private CompanyConfig getCompanyConfig() {
-        return companyConfigRepository.findById("default")
-                .orElseThrow(() -> new IllegalStateException("Hệ thống chưa được cấu hình."));
+        return companyConfigRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Hệ thống chưa được cấu hình. Vui lòng kiểm tra cài đặt công ty."));
     }
 
     private Employee resolveCurrentEmployee(Authentication authentication) {

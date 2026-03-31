@@ -36,6 +36,12 @@ public class OTRequestController {
         return otRequestService.getPendingRequests();
     }
 
+    @GetMapping("/reviewed")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'HR')")
+    public List<OTRequestDTO> getReviewedRequests() {
+        return otRequestService.getReviewedRequests();
+    }
+
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'HR')")
     public ResponseEntity<Void> approve(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails user) {
