@@ -1,11 +1,13 @@
 package com.hrm.repository;
 
 import com.hrm.entity.Attendance;
+import com.hrm.entity.AttendanceStatus;
 import com.hrm.entity.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,4 +19,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     List<Attendance> findByEmployeeAndDateBetweenOrderByDateAsc(Employee employee, LocalDate fromDate, LocalDate toDate);
 
     List<Attendance> findByEmployeeIdAndDateBetween(UUID employeeId, LocalDate fromDate, LocalDate toDate);
+    
+    long countByDateAndStatusIn(LocalDate date, Collection<AttendanceStatus> statuses);
 }

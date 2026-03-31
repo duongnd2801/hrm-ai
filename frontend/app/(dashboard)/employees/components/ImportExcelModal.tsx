@@ -48,7 +48,7 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
           <div className="border-2 border-dashed border-black/10 dark:border-white/10 p-12 rounded-[32px] flex items-center justify-center bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-indigo-500/50 transition-all duration-500 w-full cursor-pointer relative group shadow-inner">
             <input 
               type="file" 
-              accept=".xlsx,.xls,.csv" 
+              accept=".xlsx,.xls" 
               onChange={e => setFile(e.target.files?.[0] || null)}
               className="absolute inset-0 opacity-0 cursor-pointer"
             />

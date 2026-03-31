@@ -44,9 +44,12 @@ public class AttendanceService {
         }
 
         CompanyConfig config = getCompanyConfig();
-        LocalDateTime earliest = LocalDateTime.of(today, config.getWorkStartTime().minusMinutes(config.getEarlyCheckinMinutes()));
-        if (now.isBefore(earliest)) {
-            throw new IllegalArgumentException("Chưa đến thời gian cho phép check-in.");
+        // D28: Safe null-checks for work start time and early check-in minutes
+        if (config.getWorkStartTime() != null && config.getEarlyCheckinMinutes() != null) {
+            LocalDateTime earliest = LocalDateTime.of(today, config.getWorkStartTime().minusMinutes(config.getEarlyCheckinMinutes()));
+            if (now.isBefore(earliest)) {
+                throw new IllegalArgumentException("Chưa đến thời gian cho phép check-in.");
+            }
         }
 
         attendance.setCheckIn(now);
@@ -127,7 +130,10 @@ public class AttendanceService {
 
         // Case: Only check-in, no check-out yet (Today or in-progress)
         if (attendance.getCheckIn() != null && attendance.getCheckOut() == null) {
-            boolean isLate = attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime());
+            // D27: Safe null-check for work start time
+            boolean isLate = config.getWorkStartTime() != null 
+                ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
+                : false;
             attendance.setStatus(isLate ? AttendanceStatus.LATE : AttendanceStatus.PENDING);
             attendance.setTotalHours(null);
             return;
@@ -137,7 +143,10 @@ public class AttendanceService {
         BigDecimal totalHours = computeWorkHours(attendance.getCheckIn(), attendance.getCheckOut(), config);
         attendance.setTotalHours(totalHours);
 
-        boolean isLate = attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime());
+        // D27: Safe null-check for work start time
+        boolean isLate = config.getWorkStartTime() != null 
+            ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
+            : false;
         BigDecimal standardHours = config.getStandardHours() == null
                 ? BigDecimal.valueOf(8)
                 : config.getStandardHours();
@@ -152,16 +161,25 @@ public class AttendanceService {
     }
 
     private BigDecimal computeWorkHours(LocalDateTime checkIn, LocalDateTime checkOut, CompanyConfig config) {
+        // Defensive check for null parameters
+        if (checkIn == null || checkOut == null) {
+            return BigDecimal.ZERO;
+        }
+        
         Duration total = Duration.between(checkIn, checkOut);
         if (total.isNegative()) {
             return BigDecimal.ZERO;
         }
 
         LocalDate date = checkIn.toLocalDate();
-        LocalDateTime lunchStart = LocalDateTime.of(date, config.getLunchBreakStart());
-        LocalDateTime lunchEnd = LocalDateTime.of(date, config.getLunchBreakEnd());
-
-        Duration overlap = overlap(checkIn, checkOut, lunchStart, lunchEnd);
+        // D26: Safe null-check for lunch break times
+        Duration overlap = Duration.ZERO;
+        if (config.getLunchBreakStart() != null && config.getLunchBreakEnd() != null) {
+            LocalDateTime lunchStart = LocalDateTime.of(date, config.getLunchBreakStart());
+            LocalDateTime lunchEnd = LocalDateTime.of(date, config.getLunchBreakEnd());
+            overlap = overlap(checkIn, checkOut, lunchStart, lunchEnd);
+        }
+        
         Duration actual = total.minus(overlap);
         if (actual.isNegative()) {
             actual = Duration.ZERO;
@@ -205,8 +223,11 @@ public class AttendanceService {
     private AttendanceDTO toDto(Attendance attendance) {
         AttendanceDTO dto = new AttendanceDTO();
         dto.setId(attendance.getId());
-        dto.setEmployeeId(attendance.getEmployee().getId());
-        dto.setEmployeeName(attendance.getEmployee().getFullName());
+        // D25: Safe null-check for lazy-loaded employee relationship
+        if (attendance.getEmployee() != null) {
+            dto.setEmployeeId(attendance.getEmployee().getId());
+            dto.setEmployeeName(attendance.getEmployee().getFullName());
+        }
         dto.setDate(attendance.getDate());
         dto.setCheckIn(attendance.getCheckIn());
         dto.setCheckOut(attendance.getCheckOut());

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/components/AuthProvider";
+import { hasRole } from "@/lib/auth";
 import api from "@/lib/api";
-import { getRole } from "@/lib/auth";
 import { CompanyConfig, Department, Position } from "@/types";
 import CompanyConfigForm from "./components/CompanyConfigForm";
 import DepartmentTable from "./components/DepartmentTable";
@@ -130,9 +132,18 @@ function ReadOnlyCompanyInfo() {
 }
 
 export default function CompanyPage() {
-  const role = getRole();
-  const isAdmin = role === "ADMIN";
+  const { session } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("config");
+
+  useEffect(() => {
+    // No longer redirect
+  }, [session, router]);
+
+  if (!session) return null;
+
+  const isAdmin = hasRole('ADMIN');
+  const canEdit = isAdmin; // Following GEMINI.md, only ADMIN can edit company setup
 
   return (
     <div className="space-y-12 pb-20 px-2 lg:px-6">
@@ -142,26 +153,28 @@ export default function CompanyPage() {
           <p className="text-lg font-bold text-white uppercase tracking-widest mt-6 ml-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Tổ chức & Thiết lập hệ thống</p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-8 md:mt-0 px-4 py-3">
-          <button
-            onClick={() => setActiveTab("config")}
-            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "config" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
-          >
-            THAM SỐ
-          </button>
-          <button
-            onClick={() => setActiveTab("departments")}
-            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "departments" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
-          >
-            PHÒNG BAN
-          </button>
-          <button
-            onClick={() => setActiveTab("positions")}
-            className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "positions" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
-          >
-            VỊ TRÍ
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-8 md:mt-0 px-4 py-3">
+            <button
+              onClick={() => setActiveTab("config")}
+              className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "config" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+            >
+              THAM SỐ
+            </button>
+            <button
+              onClick={() => setActiveTab("departments")}
+              className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "departments" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+            >
+              PHÒNG BAN
+            </button>
+            <button
+              onClick={() => setActiveTab("positions")}
+              className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === "positions" ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+            >
+              VỊ TRÍ
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl p-10 rounded-[40px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">

@@ -33,6 +33,16 @@ public class LeaveRequestService {
         }
 
         Employee employee = resolveCurrentEmployee(authentication);
+        
+        // Check for overlapping requests
+        List<LeaveRequest> overlapping = leaveRequestRepository.findOverlappingRequests(
+                employee, request.getStartDate(), request.getEndDate());
+        
+        if (!overlapping.isEmpty()) {
+            throw new IllegalArgumentException("Nhân viên đã có đơn nghỉ/OT chồng lấn với khoảng ngày này. " +
+                    "Vui lòng chọn khoảng ngày khác hoặc kiểm tra các đơn đang chờ duyệt.");
+        }
+        
         LeaveRequest entity = LeaveRequest.builder()
                 .employee(employee)
                 .type(request.getType())

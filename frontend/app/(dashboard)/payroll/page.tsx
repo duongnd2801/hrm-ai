@@ -17,17 +17,34 @@ export default function PayrollPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
-  if (!session) return null;
-  const canManage = hasRole(session.role, 'ADMIN', 'HR');
+  const canManage = session ? hasRole('ADMIN', 'HR') : false;
 
   async function fetchPayrolls() {
+    if (!session) return;
     setLoading(true);
     try {
-      const endpoint = canManage ? `/api/payroll?month=${month}&year=${year}` : '/api/payroll/my';
+      const endpoint = canManage 
+        ? `/api/payroll?month=${month}&year=${year}&page=${currentPage - 1}&size=${pageSize}` 
+        : '/api/payroll/my';
       const res = await api.get(endpoint);
-      setPayrolls(res.data as Payroll[]);
+      
+      if (canManage) {
+        // D22: Safe null checks on paginated response
+        const data = res.data || {};
+        setPayrolls(Array.isArray(data.content) ? data.content : []);
+        setTotalPages(typeof data.totalPages === 'number' ? data.totalPages : 0);
+        setTotalElements(typeof data.totalElements === 'number' ? data.totalElements : 0);
+      } else {
+        setPayrolls(res.data as Payroll[]);
+      }
     } catch {
       pushToast('error', 'Không thể tải dữ liệu lương.');
     } finally {
@@ -37,7 +54,14 @@ export default function PayrollPage() {
 
   useEffect(() => {
     void fetchPayrolls();
-  }, [month, year, session.role]);
+  }, [month, year, currentPage, pageSize, session?.role]);
+
+  // Reset page when month or year changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [month, year]);
+
+  if (!session) return null;
 
   async function handleCalculate() {
     setCalculating(true);
@@ -49,6 +73,21 @@ export default function PayrollPage() {
       pushToast('error', 'Có lỗi xảy ra khi tính lương.');
     } finally {
       setCalculating(false);
+    }
+  }
+
+  async function handleExport() {
+    try {
+      const res = await api.get(`/api/payroll/export?month=${month}&year=${year}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bang_luong_${month}_${year}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      pushToast('success', 'Đang tải xuống bảng lương...');
+    } catch {
+      pushToast('error', 'Không thể xuất dữ liệu lương.');
     }
   }
 
@@ -88,6 +127,14 @@ export default function PayrollPage() {
                >
                   {calculating ? 'ĐANG TÍNH...' : 'TÍNH LƯƠNG'}
                </button>
+               <button
+                  onClick={handleExport}
+                  className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
+               >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+               </button>
             </div>
          )}
       </div>
@@ -97,46 +144,101 @@ export default function PayrollPage() {
            {canManage ? `Bảng lương tổng hợp ${formatMonth(month, year)}` : 'Lịch sử thu nhập cá nhân'}
         </h2>
 
-        {loading ? (
-          <div className="p-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest">Đang truy xuất dữ liệu...</div>
-        ) : !payrolls.length ? (
-          <div className="p-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest">Không có dữ liệu lương trong giai đoạn này.</div>
-        ) : (
-          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10">
-            <table className="min-w-[1200px] w-full text-left text-sm">
-              <thead className="text-[10px] uppercase text-slate-500 dark:text-white/30 tracking-widest border-b border-black/5 dark:border-white/5">
-                <tr>
-                  <th className="px-5 py-5 font-black">Thời điểm</th>
-                  <th className="px-5 py-5 font-black">Nhân viên</th>
-                  <th className="px-5 py-5 font-black">Lương CB</th>
-                  <th className="px-5 py-5 font-black">Công thực</th>
-                  <th className="px-5 py-5 font-black">OT</th>
-                  <th className="px-5 py-5 font-black">Tổng thu nhập</th>
-                  <th className="px-5 py-5 font-black">Bảo hiểm</th>
-                  <th className="px-5 py-5 font-black">Thuế TNCN</th>
-                  <th className="px-5 py-5 font-black text-emerald-400">Thực nhận</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                {payrolls.map((p) => (
-                  <tr key={p.id} className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all group">
-                    <td className="px-5 py-5 font-black text-slate-500/50 dark:text-white/50">{formatMonth(p.month, p.year)}</td>
-                    <td className="px-5 py-5 font-bold text-slate-900 dark:text-white uppercase tracking-tight">{p.employeeName}</td>
-                    <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{formatVND(p.baseSalary)}</td>
-                    <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{p.actualDays}/{p.standardDays}</td>
-                    <td className="px-5 py-5 text-indigo-700 dark:text-indigo-400 font-bold">+{formatVND(p.otAmount)}</td>
-                    <td className="px-5 py-5 font-black text-slate-900 dark:text-white">{formatVND(p.grossSalary)}</td>
-                    <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND((p.bhxh||0)+(p.bhyt||0)+(p.bhtn||0))}</td>
-                    <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND(p.incomeTax)}</td>
-                    <td className="px-5 py-5">
-                       <span className="text-xl font-black text-emerald-400 tracking-tighter">{formatVND(p.netSalary)}</span>
-                    </td>
+        <div className={`overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 transition-all duration-300 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'} min-h-[400px]`}>
+          {!payrolls.length && !loading ? (
+            <div className="p-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest italic">
+               Không có dữ liệu lương trong giai đoạn này.
+            </div>
+          ) : (
+            <>
+              <table className="min-w-[1200px] w-full text-left text-sm relative">
+                <thead className="text-[10px] uppercase text-slate-500 dark:text-white/30 tracking-widest border-b border-black/5 dark:border-white/5 bg-white/5 backdrop-blur-sm sticky top-0 z-10">
+                  <tr>
+                    <th className="px-5 py-5 font-black">Thời điểm</th>
+                    <th className="px-5 py-5 font-black">Nhân viên</th>
+                    <th className="px-5 py-5 font-black">Lương CB</th>
+                    <th className="px-5 py-5 font-black">Công thực</th>
+                    <th className="px-5 py-5 font-black">OT</th>
+                    <th className="px-5 py-5 font-black">Tổng thu nhập</th>
+                    <th className="px-5 py-5 font-black">Bảo hiểm</th>
+                    <th className="px-5 py-5 font-black">Thuế TNCN</th>
+                    <th className="px-5 py-5 font-black text-emerald-400">Thực nhận</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-black/5 dark:divide-white/5 relative">
+                  {loading && payrolls.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-5 py-20 text-center text-slate-400 font-bold uppercase tracking-widest">Đang chuẩn bị dữ liệu...</td>
+                    </tr>
+                  ) : (
+                    payrolls.map((p) => (
+                      <tr key={p.id} className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all group animate-in slide-in-from-left-2 duration-300">
+                        <td className="px-5 py-5 font-black text-slate-500/50 dark:text-white/50">{formatMonth(p.month, p.year)}</td>
+                        <td className="px-5 py-5 font-bold text-slate-900 dark:text-white uppercase tracking-tight">{p.employeeName}</td>
+                        <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{formatVND(p.baseSalary)}</td>
+                        <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{p.actualDays}/{p.standardDays}</td>
+                        <td className="px-5 py-5 text-indigo-700 dark:text-indigo-400 font-bold">+{formatVND(p.otAmount)}</td>
+                        <td className="px-5 py-5 font-black text-slate-900 dark:text-white">{formatVND(p.grossSalary)}</td>
+                        <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND((p.bhxh||0)+(p.bhyt||0)+(p.bhtn||0))}</td>
+                        <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND(p.incomeTax)}</td>
+                        <td className="px-5 py-5">
+                          <span className="text-xl font-black text-emerald-400 tracking-tighter">{formatVND(p.netSalary)}</span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+              {/* Pagination UI - Only show for managers */}
+              {canManage && totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-black/5 dark:border-white/10 mt-6 pt-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/10 px-3 py-1.5 rounded-xl shadow-sm">
+                       <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Xem:</span>
+                       <select
+                         value={pageSize}
+                         onChange={(e) => setPageSize(Number(e.target.value))}
+                         className="bg-transparent border-none text-[10px] font-black text-slate-900 dark:text-white transition-all outline-none cursor-pointer p-0"
+                       >
+                         {[10, 15, 20].map(s => <option key={s} value={s} className="bg-slate-950 text-white">{s} dòng</option>)}
+                       </select>
+                    </div>
+                    <div className="px-3 py-1.5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-xl shadow-sm group">
+                       <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest group-hover:scale-105 transition-transform inline-block">Tổng {totalElements} nhân sự</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1 || loading}
+                      className="p-2.5 rounded-xl border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-500/5 dark:hover:bg-white/10 disabled:opacity-20 transition-all active:scale-90"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+
+                    <div className="px-5 py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl text-[10px] font-black tracking-widest shadow-xl shadow-indigo-500/30 scale-105 border border-indigo-400/20">
+                      TRANG {currentPage} / {totalPages}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages || loading}
+                      className="p-2.5 rounded-xl border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-500/5 dark:hover:bg-white/10 disabled:opacity-20 transition-all active:scale-90"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Info Card section */}

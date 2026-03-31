@@ -70,7 +70,11 @@ export default function ApologiesPage() {
   }, [session, loadData, isAdminOrHR]);
 
   async function submit() {
-    if (!reason.trim()) return;
+    // D23: Complete form validation
+    if (!attendanceDate || !type || !reason.trim()) {
+      pushToast('error', 'Vui lòng điền đầy đủ thông tin (ngày, loại, nội dung)');
+      return;
+    }
     setLoading(true);
     try {
       await api.post('/api/apologies', { attendanceDate, type, reason });

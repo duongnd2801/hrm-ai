@@ -1,5 +1,8 @@
 package com.hrm.service;
 
+import com.hrm.dto.PageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.hrm.dto.PayrollDTO;
 import com.hrm.entity.*;
 import com.hrm.repository.*;
@@ -13,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +27,17 @@ public class PayrollService {
     private final AttendanceRepository attendanceRepository;
     private final CompanyConfigRepository companyConfigRepository;
     private final UserRepository userRepository;
+    private final ImportExportService importExportService;
+
+    @Transactional(readOnly = true)
+    public byte[] exportPayroll(Integer month, Integer year, Authentication authentication) throws Exception {
+        ensureAdminOrHR(authentication);
+        List<PayrollDTO> payrolls = payrollRepository.findByMonthAndYear(month, year, Pageable.unpaged())
+                .getContent().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        return importExportService.exportPayrollToExcel(payrolls, month, year);
+    }
 
     @Transactional
     public List<PayrollDTO> calculateMonthlyPayroll(Integer month, Integer year, Authentication authentication) {
@@ -51,11 +64,20 @@ public class PayrollService {
     }
 
     @Transactional(readOnly = true)
-    public List<PayrollDTO> getAllPayrolls(Integer month, Integer year, Authentication authentication) {
+    public PageResponse<PayrollDTO> getAllPayrolls(Integer month, Integer year, Pageable pageable, Authentication authentication) {
         ensureAdminOrHR(authentication);
-        return payrollRepository.findByMonthAndYear(month, year).stream()
+        Page<Payroll> page = payrollRepository.findByMonthAndYear(month, year, pageable);
+        List<PayrollDTO> content = page.getContent().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+
+        return new PageResponse<>(
+                content,
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.getSize(),
+                page.getNumber()
+        );
     }
 
     private Payroll calculateForEmployee(Employee emp, int month, int year, CompanyConfig config) {
@@ -104,7 +126,7 @@ public class PayrollService {
         long taxableIncome = Math.max(0, grossSalary - totalInsurance - personalDeduction - dependentDeduction);
 
         long incomeTax = calculateIncomeTax(taxableIncome);
-        long netSalary = grossSalary - totalInsurance - incomeTax;
+        long netSalary = Math.max(0, grossSalary - totalInsurance - incomeTax);
 
         final double finalActualDays = actualDays;
         final double finalOtHours = otHours;

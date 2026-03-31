@@ -23,15 +23,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
     setSession(s);
-
-    const needCompleteProfile =
-      s.role === 'EMPLOYEE' &&
-      s.employeeId &&
-      s.profileCompleted === false;
-    const isOnOwnProfilePage = Boolean(s.employeeId) && pathname.startsWith(`/employees/${s.employeeId}`);
-    if (needCompleteProfile && !isOnOwnProfilePage) {
-      router.push(`/employees/${s.employeeId}?completeProfile=1`);
-    }
   }, [router, pathname]);
 
   // Prevent hydration mismatch by only rendering content after mount

@@ -1,5 +1,10 @@
 package com.hrm.controller;
 
+import com.hrm.dto.EmployeeStatsDTO;
+import com.hrm.dto.PageResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import com.hrm.dto.EmployeeDTO;
 import com.hrm.service.EmployeeService;
 import com.hrm.service.ImportExportService;
@@ -13,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,12 +30,19 @@ public class EmployeeController {
     private final EmployeeService employeeService;
     private final ImportExportService importExportService;
 
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    public ResponseEntity<EmployeeStatsDTO> getStats() {
+        return ResponseEntity.ok(employeeService.getStats());
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployees(
+    public ResponseEntity<PageResponse<EmployeeDTO>> getAllEmployees(
             @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "fullName", direction = Sort.Direction.ASC) Pageable pageable,
             Authentication authentication) {
-        return ResponseEntity.ok(employeeService.getAllEmployees(search, authentication));
+        return ResponseEntity.ok(employeeService.getAllEmployees(search, pageable, authentication));
     }
 
     @GetMapping("/{id}")
@@ -63,7 +76,9 @@ public class EmployeeController {
     public ResponseEntity<byte[]> exportEmployees(
             @RequestParam(required = false) String search,
             Authentication authentication) throws Exception {
-        byte[] excelData = importExportService.exportEmployeesToExcel(employeeService.getAllEmployees(search, authentication));
+        byte[] excelData = importExportService.exportEmployeesToExcel(
+                employeeService.getAllEmployees(search, Pageable.unpaged(), authentication).getContent()
+        );
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
@@ -81,15 +96,46 @@ public class EmployeeController {
 
     @PostMapping("/import")
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public ResponseEntity<String> importEmployees(@RequestParam("file") MultipartFile file) throws Exception {
-        List<EmployeeDTO> parsed = importExportService.parseEmployeeExcel(file);
-        for (EmployeeDTO emp : parsed) {
-            try {
-                employeeService.createEmployee(emp);
-            } catch (Exception e) {
-                // Ignore duplicates or log
+    public ResponseEntity<?> importEmployees(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File trống. Vui lòng chọn file Excel.");
             }
+            
+            List<EmployeeDTO> parsed = importExportService.parseEmployeeExcel(file);
+            if (parsed.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File không chứa dữ liệu hợp lệ. Vui lòng kiểm tra định dạng Excel.");
+            }
+            
+            int successCount = 0;
+            List<String> errors = new ArrayList<>();
+            
+            for (int i = 0; i < parsed.size(); i++) {
+                try {
+                    employeeService.createEmployee(parsed.get(i));
+                    successCount++;
+                } catch (IllegalArgumentException e) {
+                    errors.add("Dòng " + (i + 2) + ": " + e.getMessage());
+                } catch (Exception e) {
+                    errors.add("Dòng " + (i + 2) + ": Lỗi không xác định - " + e.getMessage());
+                }
+            }
+            
+            if (successCount == 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Không import được nhân viên nào. Lỗi: " + String.join("; ", errors));
+            }
+            
+            String message = "Import thành công " + successCount + " nhân viên.";
+            if (!errors.isEmpty()) {
+                message += " " + errors.size() + " dòng bị lỗi: " + String.join("; ", errors);
+            }
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi đọc file: " + e.getMessage());
         }
-        return ResponseEntity.ok("Imported " + parsed.size() + " employees.");
     }
 }

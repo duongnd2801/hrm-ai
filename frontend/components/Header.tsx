@@ -55,7 +55,7 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   const isRainy = weatherCode >= 51;
 
   const pillItems = NAV_ITEMS.filter((item) => {
-     const isAllowed = hasRole(session.role, ...item.roles);
+     const isAllowed = hasRole(...item.roles);
      const isPill = ['/dashboard', '/employees', '/attendance', '/payroll'].includes(item.href);
      return isAllowed && isPill;
   });

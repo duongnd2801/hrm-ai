@@ -15,7 +15,7 @@ export const NAV_ITEMS = [
   { href: '/ot', label: 'Tăng ca', icon: 'clock', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/payroll', label: 'Bảng lương', icon: 'banknote', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/holidays', label: 'Ngày lễ', icon: 'holiday', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/company', label: 'Cấu hình', icon: 'settings', roles: ['ADMIN', 'HR'] },
+  { href: '/company', label: 'Cấu hình', icon: 'settings', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
 ];
 
 function Icon({ name }: { name: string }) {
@@ -52,7 +52,7 @@ interface SidebarProps {
 
 export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const visibleItems = NAV_ITEMS.filter((item) => hasRole(session.role, ...item.roles));
+  const visibleItems = NAV_ITEMS.filter((item) => hasRole(...item.roles));
 
   return (
     <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl relative ${collapsed ? 'w-[88px]' : 'w-[280px]'}`}>

@@ -1,5 +1,10 @@
 package com.hrm.service;
 
+import com.hrm.dto.EmployeeStatsDTO;
+import java.time.LocalDate;
+import com.hrm.dto.PageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.hrm.dto.EmployeeDTO;
 import com.hrm.entity.*;
 import com.hrm.repository.*;
@@ -12,8 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,19 +29,41 @@ public class EmployeeService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
+    private final AttendanceRepository attendanceRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<EmployeeDTO> getAllEmployees(String search, Authentication authentication) {
-        List<Employee> emps;
+    public EmployeeStatsDTO getStats() {
+        return EmployeeStatsDTO.builder()
+                .total(employeeRepository.count())
+                .active(employeeRepository.countByStatusNot(EmpStatus.INACTIVE))
+                .absent(attendanceRepository.countByDateAndStatusIn(
+                        LocalDate.now(), 
+                        List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)
+                ))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<EmployeeDTO> getAllEmployees(String search, Pageable pageable, Authentication authentication) {
+        Page<Employee> page;
         if (search != null && !search.trim().isEmpty()) {
-            emps = employeeRepository.searchEmployees(search.trim().toLowerCase());
+            page = employeeRepository.searchEmployees(search.trim().toLowerCase(), pageable);
         } else {
-            emps = employeeRepository.findAll();
+            page = employeeRepository.findAll(pageable);
         }
-        return emps.stream()
+
+        List<EmployeeDTO> content = page.getContent().stream()
                 .map(emp -> filterSensitiveData(mapToDTO(emp), authentication))
                 .collect(Collectors.toList());
+
+        return new PageResponse<>(
+                content,
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.getSize(),
+                page.getNumber()
+        );
     }
 
     @Transactional(readOnly = true)

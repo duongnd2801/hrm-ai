@@ -84,7 +84,11 @@ export default function LeavePage() {
       await loadData();
       if (isAdminOrHR) setShowForm(false);
     } catch (err: any) {
-      pushToast('error', err.response?.data || 'Gửi đơn thất bại.');
+      // D20: Properly handle error response structure
+      const errMsg = typeof err.response?.data === 'string' 
+        ? err.response.data 
+        : (err.response?.data?.message || 'Gửi đơn thất bại.');
+      pushToast('error', errMsg);
     } finally {
       setLoading(false);
     }

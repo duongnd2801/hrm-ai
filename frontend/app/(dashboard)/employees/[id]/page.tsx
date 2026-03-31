@@ -105,7 +105,7 @@ function SearchableSelect({
       </button>
 
       {open && !disabled && (
-        <div className="absolute z-50 mt-3 w-full rounded-2xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl shadow-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
+        <div className="absolute z-[100] mt-3 w-full rounded-2xl border border-black/5 dark:border-white/20 bg-white dark:bg-slate-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden">
           <div className="p-3 border-b border-black/5 dark:border-white/10">
             <input
               value={query}
@@ -175,7 +175,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
 
-  const isHRAdmin = session ? hasRole(session.role, 'ADMIN', 'HR') : false;
+  const isHRAdmin = hasRole('ADMIN', 'HR');
   const isSelf = session?.employeeId === id;
   const canEditPersonal = isHRAdmin || isSelf;
   const canEditStructure = isHRAdmin;
@@ -193,7 +193,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
 
       setDepartments(deptRes.data as Department[]);
       setPositions(posRes.data as Position[]);
-      const employees = (employeeRes.data as Employee[]).filter((e) => e.id !== employeeId);
+      const employees = ((employeeRes.data.content || employeeRes.data) as Employee[]).filter((e) => e.id !== employeeId);
       setManagerOptions(employees);
     } catch {
       pushToast('error', 'Không thể tải dữ liệu cấu trúc công ty.');
@@ -266,7 +266,9 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
         });
       }
       pushToast('success', 'Đã lưu thay đổi hồ sơ thành công.');
-      setTimeout(() => router.push('/employees'), 1500);
+      // Refresh local data instead of hard redirect
+      const res = await api.get(`/api/employees/${id}`);
+      setEmp(res.data as Employee);
     } catch (err: unknown) {
       pushToast('error', getErrorMessage(err, 'Lỗi khi lưu trữ dữ liệu.'));
     } finally {
@@ -411,6 +413,19 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                           setEmp({ ...emp, managerId: nextId, managerName: selected?.fullName });
                         }}
                       />
+                      <SearchableSelect
+                        label="Trạng thái hồ sơ"
+                        value={emp.status}
+                        options={[
+                          { id: 'ACTIVE', label: 'Đang làm việc' },
+                          { id: 'PROBATION', label: 'Thử việc' },
+                          { id: 'CONTRACT', label: 'Hợp đồng' },
+                          { id: 'COLLABORATOR', label: 'Cộng tác viên' },
+                          { id: 'INACTIVE', label: 'Ngưng hoạt động' },
+                        ]}
+                        placeholder="Chọn trạng thái..."
+                        onSelect={(nextId) => setEmp({ ...emp, status: nextId as any })}
+                      />
                       <div>
                         <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-2 ml-1">Lương cơ bản (VND)</label>
                         <input
@@ -422,23 +437,39 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                       </div>
                     </>
                   ) : (
-                    <div className="space-y-4">
-                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Mức lương hiện tại</p>
-                          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{formatVND(emp.baseSalary)}</p>
-                       </div>
-                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
-                          <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
-                       </div>
-                       <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Người quản lý trực tiếp</p>
-                          <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.managerName || 'Không có'}</p>
-                       </div>
-                    </div>
+                     <div className="space-y-4">
+                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Bộ phận / Phòng ban</p>
+                           <p className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{emp.departmentName || 'Chung'}</p>
+                        </div>
+                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Chức danh / Vị trí</p>
+                           <p className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{emp.positionName || 'Nhân viên'}</p>
+                        </div>
+                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Mức lương hiện tại</p>
+                           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{formatVND(emp.baseSalary)}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                              <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Tham gia từ</p>
+                              <p className="text-sm font-black text-slate-900 dark:text-white tracking-widest">{new Date(emp.startDate).toLocaleDateString('vi-VN')}</p>
+                           </div>
+                           <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                              <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Trạng thái</p>
+                              <p className="text-sm font-black text-indigo-500 uppercase tracking-widest">
+                                 {emp.status === 'ACTIVE' ? 'Làm việc' : emp.status === 'PROBATION' ? 'Thử việc' : 'Hợp đồng/Khác'}
+                              </p>
+                           </div>
+                        </div>
+                        <div className="p-5 bg-slate-900/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">Người quản lý trực tiếp</p>
+                           <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.managerName || 'Không có'}</p>
+                        </div>
+                     </div>
                   )}
 
-                  <hr className="border-white/5 my-6" />
+                  <hr className="border-black/5 dark:border-white/5 mt-10 mb-8" />
 
                   <button
                     type="submit"
@@ -454,8 +485,15 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
             {/* Account Card */}
             <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[40px] p-10 border border-white/5 shadow-3xl text-center">
                 <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-4">Tài khoản hệ thống</p>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4">
-                   {emp.status === 'ACTIVE' ? 'Đang hoạt động' : 'Đã khóa'}
+                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest mb-4 ${
+                   emp.status === 'ACTIVE' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                   emp.status === 'INACTIVE' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
+                   'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                }`}>
+                   {emp.status === 'ACTIVE' ? 'Đang hoạt động' : 
+                    emp.status === 'INACTIVE' ? 'Ngưng hoạt động / Khóa' :
+                    emp.status === 'PROBATION' ? 'Đang thử việc' :
+                    'Chính thức / Hợp đồng'}
                 </div>
                 <h4 className="text-white font-bold truncate mb-1">{emp.email}</h4>
                 <p className="text-white/30 text-xs">Mã nhân viên: {emp.id.split('-')[0].toUpperCase()}</p>

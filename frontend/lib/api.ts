@@ -22,7 +22,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (typeof window !== 'undefined' && error.response?.status === 401) {
+    // D19: Safer URL check for login endpoint detection
+    const isLoginEndpoint = error.config?.url ? error.config.url.includes('/api/auth/login') : false;
+    
+    if (typeof window !== 'undefined' && error.response?.status === 401 && !isLoginEndpoint) {
       clearSession();
       window.location.href = '/login';
     }

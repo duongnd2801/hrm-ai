@@ -18,6 +18,19 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    // D18: Validate email and password before API call
+    if (!email.trim() || !password.trim()) {
+      setError('Vui lòng nhập email và mật khẩu');
+      setLoading(false);
+      return;
+    }
+    if (!email.includes('@')) {
+      setError('Email không hợp lệ');
+      setLoading(false);
+      return;
+    }
+    
     try {
       const res = await api.post('/api/auth/login', { email, password });
       const data = res.data;
@@ -34,12 +47,15 @@ export default function LoginPage() {
         data.role === 'EMPLOYEE' &&
         data.employeeId &&
         data.profileCompleted === false;
-      router.push(mustComplete ? `/dashboard/employees/${data.employeeId}?completeProfile=1` : '/dashboard');
-    } catch (err: unknown) {
-      const msg =
-        axios.isAxiosError(err) && err.response?.status === 401
-          ? 'Email hoặc mật khẩu không đúng'
-          : 'Không thể kết nối đến server';
+      router.push(mustComplete ? `/employees/${data.employeeId}?completeProfile=1` : '/dashboard');
+    } catch (err: any) {
+      const status = err.response?.status;
+      let msg = 'Không thể kết nối đến máy chủ';
+      
+      if (status === 401) msg = 'Email hoặc mật khẩu không chính xác';
+      else if (status === 403) msg = 'Tài khoản của bạn tạm thời đã bị khóa';
+      else if (status === 400) msg = 'Dữ liệu xác thực không hợp lệ';
+      
       setError(msg);
     } finally {
       setLoading(false);
@@ -71,7 +87,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@company.com"
               required
-              className="w-full px-6 py-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/20 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all uppercase tracking-tight"
+              className="w-full px-6 py-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/20 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all tracking-tight"
             />
           </div>
 
@@ -85,7 +101,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-6 py-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/20 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all uppercase tracking-tight"
+                className="w-full px-6 py-4 rounded-2xl bg-black/[0.03] dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-white/20 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all tracking-tight"
               />
               <button
                 type="button"
