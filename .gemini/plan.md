@@ -208,3 +208,186 @@
 | G4 | [FE] Refactor ApologiesPage sang Table Layout + Tabs History | [x] PASSED |
 | G5 | [FE] Refactor OTPage sang Table Layout + Tabs History | [x] PASSED |
 | G6 | [FE] Dashboard Attendance Widget hiển thị động Check-in/Check-out | [x] PASSED |
+
+---
+
+### 📋 Plan — Phase Next: AI Chatbot Widget nội bộ HRM
+
+**Mục tiêu:** Tích hợp AI Chatbot (Gemini API) vào hệ thống HRM dưới dạng widget nổi, hỗ trợ hỏi đáp nghiệp vụ HRM và thao tác duyệt đơn theo quyền.
+
+**Các bước thực hiện:**
+| # | File tạo/sửa | Việc cần làm |
+|---|---|---|
+| 1 | `backend/src/main/java/com/hrm/entity/ChatMessage.java` | Tạo entity lưu lịch sử chat (`userId`, `role`, `content`, `isUserMessage`, `createdAt`) |
+| 2 | `backend/src/main/java/com/hrm/repository/ChatMessageRepository.java` | Tạo repository để lưu/lấy lịch sử hội thoại theo user |
+| 3 | `backend/src/main/java/com/hrm/dto/ChatRequestDto.java` | DTO nhận message từ FE (`message`, context tùy chọn) |
+| 4 | `backend/src/main/java/com/hrm/dto/ChatResponseDto.java` | DTO trả response AI + metadata tool gọi |
+| 5 | `backend/src/main/java/com/hrm/service/ChatToolService.java` | Implement 4 tools: `getMySummary`, `getTeamStats`, `getCompanyPolicy`, `approveRequest` + check quyền |
+| 6 | `backend/src/main/java/com/hrm/service/ChatService.java` | Core gọi Gemini API, system prompt, function/tool calling, orchestration, lưu lịch sử |
+| 7 | `backend/src/main/java/com/hrm/controller/ChatController.java` | Expose `POST /api/chat/message` (auth required) |
+| 8 | `backend/src/main/resources/application.yml` | Thêm config `gemini.api.key` (đọc từ env), timeout/model nếu cần |
+| 9 | `backend/src/main/resources/db/migration/V11__chat_messages.sql` | Tạo bảng `chat_messages` (không sửa migration cũ) |
+| 10 | `frontend/lib/api.ts` | Thêm `chatApi.sendMessage()` gọi BE |
+| 11 | `frontend/components/ChatWidget.tsx` | Widget chat nổi góc phải: bubble icon, open/close panel, render history, loading/error state |
+| 12 | `frontend/app/(dashboard)/layout.tsx` | Gắn `ChatWidget` vào dashboard layout để dùng toàn hệ thống |
+
+**Chi tiết tool trong `ChatToolService`:**
+- `getMySummary(userId, month, year)`: lấy lương net + ngày công + phép còn lại của chính user.
+- `getTeamStats(managerId, month, year)`: chỉ cho `MANAGER/HR/ADMIN`, trả số liệu team (đi muộn, tổng OT, lương trung bình).
+- `getCompanyPolicy()`: đọc `CompanyConfig`, trả về giờ làm, OT rate, ngày công chuẩn.
+- `approveRequest(type, id, action)`: chỉ cho `MANAGER/HR/ADMIN`, gọi service tương ứng (LEAVE/APOLOGY/OT).
+
+**System prompt cho Gemini:**
+- Vai trò: Trợ lý HR nội bộ.
+- Ngôn ngữ: tiếng Việt, ngắn gọn, chuyên nghiệp.
+- Phạm vi: chỉ trả lời nội dung HRM (lương/chấm công/nghỉ phép/OT/chính sách).
+- Khi cần dữ liệu thật: bắt buộc gọi tool, không suy đoán.
+- Bảo mật: không lộ dữ liệu cá nhân/lương người khác nếu không đủ quyền.
+
+**Thứ tự:** BE trước → FE sau — để FE có API ổn định và contract rõ ràng trước khi render UI.
+
+**Rủi ro / cần chú ý:**
+- API key Gemini chỉ đọc từ env (`GEMINI_API_KEY`), không hardcode, không commit.
+- Tool `approveRequest` phải chặn quyền ở service, không chỉ ở controller.
+- Cần chống prompt injection cơ bản: giới hạn tool được gọi theo role.
+- Lưu lịch sử chat phải tránh lưu dữ liệu nhạy cảm không cần thiết.
+- Migration mới dùng `V11__...sql` để tránh xung đột version đã có (`V10`).
+
+**Verify bằng cách:**
+- User hỏi: `"lương tháng này của tôi là bao nhiêu?"` → AI gọi `getMySummary` → trả số thực từ DB.
+- User hỏi: `"chính sách OT hiện tại"` → AI gọi `getCompanyPolicy`.
+- Manager/HR thử duyệt đơn qua chat với `approveRequest` (APPROVE/REJECT).
+- EMPLOYEE thử duyệt đơn qua chat phải bị từ chối quyền.
+
+⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận `ok / làm đi` trước khi bắt đầu.
+
+---
+
+### 📋 Plan — Fix Chatbot: Timeout + Icon đẹp hơn
+
+**Mục tiêu:** Fix lỗi `timeout of 10000ms exceeded` khi gọi Gemini API và redesign icon chat widget đẹp hơn, đồng bộ theme Premium.
+
+**Các bước thực hiện:**
+
+| # | File sửa | Việc cần làm |
+|---|---|---|
+| 1 | `frontend/lib/api.ts` hoặc file gọi chat API | Tăng timeout riêng cho chat endpoint từ `10000ms` lên `30000ms` |
+| 2 | `backend/src/main/java/com/hrm/service/ChatService.java` | Thêm timeout cho Gemini API call (`connectTimeout/readTimeout` 25s), bọc `try-catch` trả lỗi thân thiện thay vì throw raw exception |
+| 3 | `frontend/components/ChatWidget.tsx` | Redesign bubble icon: thay chữ `AI` bằng icon SVG chat đẹp, thêm hover scale, thêm pulse badge khi có tin nhắn mới |
+
+**Chi tiết fix timeout:**
+- FE: gọi chat API với timeout riêng `30s` (`{ timeout: 30000 }`) để không ảnh hưởng endpoint khác.
+- BE: dùng HTTP client có cấu hình timeout (`connectTimeout/readTimeout` 25s) khi gọi Gemini.
+- Fallback message nếu timeout/lỗi mạng: `Xin lỗi, tôi đang bận. Bạn thử lại sau nhé! 🙏`.
+
+**Chi tiết icon mới:**
+- Bubble tròn, gradient tím-indigo đồng bộ theme app.
+- Icon bên trong: SVG chat/sparkle sắc nét.
+- Hover: scale up nhẹ, transition mượt.
+- Khi có tin nhắn mới: hiển thị chấm đỏ pulse ở góc icon.
+
+**Thứ tự:** BE trước → FE sau — đảm bảo API ổn định trước khi tinh chỉnh UI/UX.
+
+**Rủi ro / cần chú ý:**
+- Không tăng timeout global toàn app nếu không cần, chỉ áp dụng cho chat endpoint.
+- Không để exception kỹ thuật lộ ra UI.
+- Giữ UTF-8 cho chuỗi tiếng Việt trong toàn bộ file sửa.
+
+**Verify bằng cách:**
+- Hỏi `"lương tháng này bao nhiêu?"` → phản hồi trong <= 30s, không lỗi timeout 10s.
+- Mô phỏng mạng chậm/lỗi Gemini → UI hiển thị đúng fallback message thân thiện.
+- Icon widget mới hiển thị đúng gradient theme, có hover animation và pulse badge khi có tin nhắn mới.
+
+⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận `ok / làm đi` trước khi bắt đầu.
+
+---
+
+### 📋 Plan — Fix Chatbot: Giới hạn chủ đề + Lịch sử hội thoại
+
+**Mục tiêu:** Giới hạn chatbot vào nghiệp vụ HRM, chặn câu hỏi linh tinh, đồng thời giữ ngữ cảnh hội thoại trong session để trả lời liên tục mạch hơn.
+
+**Các bước thực hiện:**
+| # | File sửa | Việc cần làm |
+|---|---|---|
+| 1 | `backend/src/main/java/com/hrm/dto/ChatRequestDto.java` | Bổ sung `history[]` vào request DTO (role + content) |
+| 2 | `backend/src/main/java/com/hrm/service/ChatService.java` | Cập nhật system prompt cứng theo rule mới, nhận history từ FE, ghép history vào input trước message mới |
+| 3 | `frontend/components/ChatWidget.tsx` | Khi gửi message, đính kèm 10 tin gần nhất (`messages.slice(-10)`) vào payload |
+| 4 | `frontend/lib/api.ts` | Giữ contract gửi payload có `history` cho endpoint `/api/chat/message` |
+
+**Chi tiết kiểm soát chủ đề (BE):**
+- System prompt sẽ ưu tiên tuyệt đối HRM (lương, công, phép, OT, chính sách, duyệt đơn).
+- Nếu câu hỏi ngoài phạm vi nhưng thuộc nhóm nhẹ/không linh tinh (ví dụ: chào hỏi, hỏi cách dùng chatbot trong hệ thống HRM) thì trả lời ngắn 1-2 câu.
+- Nếu linh tinh/không liên quan rõ ràng thì bắt buộc trả đúng câu fallback:
+`Tôi chỉ hỗ trợ các vấn đề nhân sự. Bạn có câu hỏi về lương, công, phép không? 😊`
+- Không giải thích dài thêm khi đã rơi vào nhánh fallback.
+
+**Chi tiết conversation history:**
+- FE gửi kèm `history` mỗi lần submit:
+  - `role`: `user | assistant`
+  - `content`: nội dung tin
+  - giới hạn 10 tin gần nhất để tránh prompt quá dài.
+- BE nhận `history`, chuyển thành context trước message hiện tại để model hiểu ngữ cảnh liên tục.
+
+**Thứ tự:** BE trước → FE sau — để chốt contract `history[]` trước, tránh mismatch payload.
+
+**Rủi ro / cần chú ý:**
+- Không để history phình quá lớn (giữ max 10).
+- Không làm model “quá cứng” khiến câu hỏi HRM hợp lệ bị chặn nhầm.
+- Toàn bộ chuỗi tiếng Việt trong code sửa phải lưu UTF-8.
+
+**Verify bằng cách:**
+- Hỏi `"yasuo là gì"` → trả đúng câu fallback.
+- Hỏi `"chào bạn"` → trả lời ngắn, lịch sự (cho phép ngoài HRM mức nhẹ).
+- Hỏi `"lương tôi bao nhiêu?"` rồi hỏi tiếp `"so với tháng trước?"` → bot giữ ngữ cảnh từ history, không hỏi lại từ đầu.
+
+⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận `ok / làm đi` trước khi bắt đầu.
+
+---
+
+### 📋 Plan — Fix Chatbot: Cấp quyền đọc data thật cho AI (H1 + H2)
+
+**Mục tiêu:** Đảm bảo chatbot luôn lấy dữ liệu thật từ backend tools (không tự đoán), trước mắt sửa dứt điểm `getCompanyPolicy`, sau đó hoàn thiện đầy đủ luồng tool-calling cho các nghiệp vụ HRM.
+
+**Các bước thực hiện:**
+| # | File sửa | Việc cần làm |
+|---|---|---|
+| 1 | `backend/src/main/java/com/hrm/service/ChatToolService.java` | **H1:** Fix `getCompanyPolicy()` đọc trực tiếp `CompanyConfigRepository.findById("default")` và format trả lời rõ ràng |
+| 2 | `backend/src/main/java/com/hrm/service/ChatService.java` | Cập nhật routing/prompt để khi gặp từ khóa policy/config (giờ làm, OT, ngày công...) thì ưu tiên gọi tool `getCompanyPolicy()` |
+| 3 | `backend/src/main/java/com/hrm/service/ChatToolService.java` | **H2:** Hoàn thiện bộ tools đọc data thật: payroll, attendance, leave balance, team stats, pending requests |
+| 4 | `backend/src/main/java/com/hrm/service/ChatService.java` | Hoàn thiện function/tool calling flow (declare tools + vòng lặp gọi tool rồi trả text cuối) |
+| 5 | `backend/src/main/java/com/hrm/controller/ChatController.java` | Đảm bảo truyền đúng context user/role từ JWT vào ChatService |
+| 6 | `frontend/components/ChatWidget.tsx` + `frontend/types/index.ts` | Giữ payload history + map response tool để FE hiển thị ổn định |
+
+**H1 — Fix nhanh `getCompanyPolicy` (ưu tiên làm trước):**
+- Inject `CompanyConfigRepository` vào `ChatToolService`.
+- Đọc config theo id `default`.
+- Trả nội dung đầy đủ: giờ làm, nghỉ trưa, early check-in, giờ chuẩn, ngày công chuẩn, cutoff day, OT weekday/weekend/holiday.
+- Nếu không có config: trả message rõ `Không tìm thấy cấu hình công ty.`.
+
+**H2 — Cấp quyền đọc data thật qua tools:**
+- `getMyPayroll(userId, month, year)` → lương tháng từ `payrolls`.
+- `getMyAttendance(userId, month, year)` → trạng thái công + OT từ `attendances`.
+- `getMyLeaveBalance(userId)` → phép đã dùng/còn lại từ `leave_requests`.
+- `getTeamStats(managerId, month, year)` (MANAGER/HR/ADMIN) → thống kê team.
+- `getCompanyPolicy()` → `company_config`.
+- `getPendingRequests(userId, role)` (MANAGER/HR/ADMIN) → đơn pending từ leave/apology/ot.
+
+**Logic bắt buộc trong ChatService:**
+- Khi câu hỏi chứa các cụm policy/config như:
+`giờ làm, giờ vào, giờ ra, nghỉ trưa, ngày công, OT, tăng ca, chính sách, quy định, config, cấu hình`
+→ bắt buộc đi nhánh tool `getCompanyPolicy` trước khi trả lời.
+
+**Thứ tự:** H1 trước (fix production issue ngay) → H2 sau (hoàn thiện kiến trúc tool-calling).
+
+**Rủi ro / cần chú ý:**
+- Phải check quyền chặt cho tools team/pending/approve.
+- Không trả dữ liệu nhân sự ngoài quyền user hiện tại.
+- Không hardcode dữ liệu policy trong prompt; luôn lấy từ tool.
+
+**Verify bằng cách:**
+- `giờ làm mấy giờ?` → gọi `getCompanyPolicy` → trả 09:00-18:00.
+- `OT cuối tuần mấy lần?` → trả đúng `otRateWeekend` từ DB.
+- `ngày công chuẩn tháng này bao nhiêu?` → trả đúng `standardDaysPerMonth` từ DB.
+- `lương tháng 3 của tôi?` → gọi tool payroll, số khớp DB.
+
+⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận `ok / làm đi` trước khi bắt đầu.

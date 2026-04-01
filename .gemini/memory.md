@@ -88,3 +88,41 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
   - BE: Bổ sung repository/service support query history/reviewed requests.
   - FE: Thiết kế lại toàn bộ CSS Glassmorphism cho Bảng dữ liệu, tối ưu hóa không gian hiển thị.
 - [2026-04-01T10:17:03+07:00] Fix bug PDF lương bị lỗi tiếng Việt (mojibake): chuẩn hóa chuỗi Unicode UTF-8 trong PayrollPdfService, dùng font Unicode hệ thống (Arial/Tahoma/Times) với IDENTITY_H để render đúng dấu; backend compile pass (mvn -DskipTests compile).
+- [2026-04-01T10:42:44+07:00] Hoàn thành Phase Next: AI Chatbot Widget HRM (BE+FE): thêm chat_messages (V11), ChatController/ChatService/ChatToolService với Gemini + tool calling (getMySummary/getTeamStats/getCompanyPolicy/approveRequest), FE ChatWidget nổi + chatApi; backend compile pass.
+- [2026-04-01T10:58:39+07:00] Fix Chatbot timeout + UI icon: FE chat timeout 30s (chatApi), BE Gemini connect/read timeout 25s + fallback thân thiện khi timeout ('Xin lỗi, tôi đang bận. Bạn thử lại sau nhé! 🙏'), redesign ChatWidget icon SVG gradient tím-indigo với hover scale và pulse badge khi có tin nhắn mới. Backend compile pass.
+- [2026-04-01T11:01:37+07:00] Nâng cấp UI ChatWidget: hỗ trợ light/dark mode rõ ràng, bubble gradient đồng bộ theme, tinh chỉnh header/input/message style; thêm auto-scroll xuống cuối khi có tin nhắn mới/loading để không cần kéo tay.
+- [2026-04-01T11:10:23+07:00] Fix Chatbot giới hạn chủ đề + history: BE thêm ChatRequestDto.history, ChatService áp rule cứng HRM (fallback cho câu linh tinh), cho phép ngoại lệ test nhanh (1+1/test) và chào hỏi ngắn; FE ChatWidget gửi kèm 10 history messages mỗi lần gửi, thêm tab Chat/Lịch sử kiểu message app. Backend compile pass.
+- [2026-04-01T11:14:33+07:00] Tinh chỉnh UI ChatWidget: bỏ height cứng gây khoảng trắng xấu, chuyển layout flex co giãn (chat/history), giữ input cố định dưới và vùng tin nhắn scroll mượt theo chiều cao thực tế.
+- [2026-04-01T11:17:15+07:00] Bổ sung nút 'Mở chat' ở FE để mở trực tiếp màn hình chat lớn (full-screen panel), thêm toggle Mở lớn/Thu nhỏ trong header, giữ nguyên nút chat tròn hiện tại.
+- [2026-04-01T11:18:32+07:00] FE ChatWidget: bỏ nút 'Mở chat', chỉ giữ một nút chat duy nhất ở góc dưới theo yêu cầu UI.
+- [2026-04-01T11:25:00+07:00] Fix chatbot nhận diện không dấu + mở rộng dữ liệu bảng: ChatService normalize text (không dấu) để nhận 'gio lam viec cong ty', ChatToolService bổ sung dữ liệu từ payroll/leave_requests/apologies/company_config trong getMySummary/getCompanyPolicy; phản hồi rõ ngày lễ chưa có bảng backend (hiện dữ liệu tĩnh frontend). Backend compile pass.
+
+- [2026-04-01T11:37:47+07:00] Chatbot BE hardening: refactor ChatToolService sang bộ tool đọc DB thật (getMyPayroll/getMyAttendance/getMyLeaveBalance/getTeamStats/getCompanyPolicy/getPendingRequests + approveRequest), getCompanyPolicy đọc trực tiếp company_config (id='default'); ChatService thêm forced routing cho câu hỏi policy/config để luôn gọi tool thay vì fallback sai, mở rộng planner prompt theo 6 tools, giữ history context; backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T11:47:16+07:00] Fix chatbot theo phản hồi user: (1) đổi thứ tự xử lý trong ChatService để forced tool routing chạy trước hard-reject, nên câu 'đơn chờ duyệt của team tôi' không bị fallback sai; (2) thêm suy luận kỳ lương từ câu hỏi (tháng trước/tháng này/tháng N [năm YYYY]) để không mặc định tháng hiện tại; (3) thêm tool getEmployeePayroll với phân quyền: ADMIN/HR xem toàn bộ, MANAGER xem trong team, EMPLOYEE chỉ xem lương bản thân. Compile backend pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T11:51:50+07:00] Bổ sung lưu hội thoại liên tục: thêm API GET /api/chat/history (load từ chat_messages), FE ChatWidget ưu tiên nạp history từ DB khi mount rồi fallback sessionStorage; tăng khả năng follow-up payroll bằng câu ngắn (ví dụ chỉ gửi tên nhân viên), kế thừa tháng/năm từ history. Khử BOM UTF-8 ở ChatService/ChatToolService để sửa lỗi compile illegal character. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:08:47+07:00] Fix truy vấn lương theo ngôn ngữ tự nhiên: sửa parse keyword trong ChatService cho mẫu 'lương của X là bao nhiêu' (không còn cắt nhầm thành 'bao nhieu'); bổ sung lookup theo role trong ChatToolService (HR/MANAGER/ADMIN/EMPLOYEE) cho admin/hr khi user hỏi kiểu 'lương của hr'. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:13:41+07:00] Mo rong kha nang hieu cau hoi chatbot ve he thong: them tryHandleSystemGuide (chuc nang/module, phan quyen role, import/export, doi mat khau, thong bao, cach dung chatbot), mo rong tap keyword HRM de giam fallback sai; bo sung company policy response gom halfDayMorningRate/halfDayAfternoonRate de tra loi cau hoi nua ngay sang/chieu tinh cong. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:18:42+07:00] Fix nhan dien cau hoi chat thuc te: them intent cho ngay le/holiday vao policy route, them huong dan truc tiep cho 'giai trinh nhu nao' va 'xin nghi phep nhu nao', giam nham lan employee-keyword sau context payroll (chan cac cum nhu 'nhu nao/ra sao/bao nhieu' khoi nhanh tim ten). Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:23:15+07:00] Nang cap chatbot theo yeu cau: mo rong nhan dien song ngu VI/EN cho payroll/attendance/leave/policy/team/pending approvals; them suy luan intent theo lich su gan nhat (deriveRecentIntent + generic follow-up) de hoi noi tiep theo doan chat thay vi chi luu log; tang context FE gui len tu 10 -> 20 messages. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:26:17+07:00] Bo sung tool internet cho chatbot: getUpcomingPublicHolidays (Nager.Date API) de tra loi cau hoi 'sap toi co ngay le gi'. ChatService them intent route uu tien cho upcoming holiday va cap nhat planner tool list. Nhờ vậy câu holiday cu the khong con roi vao getCompanyPolicy. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:32:22+07:00] Implement UI lich su theo doan chat rieng (thread) cho ChatWidget: them danh sach doan chat, tao doan chat moi, chuyen qua lai giua cac thread, luu sessions + activeSession vao localStorage (v2), migrate tu DB history/legacy storage neu co, va gui history theo thread hien tai. Da sua warning hook trong file moi; khong chay duoc eslint theo file do policy PowerShell chan npx scripts.
+
+- [2026-04-01T13:36:47+07:00] ChatWidget: bo sung xoa doan chat (thread-level delete) va luu lich su theo tai khoan user (storage key scoped theo email session), khong con tron lich su giua cac tai khoan tren cung trinh duyet. Giữ khả năng tạo đoạn chat mới và chuyển đoạn chat như ChatGPT.
+
+- [2026-04-01T13:39:07+07:00] ChatWidget: bổ sung popup xác nhận trước khi xóa đoạn chat (window.confirm: 'Bạn có chắc muốn xóa đoạn chat này không?'), đảm bảo tránh xóa nhầm khi quản lý nhiều thread.
+
+- [2026-04-01T13:41:35+07:00] ChatWidget UX update: thay window.confirm bang popup confirm UI trong khung chat (state pendingDeleteSessionId, nut Huy/Xoa), giup tra nghiem dong bo giao dien. ChatService update: them tryHandleShortAck de xu ly cau ngan 'ok/oke/uh...' theo ngu canh intent gan nhat, giam tra loi fallback chung chung. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:45:03+07:00] Nới lỏng hành vi chatbot để tương tác tự nhiên hơn: đổi fallback ngoài HRM sang mềm/lịch sự, cập nhật prompt và planner prompt không còn ép 1 câu cố định, tắt hard-reject cứng trong ChatService (để model + fallback mềm xử lý). Giữ nguyên kiểm soát quyền dữ liệu qua tool/service. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:49:36+07:00] Thiết lập chế độ tương tác chatbot theo mode và đặt mặc định BALANCED: thêm cấu hình chatbot.interaction.mode (STRICT/BALANCED/FRIENDLY) trong ChatService, parser mode an toàn và logic shouldHardReject theo mode. Mặc định BALANCED để bot tự nhiên nhưng vẫn chặn case out-of-scope rõ ràng. Backend compile pass (mvnw -q -DskipTests compile).
+
+- [2026-04-01T13:56:53+07:00] Chuẩn hóa phản hồi chatbot UTF-8 tiếng Việt và tăng chất lượng fallback khi không có model: localSummary nay trả số liệu cụ thể (lương gross/net, chấm công, số dư phép, thống kê team, đơn chờ duyệt) thay vì câu chung chung 'đã lấy dữ liệu'. Đồng thời thay toàn bộ social/system guide text sang tiếng Việt có dấu.

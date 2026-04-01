@@ -170,3 +170,26 @@ export interface DashboardSummary {
   pendingLeaveRequestsToReview: number;
   cutoffDay?: number;
 }
+
+export interface ChatMessageRequest {
+  message: string;
+  month?: number;
+  year?: number;
+  history?: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+  }>;
+}
+
+export interface ChatMessageResponse {
+  message: string;
+  toolName?: string | null;
+  toolResult?: Record<string, unknown> | null;
+  timestamp?: string;
+}
+
+export interface ChatHistoryItem {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: string;
+}

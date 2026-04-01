@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getSession, clearSession } from './auth';
+import type { ChatHistoryItem, ChatMessageRequest, ChatMessageResponse } from '@/types';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
@@ -44,7 +45,19 @@ export async function changePassword(data: {
   try {
     const response = await api.post('/api/auth/change-password', data);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Failed to change password');
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    throw new Error(err.response?.data?.message || 'Failed to change password');
   }
 }
+
+export const chatApi = {
+  async sendMessage(payload: ChatMessageRequest): Promise<ChatMessageResponse> {
+    const response = await api.post('/api/chat/message', payload, { timeout: 30000 });
+    return response.data;
+  },
+  async getHistory(): Promise<ChatHistoryItem[]> {
+    const response = await api.get('/api/chat/history', { timeout: 15000 });
+    return Array.isArray(response.data) ? response.data : [];
+  },
+};

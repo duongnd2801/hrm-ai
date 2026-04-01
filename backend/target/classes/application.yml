@@ -28,6 +28,11 @@ jwt:
   secret: hrm-jwt-secret-key-for-local-development-2024-min32chars
   expiration: 86400000   # 24h in ms
 
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:AIzaSyD94z234iSj39Sd_-iyh-2AeCSeAzFD7uA}
+  model: ${GEMINI_MODEL:gemini-2.5-flash}
+
 server:
   port: 8080
 

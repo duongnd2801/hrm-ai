@@ -1,38 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import api from '@/lib/api';
+import DraggableModal from '@/components/DraggableModal';
 
 interface User {
   id: string;
   email: string;
-  role: string;
+  role: 'ADMIN' | 'HR' | 'MANAGER' | 'EMPLOYEE' | string;
   createdAt: string;
   isActive: boolean;
 }
 
-interface PageResponse {
-  content: User[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-}
+type ActionType = 'reset' | 'delete' | null;
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchEmail, setSearchEmail] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [newRole, setNewRole] = useState('EMPLOYEE');
+  const [newRole, setNewRole] = useState<User['role']>('EMPLOYEE');
+  const [actionType, setActionType] = useState<ActionType>(null);
+  const [targetUser, setTargetUser] = useState<User | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
   }, [page]);
 
   const fetchUsers = async () => {
@@ -45,7 +43,7 @@ export default function UserManagementPage() {
       setUsers(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch users');
+      setError(err.response?.data?.message || 'Không thể tải danh sách tài khoản.');
     } finally {
       setLoading(false);
     }
@@ -53,226 +51,262 @@ export default function UserManagementPage() {
 
   const handleSearch = async () => {
     if (!searchEmail.trim()) {
-      fetchUsers();
+      await fetchUsers();
       return;
     }
-
     setLoading(true);
     setError('');
     try {
       const response = await api.get('/api/users/search', {
-        params: { email: searchEmail, page: 0, size: 20 },
+        params: { email: searchEmail.trim(), page: 0, size: 20 },
       });
       setUsers(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
       setPage(0);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Search failed');
+      setError(err.response?.data?.message || 'Tìm kiếm thất bại.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResetPassword = async (userId: string) => {
-    if (!window.confirm('Reset password for this user to default (Emp@123)?')) return;
+  const openRoleModal = (user: User) => {
+    setSelectedUser(user);
+    setNewRole(user.role);
+    setShowRoleModal(true);
+  };
 
-    try {
-      await api.post(`/api/users/${userId}/reset-password`);
-      setSuccess('Password reset successfully');
-      fetchUsers();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
-    }
+  const closeRoleModal = () => {
+    setShowRoleModal(false);
+    setSelectedUser(null);
   };
 
   const handleUpdateRole = async () => {
     if (!selectedUser) return;
-
+    setSubmitting(true);
+    setError('');
     try {
       await api.put(`/api/users/${selectedUser.id}/role`, { role: newRole });
-      setSuccess('Role updated successfully');
-      setShowRoleModal(false);
-      setSelectedUser(null);
-      fetchUsers();
+      setSuccess(`Đã cập nhật quyền cho ${selectedUser.email}.`);
+      closeRoleModal();
+      await fetchUsers();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update role');
+      setError(err.response?.data?.message || 'Không thể cập nhật quyền.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (userId: string, email: string) => {
-    if (!window.confirm(`Delete user ${email}? This action cannot be undone.`)) return;
+  const openActionConfirm = (type: ActionType, user: User) => {
+    setActionType(type);
+    setTargetUser(user);
+  };
 
+  const closeActionConfirm = () => {
+    setActionType(null);
+    setTargetUser(null);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!actionType || !targetUser) return;
+    setSubmitting(true);
+    setError('');
     try {
-      await api.delete(`/api/users/${userId}`);
-      setSuccess('User deleted successfully');
-      fetchUsers();
+      if (actionType === 'reset') {
+        await api.post(`/api/users/${targetUser.id}/reset-password`);
+        setSuccess(`Đã reset mật khẩu cho ${targetUser.email} về Emp@123.`);
+      }
+      if (actionType === 'delete') {
+        await api.delete(`/api/users/${targetUser.id}`);
+        setSuccess(`Đã xóa tài khoản ${targetUser.email}.`);
+      }
+      closeActionConfirm();
+      await fetchUsers();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete user');
+      setError(err.response?.data?.message || 'Thao tác thất bại.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+        return 'bg-rose-500/10 text-rose-700 dark:text-rose-300';
       case 'HR':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
+        return 'bg-sky-500/10 text-sky-700 dark:text-sky-300';
       case 'MANAGER':
-        return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200';
+        return 'bg-violet-500/10 text-violet-700 dark:text-violet-300';
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200';
+        return 'bg-slate-500/10 text-slate-700 dark:text-slate-300';
     }
   };
 
+  const totalPagesSafe = Math.max(1, totalPages);
+  const activeCount = useMemo(() => users.filter((u) => u.isActive !== false).length, [users]);
+
   return (
-    <div className="min-h-screen px-8 py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">User Management</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage user accounts, roles, and permissions</p>
-      </div>
+    <div className="px-2 lg:px-6 py-4">
+      <section className="rounded-[32px] border border-black/5 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-2xl overflow-hidden shadow-xl">
+        <div className="px-6 lg:px-8 py-7 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div>
+            <h1 className="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+              Quản lý user
+            </h1>
+            <p className="mt-2 text-[11px] lg:text-sm font-black uppercase tracking-[0.34em] italic text-slate-500 dark:text-white/45">
+              Quản trị tài khoản, phân quyền và bảo mật hệ thống
+            </p>
+          </div>
 
-      {/* Messages */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-lg">
-          {error}
-          <button onClick={() => setError('')} className="ml-2 text-red-700 dark:text-red-200 font-bold">✕</button>
+          <div className="self-start lg:self-auto p-1.5 rounded-full bg-slate-200/80 dark:bg-white/10 flex gap-1.5">
+            <div className="px-6 py-3 rounded-full bg-indigo-600 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
+              Đang hoạt động ({activeCount})
+            </div>
+            <div className="px-6 py-3 rounded-full text-slate-500 dark:text-white/60 text-xs font-black uppercase tracking-widest">
+              Tổng ({users.length})
+            </div>
+          </div>
         </div>
-      )}
 
-      {success && (
-        <div className="mb-6 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 rounded-lg">
-          {success}
-          <button onClick={() => setSuccess('')} className="ml-2 text-green-700 dark:text-green-200 font-bold">✕</button>
+        <div className="border-t border-black/5 dark:border-white/10" />
+
+        <div className="px-6 lg:px-8 py-5 flex flex-col lg:flex-row gap-3">
+          <input
+            type="email"
+            value={searchEmail}
+            onChange={(e) => setSearchEmail(e.target.value)}
+            placeholder="Nhập email cần tìm..."
+            className="flex-1 rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/5 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:ring-4 focus:ring-indigo-500/15"
+          />
+          <button
+            onClick={() => void handleSearch()}
+            className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+          >
+            Tìm kiếm
+          </button>
+          <button
+            onClick={() => {
+              setSearchEmail('');
+              setPage(0);
+              void fetchUsers();
+            }}
+            className="px-6 py-3 rounded-2xl bg-slate-500/15 hover:bg-slate-500/25 text-slate-700 dark:text-slate-200 text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+          >
+            Làm mới
+          </button>
         </div>
-      )}
 
-      {/* Search Bar */}
-      <div className="mb-8 flex gap-4">
-        <input
-          type="email"
-          value={searchEmail}
-          onChange={(e) => setSearchEmail(e.target.value)}
-          placeholder="Search by email..."
-          className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
-        />
-        <button
-          onClick={handleSearch}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-        >
-          Search
-        </button>
-        <button
-          onClick={() => {
-            setSearchEmail('');
-            setPage(0);
-            fetchUsers();
-          }}
-          className="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition font-semibold"
-        >
-          Clear
-        </button>
-      </div>
+        {error && (
+          <div className="mx-6 lg:mx-8 mb-4 rounded-2xl border border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300 px-5 py-3 text-sm font-bold flex items-center justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => setError('')} className="text-base font-black hover:opacity-80">
+              ✕
+            </button>
+          </div>
+        )}
 
-      {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
-        {loading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading users...</div>
-        ) : users.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">No users found</div>
-        ) : (
-          <>
+        {success && (
+          <div className="mx-6 lg:mx-8 mb-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-5 py-3 text-sm font-bold flex items-center justify-between">
+            <span>{success}</span>
+            <button type="button" onClick={() => setSuccess('')} className="text-base font-black hover:opacity-80">
+              ✕
+            </button>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="py-14 text-center text-slate-500 dark:text-white/45 font-black uppercase tracking-widest">Đang tải dữ liệu...</div>
+          ) : users.length === 0 ? (
+            <div className="py-14 text-center text-slate-500 dark:text-white/45 font-black uppercase tracking-widest">Không có tài khoản phù hợp.</div>
+          ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-700 dark:text-gray-300 font-semibold">Email</th>
-                  <th className="px-6 py-3 text-left text-gray-700 dark:text-gray-300 font-semibold">Role</th>
-                  <th className="px-6 py-3 text-left text-gray-700 dark:text-gray-300 font-semibold">Created At</th>
-                  <th className="px-6 py-3 text-left text-gray-700 dark:text-gray-300 font-semibold">Actions</th>
+              <thead className="bg-black/[0.03] dark:bg-black/30 border-y border-black/5 dark:border-white/10">
+                <tr className="text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-white/45">
+                  <th className="px-6 lg:px-8 py-5 text-left font-black">Email</th>
+                  <th className="px-6 py-5 text-left font-black">Quyền</th>
+                  <th className="px-6 py-5 text-left font-black">Ngày tạo</th>
+                  <th className="px-6 py-5 text-left font-black">Tác vụ</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-black/5 dark:divide-white/10">
                 {users.map((user) => (
-                  <tr key={user.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4 text-gray-900 dark:text-white">{user.email}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getRoleColor(user.role)}`}>
+                  <tr key={user.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="px-6 lg:px-8 py-5 text-slate-900 dark:text-white font-semibold">{user.email}</td>
+                    <td className="px-6 py-5">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black border border-black/5 dark:border-white/10 ${getRoleColor(user.role)}`}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
+                    <td className="px-6 py-5 text-slate-600 dark:text-white/65 font-semibold">
                       {new Date(user.createdAt).toLocaleDateString('vi-VN')}
                     </td>
-                    <td className="px-6 py-4 flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setNewRole(user.role);
-                          setShowRoleModal(true);
-                        }}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
-                      >
-                        Change Role
-                      </button>
-                      <button
-                        onClick={() => handleResetPassword(user.id)}
-                        className="px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 transition"
-                      >
-                        Reset Pass
-                      </button>
-                      {user.role !== 'ADMIN' && (
+                    <td className="px-6 py-5">
+                      <div className="flex flex-wrap gap-2">
                         <button
-                          onClick={() => handleDeleteUser(user.id, user.email)}
-                          className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition"
+                          onClick={() => openRoleModal(user)}
+                          className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/25 hover:bg-indigo-600 hover:text-white transition-all active:scale-95"
                         >
-                          Delete
+                          Đổi quyền
                         </button>
-                      )}
+                        <button
+                          onClick={() => openActionConfirm('reset', user)}
+                          className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
+                        >
+                          Reset mật khẩu
+                        </button>
+                        {user.role !== 'ADMIN' && (
+                          <button
+                            onClick={() => openActionConfirm('delete', user)}
+                            className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/25 hover:bg-rose-600 hover:text-white transition-all active:scale-95"
+                          >
+                            Xóa
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
 
-            {/* Pagination */}
-            <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Page {page + 1} of {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 disabled:opacity-50 transition"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                  disabled={page >= totalPages - 1}
-                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 disabled:opacity-50 transition"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+        <div className="px-6 lg:px-8 py-4 flex items-center justify-between border-t border-black/5 dark:border-white/10">
+          <span className="text-sm text-slate-600 dark:text-white/60 font-semibold">
+            Trang {page + 1} / {totalPagesSafe}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(Math.max(0, page - 1))}
+              disabled={page === 0}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-500/15 text-slate-700 dark:text-slate-200 hover:bg-slate-500/25 disabled:opacity-40 transition-all"
+            >
+              Trước
+            </button>
+            <button
+              onClick={() => setPage(Math.min(totalPagesSafe - 1, page + 1))}
+              disabled={page >= totalPagesSafe - 1}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-500/15 text-slate-700 dark:text-slate-200 hover:bg-slate-500/25 disabled:opacity-40 transition-all"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      </section>
 
-      {/* Role Update Modal */}
       {showRoleModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Change Role</h2>
-            <p className="mb-4 text-gray-600 dark:text-gray-400">User: {selectedUser.email}</p>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Role</label>
+        <DraggableModal title="Đổi quyền tài khoản" onClose={closeRoleModal} widthClassName="max-w-lg">
+          <div className="space-y-6">
+            <p className="text-sm text-slate-600 dark:text-white/65 font-semibold">
+              Tài khoản: <span className="font-black text-slate-900 dark:text-white">{selectedUser.email}</span>
+            </p>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40 mb-2">Quyền mới</label>
               <select
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/5 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-indigo-500/15"
               >
                 <option value="ADMIN">ADMIN</option>
                 <option value="HR">HR</option>
@@ -280,26 +314,66 @@ export default function UserManagementPage() {
                 <option value="EMPLOYEE">EMPLOYEE</option>
               </select>
             </div>
-
-            <div className="flex gap-3 pt-4">
+            <div className="flex justify-end gap-3">
               <button
-                onClick={handleUpdateRole}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition"
+                type="button"
+                onClick={closeRoleModal}
+                className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
               >
-                Update
+                Hủy
               </button>
               <button
-                onClick={() => {
-                  setShowRoleModal(false);
-                  setSelectedUser(null);
-                }}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md transition"
+                type="button"
+                onClick={() => void handleUpdateRole()}
+                disabled={submitting}
+                className="px-7 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-50 active:scale-95"
               >
-                Cancel
+                {submitting ? 'Đang cập nhật...' : 'Xác nhận đổi quyền'}
               </button>
             </div>
           </div>
-        </div>
+        </DraggableModal>
+      )}
+
+      {actionType && targetUser && (
+        <DraggableModal
+          title={actionType === 'reset' ? 'Xác nhận reset mật khẩu' : 'Xác nhận xóa tài khoản'}
+          onClose={closeActionConfirm}
+          widthClassName="max-w-lg"
+        >
+          <div className="space-y-6">
+            <p className="text-sm text-slate-600 dark:text-white/65 font-semibold leading-relaxed">
+              {actionType === 'reset' ? (
+                <>
+                  Bạn có chắc muốn reset mật khẩu cho <span className="font-black text-slate-900 dark:text-white">{targetUser.email}</span> về mặc định <span className="font-black text-amber-700 dark:text-amber-300">Emp@123</span>?
+                </>
+              ) : (
+                <>
+                  Bạn có chắc muốn xóa tài khoản <span className="font-black text-slate-900 dark:text-white">{targetUser.email}</span>? Hành động này không thể hoàn tác.
+                </>
+              )}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeActionConfirm}
+                className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmAction()}
+                disabled={submitting}
+                className={`px-7 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all disabled:opacity-50 active:scale-95 ${
+                  actionType === 'reset' ? 'bg-amber-500 hover:bg-amber-400' : 'bg-rose-600 hover:bg-rose-500'
+                }`}
+              >
+                {submitting ? 'Đang xử lý...' : actionType === 'reset' ? 'Xác nhận reset' : 'Xác nhận xóa'}
+              </button>
+            </div>
+          </div>
+        </DraggableModal>
       )}
     </div>
   );

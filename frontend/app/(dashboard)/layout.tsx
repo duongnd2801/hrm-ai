@@ -7,6 +7,7 @@ import type { UserSession } from '@/types';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { AuthProvider } from '@/components/AuthProvider';
+import ChatWidget from '@/components/ChatWidget';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -69,6 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  {children}
               </main>
            </div>
+           <ChatWidget />
         </div>
       </div>
     </AuthProvider>
