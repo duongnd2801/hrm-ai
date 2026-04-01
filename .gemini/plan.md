@@ -1,3 +1,28 @@
+## Canonical Plan Snapshot (2026-04-01)
+
+Mục tiêu của phần này là làm sạch cấu trúc đọc nhanh, KHÔNG xóa dữ liệu lịch sử.
+Toàn bộ nội dung gốc vẫn được giữ nguyên bên dưới phần snapshot này.
+
+### Current Active Plan
+- Trạng thái tổng thể: `Done / Maintenance`
+- Hệ thống: đã hoàn thành các phase chính và QA v2.
+- Còn backlog cần theo dõi:
+  - `D14`: Import chấm công từ máy chấm công (MEDIUM, deferred)
+  - `D10`, `D12`: UX/Auth low-priority refinement
+
+### Canonical Bug Status (để tránh mâu thuẫn giữa các block cũ)
+- `FIXED`: D1, D2, D3, D13, D15, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25, D26, D27, D28
+- `CONFIRMED BUSINESS RULE`: D4, D5, D6
+- `VERIFIED OK / NOT A BUG`: D8, D9, D11
+- `LOW PRIORITY`: D10, D12
+- `MEDIUM BACKLOG`: D14
+
+### Data Integrity Note
+- Không xóa hoặc sửa nội dung lịch sử bên dưới.
+- Nếu có đoạn trùng/khác nhau, ưu tiên hiểu theo mục `Canonical Bug Status` ở trên.
+
+---
+
 ### 📋 Plan — Phase QA v2: Kiểm thử toàn diện hệ thống HRM
 
 **Mục tiêu:** Kiểm thử tất cả chức năng, test kỹ Import Excel, test phân quyền từng role, tìm bug và gợi ý tính năng mới.

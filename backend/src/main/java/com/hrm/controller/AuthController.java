@@ -4,6 +4,7 @@ import com.hrm.dto.AuthRequest;
 import com.hrm.dto.AuthResponse;
 import com.hrm.dto.ChangePasswordRequest;
 import com.hrm.dto.ChangePasswordResponse;
+import com.hrm.dto.RefreshTokenRequest;
 import com.hrm.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,5 +33,11 @@ public class AuthController {
     @Operation(summary = "Đổi mật khẩu", description = "Cho phép user authenticated đổi mật khẩu của mình")
     public ResponseEntity<ChangePasswordResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         return ResponseEntity.ok(authService.changePassword(request));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Làm mới access token", description = "Dùng refresh token để cấp lại access token")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
     }
 }

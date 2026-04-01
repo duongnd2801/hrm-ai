@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import { saveSession } from '@/lib/auth';
 import api from '@/lib/api';
 
@@ -36,6 +35,7 @@ export default function LoginPage() {
       const data = res.data;
       saveSession({
         token: data.token,
+        refreshToken: data.refreshToken,
         email: data.email,
         role: data.role,
         employeeId: data.employeeId,
@@ -48,8 +48,14 @@ export default function LoginPage() {
         data.employeeId &&
         data.profileCompleted === false;
       router.push(mustComplete ? `/employees/${data.employeeId}?completeProfile=1` : '/dashboard');
-    } catch (err: any) {
-      const status = err.response?.status;
+    } catch (err: unknown) {
+      const status =
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as { response?: { status?: number } }).response?.status === 'number'
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
       let msg = 'Không thể kết nối đến máy chủ';
       
       if (status === 401) msg = 'Email hoặc mật khẩu không chính xác';

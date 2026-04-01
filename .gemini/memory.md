@@ -2,6 +2,24 @@
 
 Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 
+## Canonical Memory Snapshot (2026-04-01)
+
+Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ liệu lịch sử.
+Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
+
+- Current phase: `Done (All phases completed)`
+- Current status: `Production-ready / đang theo dõi vận hành`
+- Next task (canonical): theo dõi phản hồi user, xử lý backlog D14, cải thiện test + bảo mật cấu hình.
+- Blockers: chưa có blocker nghiêm trọng đang mở.
+
+### Open Backlog (Canonical)
+- D14: Attendance import từ máy chấm công (MEDIUM, chưa triển khai đầy đủ).
+- D10, D12: tinh chỉnh UX/Auth mức LOW.
+
+### Data Integrity Note
+- Không xóa entries cũ.
+- Nếu có entry mâu thuẫn nhẹ theo thời điểm, ưu tiên mốc thời gian mới hơn.
+
 - Current phase: Done (All phases completed)
 - Phase status: Dự án đã hoàn thành các giai đoạn chính và được polish ổn định.
 - **[MEMORY]** 2026-03-31: Hoàn thành Phase QA. Đã fix toàn bộ các lỗi nghiêm trọng sau:
@@ -126,3 +144,5 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 - [2026-04-01T13:49:36+07:00] Thiết lập chế độ tương tác chatbot theo mode và đặt mặc định BALANCED: thêm cấu hình chatbot.interaction.mode (STRICT/BALANCED/FRIENDLY) trong ChatService, parser mode an toàn và logic shouldHardReject theo mode. Mặc định BALANCED để bot tự nhiên nhưng vẫn chặn case out-of-scope rõ ràng. Backend compile pass (mvnw -q -DskipTests compile).
 
 - [2026-04-01T13:56:53+07:00] Chuẩn hóa phản hồi chatbot UTF-8 tiếng Việt và tăng chất lượng fallback khi không có model: localSummary nay trả số liệu cụ thể (lương gross/net, chấm công, số dư phép, thống kê team, đơn chờ duyệt) thay vì câu chung chung 'đã lấy dữ liệu'. Đồng thời thay toàn bộ social/system guide text sang tiếng Việt có dấu.
+
+- [2026-04-01T16:41:31+07:00] Làm sạch tài liệu vận hành mà không mất dữ liệu: thêm Canonical Snapshot ở GEMINI/plan/memory để đọc nhanh, giữ nguyên toàn bộ nội dung lịch sử bên dưới; chuẩn hóa trạng thái backlog mở (D14 medium, D10-D12 low) phục vụ giai đoạn bảo trì.

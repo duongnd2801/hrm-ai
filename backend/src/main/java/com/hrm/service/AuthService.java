@@ -4,6 +4,7 @@ import com.hrm.dto.AuthRequest;
 import com.hrm.dto.AuthResponse;
 import com.hrm.dto.ChangePasswordRequest;
 import com.hrm.dto.ChangePasswordResponse;
+import com.hrm.dto.RefreshTokenRequest;
 import com.hrm.entity.Employee;
 import com.hrm.entity.User;
 import com.hrm.repository.EmployeeRepository;
@@ -35,16 +36,20 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String token = jwtTokenProvider.generate(user.getEmail(), user.getRole().name());
-        Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
-        boolean profileCompleted = employee == null || isProfileCompleted(employee);
-        return new AuthResponse(
-                token,
-                user.getEmail(),
-                user.getRole().name(),
-                employee != null ? employee.getId() : null,
-                profileCompleted
-        );
+        return buildAuthResponse(user);
+    }
+
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!jwtTokenProvider.isValidRefreshToken(refreshToken)) {
+            throw new RuntimeException("Refresh token is invalid or expired");
+        }
+
+        String email = jwtTokenProvider.getEmail(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return buildAuthResponse(user);
     }
 
     private boolean isProfileCompleted(Employee employee) {
@@ -82,5 +87,21 @@ public class AuthService {
         userRepository.save(user);
 
         return new ChangePasswordResponse("Password changed successfully", true);
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getRole().name());
+        Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
+        boolean profileCompleted = employee == null || isProfileCompleted(employee);
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getEmail(),
+                user.getRole().name(),
+                employee != null ? employee.getId() : null,
+                profileCompleted
+        );
     }
 }

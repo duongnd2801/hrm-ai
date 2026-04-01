@@ -27,6 +27,7 @@ spring:
 jwt:
   secret: hrm-jwt-secret-key-for-local-development-2024-min32chars
   expiration: 86400000   # 24h in ms
+  refresh-expiration: 604800000 # 7 days in ms
 
 gemini:
   api:

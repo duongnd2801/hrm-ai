@@ -1,3 +1,19 @@
+## Canonical Project Snapshot (2026-04-01)
+
+Mục tiêu phần này: đọc nhanh trạng thái dự án mà không thay đổi spec gốc.
+Toàn bộ nội dung chi tiết bên dưới vẫn được giữ nguyên.
+
+- Project status: `Completed core phases + QA, entering maintenance mode`
+- Current focus:
+  - Vận hành ổn định và theo dõi phản hồi người dùng
+  - Hoàn thiện backlog `D14` (import chấm công máy chấm công)
+  - Nâng chất lượng test tự động + bảo mật cấu hình
+- Canonical runtime docs:
+  - Active plan: `.gemini/plan.md` (mục `Canonical Plan Snapshot`)
+  - Session memory: `.gemini/memory.md` (mục `Canonical Memory Snapshot`)
+
+---
+
 # GEMINI.md — Vietnamese HRM System (hrm-app)
 
 > File này chứa toàn bộ context của dự án. Đọc file này vào đầu mỗi session.
