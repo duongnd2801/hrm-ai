@@ -23,6 +23,8 @@ export default function PayrollPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
+  const [downloading, setDownloading] = useState<string | null>(null);
+
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
   const canManage = session ? hasRole('ADMIN', 'HR') : false;
@@ -88,6 +90,30 @@ export default function PayrollPage() {
       pushToast('success', 'Đang tải xuống bảng lương...');
     } catch {
       pushToast('error', 'Không thể xuất dữ liệu lương.');
+    }
+  }
+
+  async function handleDownloadStatement(payroll: Payroll, format: 'pdf' | 'excel') {
+    setDownloading(`${payroll.month}-${payroll.year}-${format}`);
+    try {
+      const endpoint = format === 'pdf' 
+        ? `/api/payroll/statement/pdf/${payroll.month}/${payroll.year}`
+        : `/api/payroll/statement/excel/${payroll.month}/${payroll.year}`;
+      
+      const res = await api.get(endpoint, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+      link.setAttribute('download', `phieu_luong_${payroll.month}_${payroll.year}.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      pushToast('success', `Đã tải phiếu lương ${format.toUpperCase()}`);
+    } catch {
+      pushToast('error', `Không thể tải phiếu lương ${format.toUpperCase()}.`);
+    } finally {
+      setDownloading(null);
     }
   }
 
@@ -163,6 +189,7 @@ export default function PayrollPage() {
                     <th className="px-5 py-5 font-black">Bảo hiểm</th>
                     <th className="px-5 py-5 font-black">Thuế TNCN</th>
                     <th className="px-5 py-5 font-black text-emerald-400">Thực nhận</th>
+                    <th className="px-5 py-5 font-black text-center">Phiếu lương</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 relative">
@@ -183,6 +210,34 @@ export default function PayrollPage() {
                         <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND(p.incomeTax)}</td>
                         <td className="px-5 py-5">
                           <span className="text-xl font-black text-emerald-400 tracking-tighter">{formatVND(p.netSalary)}</span>
+                        </td>
+                        <td className="px-5 py-5">
+                          <div className="flex items-center gap-2 justify-center">
+                            <button
+                              onClick={() => handleDownloadStatement(p, 'pdf')}
+                              disabled={downloading === `${p.month}-${p.year}-pdf`}
+                              title="Tải PDF"
+                              className="relative px-3 py-2 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm3.5 14.5h-1v-3h1v3zm-4-3h1v3h-1v-3zm-4 3h1v-3h-1v3z"/>
+                              </svg>
+                              <span>PDF</span>
+                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-lg transition-opacity" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadStatement(p, 'excel')}
+                              disabled={downloading === `${p.month}-${p.year}-excel`}
+                              title="Tải Excel"
+                              className="relative px-3 py-2 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                              </svg>
+                              <span>XLS</span>
+                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-lg transition-opacity" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

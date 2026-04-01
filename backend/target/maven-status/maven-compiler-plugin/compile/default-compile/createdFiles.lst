@@ -92,6 +92,7 @@ com\hrm\controller\UserManagementController.class
 com\hrm\service\OTRequestService.class
 com\hrm\controller\CompanyConfigController.class
 com\hrm\repository\CompanyConfigRepository.class
+com\hrm\service\PayrollPdfService.class
 com\hrm\service\DashboardService.class
 com\hrm\controller\OTRequestController.class
 com\hrm\entity\Notification$NotificationBuilder.class

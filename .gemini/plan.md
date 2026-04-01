@@ -126,7 +126,7 @@
 | E1 | **Đổi mật khẩu** | API + UI cho phép user đổi mật khẩu. Hiện tại NV import dùng Emp@123 mãi | 🔴 Cần ngay | ✅ COMPLETED |
 | E3 | **Thông báo (Notification)** | Push notification khi có đơn chờ duyệt, khi đơn được duyệt/từ chối | 🟠 Nên có | ✅ COMPLETED |
 | E7 | **Quản lý ngày lễ (Holiday Calendar)** | CRUD ngày lễ → tự động đánh DAY_OFF + ảnh hưởng OT rate | 🟡 Nice-to-have | ⏳ Future |
-| E8 | **Xuất phiếu lương PDF cá nhân** | Mỗi NV tải phiếu lương tháng dạng PDF chuyên nghiệp | 🟡 Nice-to-have | ⏳ Future |
+| E8 | **Xuất phiếu lương PDF cá nhân** | Mỗi NV tải phiếu lương tháng dạng PDF chuyên nghiệp | 🟡 Nice-to-have | ✅ COMPLETED |
 | E9 | **Dashboard biểu đồ** | Chart ra/vào, tỉ lệ đi muộn, lương trung bình... | 🟡 Nice-to-have | ⏳ Future |
 | E11 | **Excel preview trước khi import** | FE parse file xlsx trước → hiện bảng preview → user confirm → mới gửi lên BE | 🔴 Cần ngay | ✅ COMPLETED |
 | E12 | **Validate import chi tiết** | BE trả về danh sách lỗi từng dòng (dòng 3: email trùng, dòng 5: thiếu tên...) | 🔴 Cần ngay | ✅ COMPLETED |
@@ -138,7 +138,7 @@
 2. ✅ Test Import Excel (Phần B) — 10/10 PASSED (sau fix D3, D1, D2)
 3. ✅ Kiểm tra chức năng core (Phần C) — 26/26 PASSED (sau fix D16)
 4. ✅ Review bug (Phần D) — 5/5 FIXED (D1, D2, D3, D13, D16)
-5. ✅ Tính năng mới (Phần E) — **5/5 IMPLEMENTED** (E1, E3, E11, E12, E13)
+5. ✅ Tính năng mới (Phần E) — **6/6 IMPLEMENTED** (E1, E3, E11, E12, E13, E8)
 
 **Status Phần E:**
 - ✅ E1 Đổi mật khẩu — Backend (Service, Controller, DTOs) + Frontend (Modal, API, Header integration)
@@ -146,12 +146,13 @@
 - ✅ E11 Excel preview — Client-side parsing + modal, validation per row
 - ✅ E12 Validate chi tiết — Backend detailed error tracking per row (ImportResultResponse)
 - ✅ E13 User management — ADMIN dashboard, change role, reset password, delete user (paginated + search)
+- ✅ E8 Xuất phiếu lương PDF — Backend (PayrollPdfService + iText7) + Frontend (Salary Statement page with PDF/Excel download)
 
 **Backend Build Status:** ✅ COMPILE SUCCESS (mvn clean compile -q)
 
 **Files Implemented:**
-- Backend: AuthService, NotificationService/Entity/Repository/Controller, UserManagementService/Controller, ImportExportService (enhanced)
-- Frontend: ChangePasswordModal, NotificationPanel, ExcelPreviewModal, UserManagementPage, Header (enhanced), Sidebar (enhanced)
+- Backend: AuthService, NotificationService/Entity/Repository/Controller, UserManagementService/Controller, ImportExportService (enhanced), PayrollPdfService (new), PayrollService (getMyPayroll method added), PayrollController (statement endpoints)
+- Frontend: ChangePasswordModal, NotificationPanel, ExcelPreviewModal, UserManagementPage, Header (enhanced), Sidebar (enhanced), SalaryStatementPage (new)
 
 
 **Rủi ro / cần chú ý:**

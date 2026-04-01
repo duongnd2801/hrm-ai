@@ -64,6 +64,14 @@ public class PayrollService {
     }
 
     @Transactional(readOnly = true)
+    public PayrollDTO getMyPayroll(Integer month, Integer year, Authentication authentication) {
+        Employee employee = resolveCurrentEmployee(authentication);
+        Payroll payroll = payrollRepository.findByEmployeeAndMonthAndYear(employee, month, year)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu lương cho tháng " + month + "/" + year));
+        return toDto(payroll);
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<PayrollDTO> getAllPayrolls(Integer month, Integer year, Pageable pageable, Authentication authentication) {
         ensureAdminOrHR(authentication);
         Page<Payroll> page = payrollRepository.findByMonthAndYear(month, year, pageable);

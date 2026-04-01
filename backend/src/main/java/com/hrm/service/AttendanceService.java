@@ -99,10 +99,19 @@ public class AttendanceService {
             throw new AccessDeniedException("Bạn không có quyền xem chấm công của nhân viên khác.");
         }
 
-        int resolvedMonth = month == null ? LocalDate.now(APP_ZONE).getMonthValue() : month;
         int resolvedYear = year == null ? LocalDate.now(APP_ZONE).getYear() : year;
-        LocalDate fromDate = LocalDate.of(resolvedYear, resolvedMonth, 1);
-        LocalDate toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+        LocalDate fromDate;
+        LocalDate toDate;
+        
+        if (month == null) {
+            // No month specified: fetch entire year
+            fromDate = LocalDate.of(resolvedYear, 1, 1);
+            toDate = LocalDate.of(resolvedYear, 12, 31);
+        } else {
+            // Month specified: fetch only that month
+            fromDate = LocalDate.of(resolvedYear, month, 1);
+            toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+        }
 
         CompanyConfig config = getCompanyConfig();
         List<Attendance> records = attendanceRepository.findByEmployeeAndDateBetweenOrderByDateAsc(target, fromDate, toDate);

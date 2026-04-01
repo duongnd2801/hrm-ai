@@ -87,3 +87,4 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
   - Tích hợp **Tabs (Chờ duyệt / Lịch sử)** giúp HR/Manager quản lý hàng trăm đơn dễ dàng.
   - BE: Bổ sung repository/service support query history/reviewed requests.
   - FE: Thiết kế lại toàn bộ CSS Glassmorphism cho Bảng dữ liệu, tối ưu hóa không gian hiển thị.
+- [2026-04-01T10:17:03+07:00] Fix bug PDF lương bị lỗi tiếng Việt (mojibake): chuẩn hóa chuỗi Unicode UTF-8 trong PayrollPdfService, dùng font Unicode hệ thống (Arial/Tahoma/Times) với IDENTITY_H để render đúng dấu; backend compile pass (mvn -DskipTests compile).

@@ -44,7 +44,7 @@ export default function AttendancePage() {
     setLoading(true);
     try {
       const [attendanceRes, summaryRes] = await Promise.all([
-        api.get<Attendance[]>('/api/attendance/my', { params: { month: now.getMonth() + 1, year } }),
+        api.get<Attendance[]>('/api/attendance/my', { params: { year } }),
         api.get<DashboardSummary>('/api/dashboard/summary'),
       ]);
       setRecords(attendanceRes.data ?? []);
@@ -54,7 +54,7 @@ export default function AttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [year, now]);
+  }, [year]);
 
   useEffect(() => {
     if (session) void fetchData();
@@ -106,7 +106,7 @@ export default function AttendancePage() {
 
             {Array.from({ length: 12 }, (_, monthIdx) => (
               <div key={monthIdx} className="flex items-center gap-1.5 group">
-                <span className="w-32 text-xl font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors uppercase tracking-widest leading-none">TH {monthIdx + 1}</span>
+                <span className="w-32 text-xl font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors uppercase tracking-widest leading-none px-2 py-1 rounded">TH {monthIdx + 1}</span>
                 {Array.from({ length: 31 }, (_, dayIdx) => {
                   const day = dayIdx + 1;
                   const dateStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
