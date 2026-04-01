@@ -227,6 +227,10 @@
 | 7 | `backend/src/main/java/com/hrm/controller/ChatController.java` | Expose `POST /api/chat/message` (auth required) |
 | 8 | `backend/src/main/resources/application.yml` | Thêm config `gemini.api.key` (đọc từ env), timeout/model nếu cần |
 | 9 | `backend/src/main/resources/db/migration/V11__chat_messages.sql` | Tạo bảng `chat_messages` (không sửa migration cũ) |
+| 1 | `backend/.../V12__fix_missing_user_accounts.sql` | ✅ Xong. Đã tạo migration tự động fix lệch data. |
+| 2 | `backend/.../dto/UserManagementDTO.java` | ✅ Xong. Bổ sung `fullName`. |
+| 3 | `backend/.../service/UserManagementService.java` | ✅ Xong. Join lấy tên nhân viên. |
+| 4 | `frontend/app/(dashboard)/users/page.tsx` | ✅ Xong. Đại tu UI Premium. |
 | 10 | `frontend/lib/api.ts` | Thêm `chatApi.sendMessage()` gọi BE |
 | 11 | `frontend/components/ChatWidget.tsx` | Widget chat nổi góc phải: bubble icon, open/close panel, render history, loading/error state |
 | 12 | `frontend/app/(dashboard)/layout.tsx` | Gắn `ChatWidget` vào dashboard layout để dùng toàn hệ thống |

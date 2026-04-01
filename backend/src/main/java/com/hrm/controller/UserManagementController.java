@@ -21,6 +21,13 @@ public class UserManagementController {
 
     private final UserManagementService userManagementService;
 
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Lấy thống kê tài khoản hệ thống")
+    public ResponseEntity<com.hrm.dto.UserStatsDTO> getUserStats() {
+        return ResponseEntity.ok(userManagementService.getUserStats());
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Lấy danh sách tất cả người dùng", description = "Paginated list of all users")

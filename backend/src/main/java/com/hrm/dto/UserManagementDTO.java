@@ -1,6 +1,5 @@
 package com.hrm.dto;
 
-import com.hrm.entity.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +14,7 @@ public class UserManagementDTO {
     private String email;
     private String role;
     private LocalDateTime createdAt;
+    private String fullName; // Added to show employee names in user list
     private boolean isActive; // For soft delete/disable logic
 
     public static UserManagementDTO fromEntity(com.hrm.entity.User user) {
@@ -23,7 +23,8 @@ public class UserManagementDTO {
                 user.getEmail(),
                 user.getRole().name(),
                 user.getCreatedAt(),
-                true // Assume true, or add to User entity if needed
+                null, // fullName is populated later by Service
+                true // isActive
         );
     }
 }

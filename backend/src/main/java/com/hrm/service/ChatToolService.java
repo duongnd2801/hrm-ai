@@ -408,38 +408,44 @@ public class ChatToolService {
         List<Map<String, Object>> pendingLeaves = leaveRequestRepository.findByStatusOrderByCreatedAtAsc(ApologyStatus.PENDING).stream()
                 .filter(r -> scopedIds.contains(r.getEmployee().getId()))
                 .limit(20)
-                .map(r -> Map.of(
-                        "id", r.getId(),
-                        "employeeName", r.getEmployee().getFullName(),
-                        "type", String.valueOf(r.getType()),
-                        "startDate", r.getStartDate(),
-                        "endDate", r.getEndDate(),
-                        "status", String.valueOf(r.getStatus())
-                ))
+                .map(r -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", r.getId());
+                    m.put("employeeName", r.getEmployee().getFullName());
+                    m.put("type", String.valueOf(r.getType()));
+                    m.put("startDate", r.getStartDate());
+                    m.put("endDate", r.getEndDate());
+                    m.put("status", String.valueOf(r.getStatus()));
+                    return m;
+                })
                 .toList();
 
         List<Map<String, Object>> pendingApologies = apologyRepository.findByStatusOrderByCreatedAtAsc(ApologyStatus.PENDING).stream()
                 .filter(a -> scopedIds.contains(a.getEmployee().getId()))
                 .limit(20)
-                .map(a -> Map.of(
-                        "id", a.getId(),
-                        "employeeName", a.getEmployee().getFullName(),
-                        "type", String.valueOf(a.getType()),
-                        "attendanceDate", a.getAttendance() != null ? a.getAttendance().getDate() : null,
-                        "status", String.valueOf(a.getStatus())
-                ))
+                .map(a -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", a.getId());
+                    m.put("employeeName", a.getEmployee().getFullName());
+                    m.put("type", String.valueOf(a.getType()));
+                    m.put("attendanceDate", a.getAttendance() != null ? a.getAttendance().getDate() : null);
+                    m.put("status", String.valueOf(a.getStatus()));
+                    return m;
+                })
                 .toList();
 
         List<Map<String, Object>> pendingOt = otRequestRepository.findByStatusOrderByCreatedAtAsc(OTStatus.PENDING).stream()
                 .filter(o -> scopedIds.contains(o.getEmployee().getId()))
                 .limit(20)
-                .map(o -> Map.of(
-                        "id", o.getId(),
-                        "employeeName", o.getEmployee().getFullName(),
-                        "date", o.getDate(),
-                        "hours", o.getHours(),
-                        "status", String.valueOf(o.getStatus())
-                ))
+                .map(o -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", o.getId());
+                    m.put("employeeName", o.getEmployee().getFullName());
+                    m.put("date", o.getDate());
+                    m.put("hours", o.getHours());
+                    m.put("status", String.valueOf(o.getStatus()));
+                    return m;
+                })
                 .toList();
 
         Map<String, Object> data = new LinkedHashMap<>();
