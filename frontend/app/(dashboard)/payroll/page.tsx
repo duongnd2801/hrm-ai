@@ -94,18 +94,18 @@ export default function PayrollPage() {
   }
 
   async function handleDownloadStatement(payroll: Payroll, format: 'pdf' | 'excel') {
-    setDownloading(`${payroll.month}-${payroll.year}-${format}`);
+    setDownloading(`${payroll.id}-${format}`);
     try {
       const endpoint = format === 'pdf' 
-        ? `/api/payroll/statement/pdf/${payroll.month}/${payroll.year}`
-        : `/api/payroll/statement/excel/${payroll.month}/${payroll.year}`;
+        ? `/api/payroll/statement/pdf/by-id/${payroll.id}`
+        : `/api/payroll/statement/excel/by-id/${payroll.id}`;
       
       const res = await api.get(endpoint, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
       const ext = format === 'pdf' ? 'pdf' : 'xlsx';
-      link.setAttribute('download', `phieu_luong_${payroll.month}_${payroll.year}.${ext}`);
+      link.setAttribute('download', `phieu_luong_${payroll.employeeId}_${payroll.month}_${payroll.year}.${ext}`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -215,7 +215,7 @@ export default function PayrollPage() {
                           <div className="flex items-center gap-2 justify-center">
                             <button
                               onClick={() => handleDownloadStatement(p, 'pdf')}
-                              disabled={downloading === `${p.month}-${p.year}-pdf`}
+                              disabled={downloading === `${p.id}-pdf`}
                               title="Tải PDF"
                               className="relative px-3 py-2 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
                             >
@@ -227,7 +227,7 @@ export default function PayrollPage() {
                             </button>
                             <button
                               onClick={() => handleDownloadStatement(p, 'excel')}
-                              disabled={downloading === `${p.month}-${p.year}-excel`}
+                              disabled={downloading === `${p.id}-excel`}
                               title="Tải Excel"
                               className="relative px-3 py-2 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
                             >

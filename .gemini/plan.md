@@ -420,3 +420,163 @@ Toàn bộ nội dung gốc vẫn được giữ nguyên bên dưới phần sna
 - `lương tháng 3 của tôi?` → gọi tool payroll, số khớp DB.
 
 ⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận `ok / làm đi` trước khi bắt đầu.
+
+---
+
+### 📋 Plan — QA v3: Test toàn bộ chức năng hệ thống HRM (2026-04-02)
+
+**Mục tiêu:** Kiểm thử toàn diện tất cả module/chức năng của hệ thống HRM trên local (BE API + FE UI), ghi nhận kết quả pass/fail, phát hiện bug mới nếu có.
+
+**Phạm vi test:**
+
+#### Module 1: Authentication & Authorization
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T1.1 | Login Admin (admin@company.com / Admin@123) | JWT + redirect dashboard | [x] PASS |
+| T1.2 | Login HR (hr@company.com / Hr@123) | JWT + redirect dashboard | [x] PASS |
+| T1.3 | Login Manager (manager@company.com / Manager@123) | JWT + redirect dashboard | [x] PASS |
+| T1.4 | Login Employee (employee@company.com / Emp@123) | JWT + redirect dashboard | [x] PASS |
+| T1.5 | Login sai mật khẩu | Thông báo lỗi "Sai TK/MK" | [x] PASS |
+| T1.6 | Login email không tồn tại | Thông báo lỗi | [x] PASS |
+| T1.7 | Đổi mật khẩu (ChangePassword) | Đổi thành công, login lại OK | [x] PASS |
+
+#### Module 2: Dashboard
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T2.1 | Hiển thị widget chấm công (Check-in/out) | Widget hiện giờ vào/ra hoặc nút chấm công | [x] PASS |
+| T2.2 | Widget thống kê nhanh (tổng NV, vắng mặt, đơn chờ) | Số liệu đúng từ DB | [x] PASS |
+| T2.3 | Widget thời tiết | Hiện thời tiết (hoặc fallback) | [x] PASS |
+
+#### Module 3: Quản lý nhân viên (Employees)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T3.1 | Xem danh sách nhân viên (phân trang) | Table hiện đúng, phân trang 10/15/20 | [x] PASS |
+| T3.2 | Tìm kiếm nhân viên (debounce) | Kết quả lọc đúng theo keyword | [x] PASS |
+| T3.3 | Xem chi tiết nhân viên | Hiện đầy đủ thông tin | [x] PASS |
+| T3.4 | Tạo nhân viên mới (HR/Admin) | Tạo thành công + hiện trong list | [x] PASS |
+| T3.5 | Sửa thông tin nhân viên (HR/Admin) | Cập nhật thành công | [x] PASS |
+| T3.6 | Sửa hồ sơ cá nhân (chính mình) | Chỉ sửa được phone/bio/address/gender | [x] PASS |
+| T3.7 | EMPLOYEE cố tạo/sửa NV | 403 Forbidden | [x] PASS |
+| T3.8 | Thống kê real-time (Stats cards) | Tổng NV, Active, Vắng mặt đúng | [x] PASS |
+
+#### Module 4: Import/Export Excel
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T4.1 | Download template mẫu (.xlsx) | File tải về đúng format | [x] PASS |
+| T4.2 | Import file xlsx hợp lệ | Import thành công + preview trước | [x] PASS |
+| T4.3 | Import file xlsx có lỗi (thiếu tên/email) | Báo lỗi chi tiết từng dòng | [x] PASS |
+| T4.4 | Import file xlsx email trùng | Báo lỗi duplicate | [x] PASS |
+| T4.5 | Export danh sách nhân viên Excel | File xlsx tải về đúng data | [x] PASS |
+| T4.6 | EMPLOYEE cố import/export | 403 Forbidden | [x] PASS |
+
+#### Module 5: Chấm công (Attendance)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T5.1 | Check-in lần đầu trong ngày | Ghi nhận giờ vào, status PENDING | [x] PASS |
+| T5.2 | Check-in lần 2 (đã check-in) | Thông báo đã check-in rồi | [x] PASS |
+| T5.3 | Check-out | Ghi nhận giờ ra, tính totalHours | [x] PASS |
+| T5.4 | Check-in đúng giờ → ON_TIME (xanh) | Status = ON_TIME | [x] PASS |
+| T5.5 | Check-in muộn → LATE (cam) | Status = LATE | [x] PASS |
+| T5.6 | Thiếu giờ → INSUFFICIENT (tím) | Status = INSUFFICIENT | [x] PASS |
+| T5.7 | Calendar view hiển thị đúng màu | Màu chấm đúng theo status | [x] PASS |
+| T5.8 | Xem chấm công tháng trước/sau | Navigate calendar OK | [x] PASS |
+| T5.9 | EMPLOYEE xem công người khác | 403 Forbidden | [x] PASS |
+
+#### Module 6: Đơn giải trình (Apologies)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T6.1 | Tạo đơn cho ngày LATE/INSUFFICIENT | Tạo thành công, status PENDING | [x] PASS |
+| T6.2 | Tạo đơn cho ngày ON_TIME | Bị chặn | [x] PASS |
+| T6.3 | Manager duyệt đơn (APPROVED) | Attendance status → APPROVED | [x] PASS |
+| T6.4 | Manager từ chối đơn (REJECTED) | Giữ nguyên LATE/INSUFFICIENT | [x] PASS |
+| T6.5 | Tabs Chờ duyệt / Lịch sử | Hiện đúng data theo tab | [x] PASS |
+| T6.6 | EMPLOYEE cố duyệt đơn | 403 Forbidden | [x] PASS |
+
+#### Module 7: Nghỉ phép (Leave Requests)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T7.1 | Tạo đơn nghỉ phép (ANNUAL) | Tạo thành công, PENDING | [x] PASS |
+| T7.2 | Tạo đơn endDate < startDate | Bị chặn validation | [x] PASS |
+| T7.3 | Tạo đơn trùng ngày với đơn đã có | Bị chặn overlap | [x] PASS |
+| T7.4 | HR/Manager duyệt đơn | APPROVED, tạo notification | [x] PASS |
+| T7.5 | HR/Manager từ chối đơn | REJECTED | [x] PASS |
+| T7.6 | Tabs Chờ duyệt / Lịch sử | Hiện đúng data | [x] PASS |
+
+#### Module 8: Tăng ca (OT Requests)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T8.1 | Tạo đơn OT | Tạo thành công, PENDING | [x] PASS |
+| T8.2 | Manager/HR duyệt OT | APPROVED | [x] PASS |
+| T8.3 | Manager/HR từ chối OT | REJECTED | [x] PASS |
+| T8.4 | Tabs Chờ duyệt / Lịch sử | Hiện đúng data | [x] PASS |
+
+#### Module 9: Tính lương (Payroll)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T9.1 | HR/Admin chạy tính lương tháng | Tạo payroll records, công thức VN đúng | [x] PASS |
+| T9.2 | Xem bảng lương (phân trang) | Table hiện đúng data | [x] PASS |
+| T9.3 | Export bảng lương Excel | File xlsx tải về | [x] PASS |
+| T9.4 | EMPLOYEE xem lương bản thân | Chỉ thấy lương mình | [x] PASS |
+| T9.5 | EMPLOYEE cố xem bảng lương tổng | 403 Forbidden | [x] PASS |
+| T9.6 | Export phiếu lương PDF cá nhân | File PDF tiếng Việt đúng | [x] PASS |
+| T9.7 | NV 0 ngày công → netSalary ≥ 0 | Không âm (Math.max guard) | [x] PASS |
+
+#### Module 10: Cấu hình công ty (Company Config)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T10.1 | Admin xem/sửa giờ làm, ngày công, OT rate | GET/PUT 200 OK | [x] PASS |
+| T10.2 | HR xem config (read-only) | Chỉ xem, không sửa được | [x] PASS |
+| T10.3 | EMPLOYEE xem config | Read-only hoặc 403 | [x] PASS |
+
+#### Module 11: Phòng ban & Vị trí (Departments + Positions)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T11.1 | Admin CRUD phòng ban | Tạo/sửa/xóa OK | [x] PASS |
+| T11.2 | Admin CRUD vị trí | Tạo/sửa/xóa OK | [x] PASS |
+| T11.3 | Admin lock/unlock vị trí | Toggle isLocked OK | [x] PASS |
+| T11.4 | EMPLOYEE cố CRUD phòng ban/vị trí | 403 Forbidden | [x] PASS |
+
+#### Module 12: Thông báo (Notifications)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T12.1 | Xem danh sách thông báo | Panel hiện đúng data | [x] PASS |
+| T12.2 | Đánh dấu đã đọc | Notification isRead = true | [x] PASS |
+| T12.3 | Badge số thông báo chưa đọc | Hiện đúng count trên bell icon | [x] PASS |
+
+#### Module 13: Quản lý tài khoản (User Management)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T13.1 | Admin xem danh sách user | Table users hiện đúng | [x] PASS |
+| T13.2 | Admin đổi role user | Role update OK | [x] PASS |
+| T13.3 | Admin reset mật khẩu user | Reset OK, user login lại OK | [x] PASS |
+| T13.4 | Non-Admin truy cập User Management | 403 hoặc menu ẩn | [x] PASS |
+
+#### Module 14: AI Chatbot
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T14.1 | Hỏi "giờ làm mấy giờ?" | Trả đúng từ company_config | [x] PASS |
+| T14.2 | Hỏi "lương tháng này bao nhiêu?" | Gọi tool payroll, số đúng | [x] PASS |
+| T14.3 | Hỏi linh tinh ngoài HRM | Trả câu fallback lịch sự | [x] PASS |
+| T14.4 | History/thread chat hoạt động | Lưu/load đoạn chat OK | [x] PASS |
+| T14.5 | Xóa đoạn chat | Confirm popup + xóa OK | [x] PASS |
+
+#### Module 15: RBAC tổng hợp (Cross-module)
+| # | Test Case | Expected | Status |
+|---|---|---|---|
+| T15.1 | Sidebar menu đúng theo role | Menu items phù hợp role | [x] PASS |
+| T15.2 | EMPLOYEE truy cập URL admin trực tiếp | Redirect hoặc 403 | [x] PASS |
+| T15.3 | MANAGER chỉ xem team mình | Không xem data team khác | [x] PASS |
+
+**Thứ tự test:** Login (T1) → Dashboard (T2) → Employee CRUD (T3) → Import/Export (T4) → Attendance (T5) → Apologies (T6) → Leave (T7) → OT (T8) → Payroll (T9) → Config (T10) → Dept/Position (T11) → Notifications (T12) → Users (T13) → Chatbot (T14) → RBAC (T15)
+
+**Rủi ro / cần chú ý:**
+- BE (port 8080) và FE (port 3000) phải đang chạy
+- DB phải có data seed
+- Chatbot cần GEMINI_API_KEY trong env
+
+**Verify bằng cách:**
+- BE: Gọi API trực tiếp, check response code + data
+- FE: Mở browser, navigate từng trang, verify UI render + interaction
+- Ghi kết quả pass/fail vào từng ô Status
+
+⏳ **QA v3 Complete:** 100% test cases PASSED. Fix 1 bug (D29). Hệ thống sẵn sàng.

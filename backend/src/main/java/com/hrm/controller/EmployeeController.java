@@ -86,6 +86,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/template")
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public ResponseEntity<byte[]> downloadTemplate() throws Exception {
         byte[] templateData = importExportService.generateTemplate();
         return ResponseEntity.ok()

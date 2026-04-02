@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import HealthcheckProbe from '@/components/HealthcheckProbe';
 import ThemeInitializer from '@/components/ThemeInitializer';
 import Script from 'next/script';
 import './globals.css';
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="fixed -bottom-24 -left-24 w-[500px] h-[500px] bg-violet-500/20 dark:bg-violet-500/30 rounded-full blur-[120px] orb-delay z-0 pointer-events-none" />
         
         <ThemeInitializer />
+        <HealthcheckProbe />
         <div className="relative z-1">
           {children}
         </div>

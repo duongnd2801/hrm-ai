@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -219,8 +219,10 @@ export default function DashboardPage() {
       await api.post(nextAction === 'checkin' ? '/api/attendance/checkin' : '/api/attendance/checkout');
       pushToast('success', nextAction === 'checkin' ? 'Check-in thành công.' : 'Check-out thành công.');
       await loadSummary();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Thao tác chấm công thất bại.';
+    } catch (err: unknown) {
+      const msg = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Thao tác chấm công thất bại.'
+        : 'Thao tác chấm công thất bại.';
       pushToast('error', msg);
     } finally {
       setLoadingAction(false);
@@ -393,3 +395,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

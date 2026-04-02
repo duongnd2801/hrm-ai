@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import api from '@/lib/api';
 import { useSession } from '@/components/AuthProvider';
 import type { OTRequest } from '@/types';
@@ -42,10 +43,20 @@ export default function OTPage() {
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
   const canReview = role === 'MANAGER' || role === 'HR' || role === 'ADMIN';
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      if (typeof data === 'string') return data;
+      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+        return data.message;
+      }
+    }
+    return fallback;
+  };
 
   const loadData = useCallback(async () => {
     try {
-      const tasks: Promise<any>[] = [api.get<OTRequest[]>('/api/ot-requests/my')];
+      const tasks = [api.get<OTRequest[]>('/api/ot-requests/my')];
       if (canReview) {
         tasks.push(api.get<OTRequest[]>('/api/ot-requests/pending'));
         tasks.push(api.get<OTRequest[]>('/api/ot-requests/reviewed'));
@@ -262,7 +273,7 @@ export default function OTPage() {
                                     </div>
                                  </td>
                                  <td className="px-8 py-6">
-                                    <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                                    <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">&quot;{item.reason || '...'}&quot;</p>
                                  </td>
                                  <td className="px-8 py-6">
                                     <div className="space-y-1">

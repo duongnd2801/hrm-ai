@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import api from '@/lib/api';
 import { useSession } from '@/components/AuthProvider';
 import type { Apology } from '@/types';
@@ -48,10 +49,20 @@ export default function ApologiesPage() {
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
   const canReview = role === 'MANAGER' || role === 'HR' || role === 'ADMIN';
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      if (typeof data === 'string') return data;
+      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+        return data.message;
+      }
+    }
+    return fallback;
+  };
 
   const loadData = useCallback(async () => {
     try {
-      const tasks: Promise<any>[] = [api.get<Apology[]>('/api/apologies/my')];
+      const tasks = [api.get<Apology[]>('/api/apologies/my')];
       if (canReview) {
         tasks.push(api.get<Apology[]>('/api/apologies/pending'));
         tasks.push(api.get<Apology[]>('/api/apologies/reviewed'));
@@ -88,8 +99,8 @@ export default function ApologiesPage() {
       pushToast('success', 'Đã lưu đơn giải trình thành công.');
       await loadData();
       if (isAdminOrHR) setShowForm(false);
-    } catch (err: any) {
-      pushToast('error', err.response?.data || 'Gửi đơn thất bại.');
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'Gửi đơn thất bại.'));
     } finally {
       setLoading(false);
     }
@@ -283,7 +294,7 @@ export default function ApologiesPage() {
                                  </td>
                                  <td className="px-8 py-6">
                                     {activeTab === 'pending' ? (
-                                       <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                                       <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">&quot;{item.reason || '...'}&quot;</p>
                                     ) : (
                                        <StatusBadge status={item.status} />
                                     )}

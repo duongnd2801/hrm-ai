@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import type { UserSession } from '@/types';
@@ -12,22 +12,22 @@ import ChatWidget from '@/components/ChatWidget';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [session, setSession] = useState<UserSession | null>(null);
+  const session = isClient ? (getSession() as UserSession | null) : null;
 
   useEffect(() => {
-    setMounted(true);
-    const s = getSession() as UserSession | null;
-    if (!s) {
+    if (isClient && !session) {
       router.push('/login');
-      return;
     }
-    setSession(s);
-  }, [router, pathname]);
+  }, [isClient, pathname, router, session]);
 
   // Prevent hydration mismatch by only rendering content after mount
-  if (!mounted || !session) {
+  if (!isClient || !session) {
     return (
       <div className="h-screen w-screen bg-slate-950 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />

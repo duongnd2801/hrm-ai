@@ -47,11 +47,11 @@ public class ChatToolService {
             case "getMyAttendance" -> getMyAttendance(arguments, currentUser, fallbackMonth, fallbackYear);
             case "getMyLeaveBalance" -> getMyLeaveBalance(currentUser, fallbackYear);
             case "getTeamStats" -> getTeamStats(arguments, currentUser, fallbackMonth, fallbackYear);
+            case "getCompanyHeadcount" -> getCompanyHeadcount();
             case "getCompanyPolicy" -> getCompanyPolicy();
             case "getUpcomingPublicHolidays" -> getUpcomingPublicHolidays(arguments);
             case "getPendingRequests" -> getPendingRequests(currentUser);
             case "approveRequest" -> approveRequest(arguments, currentUser, authentication);
-            // Backward compatible aliases
             case "getMySummary" -> getMySummary(arguments, currentUser, fallbackMonth, fallbackYear);
             default -> Map.of("error", "Tool không hợp lệ: " + toolName);
         };
@@ -107,8 +107,7 @@ public class ChatToolService {
     }
 
     private Map<String, Object> getEmployeePayroll(JsonNode arguments, User currentUser, Integer fallbackMonth, Integer fallbackYear) {
-        RoleType role = currentUser.getRole();
-        if (role == RoleType.EMPLOYEE) {
+        if (currentUser.getRole() == RoleType.EMPLOYEE) {
             return Map.of("message", "Bạn chỉ có quyền xem lương của chính mình.");
         }
 
@@ -120,11 +119,12 @@ public class ChatToolService {
         Optional<Employee> targetOpt = findEmployeeByKeyword(keyword, currentUser);
         if (targetOpt.isEmpty()) {
             return Map.of(
-                    "message", "Không tìm thấy nhân viên phù hợp trong phạm vi quyền của bạn. Bạn thử nhập tên đầy đủ hoặc email."
+                    "message",
+                    "Không tìm thấy nhân viên phù hợp trong phạm vi quyền của bạn. Bạn thử nhập tên đầy đủ hoặc email."
             );
         }
-        Employee target = targetOpt.get();
 
+        Employee target = targetOpt.get();
         LocalDate now = LocalDate.now();
         int month = getIntArg(arguments, "month", fallbackMonth != null ? fallbackMonth : now.getMonthValue());
         int year = getIntArg(arguments, "year", fallbackYear != null ? fallbackYear : now.getYear());
@@ -211,7 +211,6 @@ public class ChatToolService {
         long pendingLeave = allLeaves.stream().filter(r -> r.getStatus() == ApologyStatus.PENDING).count();
         long approvedLeave = allLeaves.stream().filter(r -> r.getStatus() == ApologyStatus.APPROVED).count();
         long rejectedLeave = allLeaves.stream().filter(r -> r.getStatus() == ApologyStatus.REJECTED).count();
-
         long pendingApology = apologyRepository.countByEmployeeAndStatus(employee, ApologyStatus.PENDING);
 
         Map<String, Object> data = new LinkedHashMap<>();
@@ -281,7 +280,12 @@ public class ChatToolService {
         List<Map<String, Object>> topLateEmployees = lateByEmployee.entrySet().stream()
                 .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
                 .limit(5)
-                .map(e -> Map.of("employeeName", e.getKey(), "lateDays", e.getValue()))
+                .map(e -> {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("employeeName", e.getKey());
+                    item.put("lateDays", e.getValue());
+                    return item;
+                })
                 .toList();
 
         Map<String, Object> data = new LinkedHashMap<>();
@@ -293,6 +297,28 @@ public class ChatToolService {
         data.put("avgNetSalary", salaryCount > 0 ? totalNetSalary / salaryCount : null);
         data.put("topLateEmployees", topLateEmployees);
         data.put("message", "Đã lấy thống kê team thực tế từ DB.");
+        return data;
+    }
+
+    private Map<String, Object> getCompanyHeadcount() {
+        long totalEmployees = employeeRepository.count();
+        long activeEmployees = employeeRepository.countByStatusNot(EmpStatus.INACTIVE);
+        long nonActiveEmployees = Math.max(0, totalEmployees - activeEmployees);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("totalEmployees", totalEmployees);
+        data.put("activeEmployees", activeEmployees);
+        data.put("nonActiveEmployees", nonActiveEmployees);
+        data.put(
+                "message",
+                String.format(
+                        Locale.ROOT,
+                        "Công ty hiện có %d nhân viên. Trong đó %d nhân viên đang làm việc và %d nhân viên ở trạng thái khác.",
+                        totalEmployees,
+                        activeEmployees,
+                        nonActiveEmployees
+                )
+        );
         return data;
     }
 
@@ -525,7 +551,6 @@ public class ChatToolService {
         }
 
         List<Employee> scope;
-
         if (currentUser.getRole() == RoleType.MANAGER) {
             scope = resolveScopedTeam(currentUser);
         } else if (currentUser.getRole() == RoleType.HR || currentUser.getRole() == RoleType.ADMIN) {
@@ -534,16 +559,13 @@ public class ChatToolService {
             return Optional.empty();
         }
 
-        // 1) Match trực tiếp cụm đầy đủ
         Optional<Employee> exactPhrase = scope.stream()
-                .filter(e -> normalize(e.getFullName()).contains(key)
-                        || normalize(e.getEmail()).contains(key))
+                .filter(e -> normalize(e.getFullName()).contains(key) || normalize(e.getEmail()).contains(key))
                 .findFirst();
         if (exactPhrase.isPresent()) {
             return exactPhrase;
         }
 
-        // 2) Match mềm theo token, ưu tiên token dài >= 3 ký tự
         List<String> tokens = Arrays.stream(key.split("\\s+"))
                 .map(String::trim)
                 .filter(t -> t.length() >= 3)

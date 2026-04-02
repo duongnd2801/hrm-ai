@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import DraggableModal from '@/components/DraggableModal';
 import Toast, { ToastState } from '@/components/Toast';
@@ -46,6 +47,16 @@ export default function UserManagementPage() {
   };
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      if (typeof data === 'string') return data;
+      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+        return data.message;
+      }
+    }
+    return fallback;
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -55,8 +66,8 @@ export default function UserManagementPage() {
       });
       setUsers(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
-    } catch (err: any) {
-      pushToast('error', 'Không thể tải danh sách tài khoản.');
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'Kh�ng th? t?i danh s�ch t�i kho?n.'));
     } finally {
       setLoading(false);
     }
@@ -75,8 +86,8 @@ export default function UserManagementPage() {
       setUsers(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
       setPage(0);
-    } catch (err: any) {
-      pushToast('error', 'Tìm kiếm thất bại.');
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'T�m ki?m th?t b?i.'));
     } finally {
       setLoading(false);
     }
@@ -102,8 +113,8 @@ export default function UserManagementPage() {
       closeRoleModal();
       await fetchUsers();
       await fetchStats();
-    } catch (err: any) {
-      pushToast('error', 'Không thể cập nhật quyền.');
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'Kh�ng th? c?p nh?t quy?n.'));
     } finally {
       setSubmitting(false);
     }
@@ -134,8 +145,8 @@ export default function UserManagementPage() {
       closeActionConfirm();
       await fetchUsers();
       await fetchStats();
-    } catch (err: any) {
-      pushToast('error', 'Thao tác thất bại.');
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'Thao t�c th?t b?i.'));
     } finally {
       setSubmitting(false);
     }
@@ -417,3 +428,4 @@ function StatCard({ icon, label, value, desc, color }: { icon: string, label: st
     </div>
   );
 }
+

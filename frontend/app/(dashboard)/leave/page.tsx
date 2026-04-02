@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import api from '@/lib/api';
 import { useSession } from '@/components/AuthProvider';
 import type { LeaveRequest, LeaveType } from '@/types';
@@ -52,10 +53,20 @@ export default function LeavePage() {
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
   const canReview = role === 'MANAGER' || role === 'HR' || role === 'ADMIN';
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      if (typeof data === 'string') return data;
+      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+        return data.message;
+      }
+    }
+    return fallback;
+  };
 
   const loadData = useCallback(async () => {
     try {
-      const tasks: Promise<any>[] = [api.get<LeaveRequest[]>('/api/leave-requests/my')];
+      const tasks = [api.get<LeaveRequest[]>('/api/leave-requests/my')];
       if (canReview) {
         tasks.push(api.get<LeaveRequest[]>('/api/leave-requests/pending'));
         tasks.push(api.get<LeaveRequest[]>('/api/leave-requests/reviewed'));
@@ -90,11 +101,8 @@ export default function LeavePage() {
       pushToast('success', 'Đã nộp đơn nghỉ phép thành công.');
       await loadData();
       if (isAdminOrHR) setShowForm(false);
-    } catch (err: any) {
-      const errMsg = typeof err.response?.data === 'string' 
-        ? err.response.data 
-        : (err.response?.data?.message || 'Gửi đơn thất bại.');
-      pushToast('error', errMsg);
+    } catch (err: unknown) {
+      pushToast('error', getErrorMessage(err, 'Gửi đơn thất bại.'));
     } finally {
       setLoading(false);
     }

@@ -33,43 +33,43 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private static final String FRIENDLY_BUSY_MESSAGE = "Xin lÃ¡Â»â€”i, tÃƒÂ´i Ã„â€˜ang bÃ¡ÂºÂ­n. BÃ¡ÂºÂ¡n thÃ¡Â»Â­ lÃ¡ÂºÂ¡i sau nhÃƒÂ©! Ã°Å¸â„¢Â";
-    private static final String NON_HRM_FALLBACK = "MÃƒÂ¬nh Ã†Â°u tiÃƒÂªn hÃ¡Â»â€” trÃ¡Â»Â£ nghiÃ¡Â»â€¡p vÃ¡Â»Â¥ HRM. NÃ¡ÂºÂ¿u bÃ¡ÂºÂ¡n cÃ¡ÂºÂ§n, mÃƒÂ¬nh cÃƒÂ³ thÃ¡Â»Æ’ trÃ¡ÂºÂ£ lÃ¡Â»Âi ngÃ¡ÂºÂ¯n rÃ¡Â»â€œi quay lÃ¡ÂºÂ¡i lÃ†Â°Ã†Â¡ng, cÃƒÂ´ng, phÃƒÂ©p, OT hoÃ¡ÂºÂ·c chÃƒÂ­nh sÃƒÂ¡ch.";
+    private static final String FRIENDLY_BUSY_MESSAGE = "Xin lỗi, tôi đang bận. Bạn thử lại sau nhé!";
+    private static final String NON_HRM_FALLBACK = "Mình ưu tiên hỗ trợ nghiệp vụ HRM. Nếu bạn cần, mình có thể trả lời ngắn rồi quay lại lương, công, phép, OT hoặc chính sách.";
 
     private static final String SYSTEM_PROMPT = """
-            BÃ¡ÂºÂ¡n lÃƒÂ  trÃ¡Â»Â£ lÃƒÂ½ HRM nÃ¡Â»â„¢i bÃ¡Â»â„¢ cÃ¡Â»Â§a cÃƒÂ´ng ty. NhiÃ¡Â»â€¡m vÃ¡Â»Â¥ DUY NHÃ¡ÂºÂ¤T cÃ¡Â»Â§a bÃ¡ÂºÂ¡n lÃƒÂ  hÃ¡Â»â€” trÃ¡Â»Â£ cÃƒÂ¡c vÃ¡ÂºÂ¥n Ã„â€˜Ã¡Â»Â nhÃƒÂ¢n sÃ¡Â»Â±.
-            CHÃ¡Â»Ë† trÃ¡ÂºÂ£ lÃ¡Â»Âi cÃƒÂ¡c chÃ¡Â»Â§ Ã„â€˜Ã¡Â»Â sau:
-            - LÃ†Â°Ã†Â¡ng, thÃ†Â°Ã¡Â»Å¸ng, phÃ¡Â»Â¥ cÃ¡ÂºÂ¥p, bÃ¡ÂºÂ£o hiÃ¡Â»Æ’m, thuÃ¡ÂºÂ¿ TNCN
-            - ChÃ¡ÂºÂ¥m cÃƒÂ´ng, ngÃƒÂ y cÃƒÂ´ng, giÃ¡Â»Â lÃƒÂ m, OT
-            - NghÃ¡Â»â€° phÃƒÂ©p, Ã„â€˜Ã†Â¡n xin nghÃ¡Â»â€°, giÃ¡ÂºÂ£i trÃƒÂ¬nh
-            - ChÃƒÂ­nh sÃƒÂ¡ch cÃƒÂ´ng ty (giÃ¡Â»Â lÃƒÂ m, quy Ã„â€˜Ã¡Â»â€¹nh, OT rate)
-            - DuyÃ¡Â»â€¡t/tÃ¡Â»Â« chÃ¡Â»â€˜i Ã„â€˜Ã†Â¡n (nÃ¡ÂºÂ¿u cÃƒÂ³ quyÃ¡Â»Ân)
+            Bạn là trợ lý HRM nội bộ của công ty. Nhiệm vụ duy nhất của bạn là hỗ trợ các vấn đề nhân sự.
+            Chỉ trả lời các chủ đề sau:
+            - Lương, thưởng, phụ cấp, bảo hiểm, thuế TNCN
+            - Chấm công, ngày công, giờ làm, OT
+            - Nghỉ phép, đơn xin nghỉ, giải trình
+            - Chính sách công ty (giờ làm, quy định, OT rate)
+            - Duyệt/từ chối đơn (nếu có quyền)
 
-            NÃ¡ÂºÂ¿u cÃƒÂ¢u hÃ¡Â»Âi khÃƒÂ´ng thuÃ¡Â»â„¢c HRM, bÃ¡ÂºÂ¡n cÃƒÂ³ thÃ¡Â»Æ’ phÃ¡ÂºÂ£n hÃ¡Â»â€œi ngÃ¡ÂºÂ¯n gÃ¡Â»Ân, lÃ¡Â»â€¹ch sÃ¡Â»Â±,
-            sau Ã„â€˜ÃƒÂ³ chÃ¡Â»Â§ Ã„â€˜Ã¡Â»â„¢ng kÃƒÂ©o lÃ¡ÂºÂ¡i cÃƒÂ¡c chÃ¡Â»Â§ Ã„â€˜Ã¡Â»Â HRM.
-            TrÃ¡ÂºÂ£ lÃ¡Â»Âi bÃ¡ÂºÂ±ng tiÃ¡ÂºÂ¿ng ViÃ¡Â»â€¡t, ngÃ¡ÂºÂ¯n gÃ¡Â»Ân, chuyÃƒÂªn nghiÃ¡Â»â€¡p.
+            Nếu câu hỏi không thuộc HRM, bạn có thể phản hồi ngắn gọn, lịch sự,
+            sau đó chủ động kéo lại các chủ đề HRM.
+            Trả lời bằng tiếng Việt, ngắn gọn, chuyên nghiệp.
             """;
 
     private static final String TOOL_PLANNER_PROMPT = """
-            BÃ¡ÂºÂ¡n Ã„â€˜ang Ã¡Â»Å¸ chÃ¡ÂºÂ¿ Ã„â€˜Ã¡Â»â„¢ function-calling.
-            ChÃ¡Â»â€° trÃ¡ÂºÂ£ JSON Ã„â€˜ÃƒÂºng schema sau vÃƒÂ  khÃƒÂ´ng thÃƒÂªm markdown:
+            Bạn đang ở chế độ function-calling.
+            Chỉ trả JSON đúng schema sau và không thêm markdown:
             {
               "needTool": true|false,
               "tool": "getMyPayroll|getEmployeePayroll|getMyAttendance|getMyLeaveBalance|getTeamStats|getCompanyPolicy|getUpcomingPublicHolidays|getPendingRequests|approveRequest|getMySummary|none",
               "arguments": { "month": 3, "year": 2026, "type": "LEAVE", "id": "uuid", "action": "APPROVE" },
-              "response": "nÃ¡Â»â„¢i dung trÃ¡ÂºÂ£ lÃ¡Â»Âi nÃ¡ÂºÂ¿u khÃƒÂ´ng cÃ¡ÂºÂ§n gÃ¡Â»Âi tool"
+              "response": "noi dung tra loi neu khong can goi tool"
             }
-            NguyÃƒÂªn tÃ¡ÂºÂ¯c:
-            - HÃ¡Â»Âi giÃ¡Â»Â lÃƒÂ m/chÃƒÂ­nh sÃƒÂ¡ch/config/OT rate => bÃ¡ÂºÂ¯t buÃ¡Â»â„¢c getCompanyPolicy.
-            - HÃ¡Â»Âi lÃ†Â°Ã†Â¡ng cÃƒÂ¡ nhÃƒÂ¢n => getMyPayroll.
-            - HÃ¡Â»Âi lÃ†Â°Ã†Â¡ng nhÃƒÂ¢n viÃƒÂªn khÃƒÂ¡c (admin/hr/manager) => getEmployeePayroll.
-            - HÃ¡Â»Âi chÃ¡ÂºÂ¥m cÃƒÂ´ng cÃƒÂ¡ nhÃƒÂ¢n => getMyAttendance.
-            - HÃ¡Â»Âi phÃƒÂ©p cÃƒÂ²n lÃ¡ÂºÂ¡i/Ã„â€˜Ã†Â¡n phÃƒÂ©p => getMyLeaveBalance.
-            - HÃ¡Â»Âi thÃ¡Â»â€˜ng kÃƒÂª team => getTeamStats.
-            - HÃ¡Â»Âi ngÃƒÂ y lÃ¡Â»â€¦ sÃ¡ÂºÂ¯p tÃ¡Â»â€ºi => getUpcomingPublicHolidays.
-            - HÃ¡Â»Âi Ã„â€˜Ã†Â¡n chÃ¡Â»Â duyÃ¡Â»â€¡t => getPendingRequests.
-            - YÃƒÂªu cÃ¡ÂºÂ§u duyÃ¡Â»â€¡t/tÃ¡Â»Â« chÃ¡Â»â€˜i Ã„â€˜Ã†Â¡n => approveRequest.
-            - CÃƒÂ¢u ngoÃƒÂ i HRM => needTool=false vÃƒÂ  response ngÃ¡ÂºÂ¯n gÃ¡Â»Ân, lÃ¡Â»â€¹ch sÃ¡Â»Â±, Ã†Â°u tiÃƒÂªn kÃƒÂ©o vÃ¡Â»Â HRM.
+            Nguyên tắc:
+            - Hỏi giờ làm/chính sách/config/OT rate => bắt buộc getCompanyPolicy.
+            - Hỏi lương cá nhân => getMyPayroll.
+            - Hỏi lương nhân viên khác (admin/hr/manager) => getEmployeePayroll.
+            - Hỏi chấm công cá nhân => getMyAttendance.
+            - Hỏi phép còn lại/đơn phép => getMyLeaveBalance.
+            - Hỏi thống kê team => getTeamStats.
+            - Hỏi ngày lễ sắp tới => getUpcomingPublicHolidays.
+            - Hỏi đơn chờ duyệt => getPendingRequests.
+            - Yêu cầu duyệt/từ chối đơn => approveRequest.
+            - Câu ngoài HRM => needTool=false và response ngắn gọn, lịch sự, ưu tiên kéo về HRM.
             """;
 
     private static final Pattern SIMPLE_MATH_PATTERN = Pattern.compile("^\\s*(-?\\d+)\\s*([+\\-*/xX])\\s*(-?\\d+)\\s*$");
@@ -92,7 +92,7 @@ public class ChatService {
     public ChatResponseDto processMessage(ChatRequestDto request, Authentication authentication) {
         String userMessage = request.getMessage() != null ? request.getMessage().trim() : "";
         if (userMessage.isBlank()) {
-            throw new IllegalArgumentException("Tin nhÃ¡ÂºÂ¯n khÃƒÂ´ng Ã„â€˜Ã†Â°Ã¡Â»Â£c Ã„â€˜Ã¡Â»Æ’ trÃ¡Â»â€˜ng.");
+            throw new IllegalArgumentException("Tin nhắn không được để trống.");
         }
 
         User user = resolveCurrentUser(authentication);
@@ -169,7 +169,7 @@ public class ChatService {
             }
 
             if (finalAnswer == null || finalAnswer.isBlank()) {
-                finalAnswer = "MÃƒÂ¬nh Ã„â€˜ÃƒÂ£ nhÃ¡ÂºÂ­n yÃƒÂªu cÃ¡ÂºÂ§u, nhÃ†Â°ng chÃ†Â°a thÃ¡Â»Æ’ tÃ¡ÂºÂ¡o phÃ¡ÂºÂ£n hÃ¡Â»â€œi phÃƒÂ¹ hÃ¡Â»Â£p. BÃ¡ÂºÂ¡n vui lÃƒÂ²ng hÃ¡Â»Âi lÃ¡ÂºÂ¡i rÃƒÂµ hÃ†Â¡n.";
+                finalAnswer = "Mình đã nhận yêu cầu, nhưng chưa thể tạo phản hồi phù hợp. Bạn vui lòng hỏi lại rõ hơn.";
             }
 
             saveMessage(user, user.getRole(), finalAnswer, false, toolName);
@@ -193,7 +193,7 @@ public class ChatService {
         ObjectNode args = baseArgs(request, userMessage);
         ChatIntent recentIntent = deriveRecentIntent(request.getHistory());
 
-        // DuyÃ¡Â»â€¡t/tÃ¡Â»Â« chÃ¡Â»â€˜i cÃƒÂ³ thÃ¡Â»Æ’ lÃƒÂ  thao tÃƒÂ¡c ghi, Ã†Â°u tiÃƒÂªn bÃ¡ÂºÂ¯t explicit
+        // Duyet/tu choi co the la thao tac ghi, uu tien bat explicit
         if (text.contains("duyet") || text.contains("tu choi") || text.contains("approve") || text.contains("reject")) {
             String type = text.contains("ot") ? "OT" : text.contains("giai trinh") ? "APOLOGY" : "LEAVE";
             String action = (text.contains("tu choi") || text.contains("reject")) ? "REJECT" : "APPROVE";
@@ -212,12 +212,28 @@ public class ChatService {
             return new PlanDecision(true, "getUpcomingPublicHolidays", args, null);
         }
 
-        // Policy/config luÃƒÂ´n route cÃ¡Â»Â©ng Ã„â€˜Ã¡Â»Æ’ trÃƒÂ¡nh model Ã„â€˜oÃƒÂ¡n
+        if (containsAnyApprox(text, "so thanh vien cong ty", "so nhan vien cong ty", "tong so nhan vien",
+                "bao nhieu nhan vien", "bao nhieu thanh vien", "company headcount", "headcount")) {
+            return new PlanDecision(true, "getCompanyHeadcount", args, null);
+        }
+
+        if (containsAnyApprox(text, "ngay le la ngay nao", "ngay le nao", "cac ngay le", "danh sach ngay le",
+                "holiday list", "public holiday")) {
+            args.put("countryCode", "VN");
+            return new PlanDecision(true, "getUpcomingPublicHolidays", args, null);
+        }
+
+        if (text.equals("ngay le") || text.equals("le tet") || text.equals("holiday")) {
+            args.put("countryCode", "VN");
+            return new PlanDecision(true, "getUpcomingPublicHolidays", args, null);
+        }
+
+        // Policy/config luon route cung de tranh model doan
         if (containsAny(text, "gio lam", "gio vao", "gio ra", "nghi trua", "ot rate", "tang ca",
-                "chinh sach", "quy dinh", "config", "cau hinh", "cong ty", "ngay cong chuan",
+                "chinh sach", "quy dinh", "config", "cau hinh", "ngay cong chuan",
                 "nua ngay", "nua ngay sang", "nua ngay chieu", "half day",
                 "bao nhieu cong", "tinh cong", "he so", "tham so",
-                "ngay le", "le tet", "holiday")) {
+                "ot ngay le", "chinh sach ngay le", "quy dinh ngay le")) {
             return new PlanDecision(true, "getCompanyPolicy", args, null);
         }
 
@@ -230,6 +246,10 @@ public class ChatService {
         }
 
         if (containsAny(text, "luong", "payroll", "thuc nhan", "gross", "net", "salary", "payslip")) {
+            if (containsAny(text, "tinh luong the nao", "cach tinh luong", "cong thuc tinh luong",
+                    "luong tinh nhu the nao", "salary formula", "how calculate salary")) {
+                return null;
+            }
             String targetKeyword = extractPayrollTargetKeyword(text);
             if (targetKeyword != null) {
                 args.put("employeeKeyword", targetKeyword);
@@ -246,11 +266,11 @@ public class ChatService {
             return new PlanDecision(true, "getEmployeePayroll", args, null);
         }
 
-        if (containsAny(text, "cham cong", "ngay cong", "di muon", "check in", "check out", "attendance", "timesheet", "work hours")) {
+        if (containsAnyApprox(text, "cham cong", "ngay cong", "di muon", "check in", "check out", "attendance", "timesheet", "work hours")) {
             return new PlanDecision(true, "getMyAttendance", args, null);
         }
 
-        if (containsAny(text, "nghi phep", "phep", "don nghi", "giai trinh", "leave", "apology", "leave request")) {
+        if (containsAnyApprox(text, "nghi phep", "phep", "don nghi", "giai trinh", "leave", "apology", "leave request")) {
             if (containsAny(text, "nhu nao", "the nao", "lam sao", "ra sao", "huong dan", "cach", "how", "guide", "steps")) {
                 return null;
             }
@@ -290,9 +310,9 @@ public class ChatService {
 
             String plannerInput = """
                     %s
-                    User role: %s
-                    LÃ¡Â»â€¹ch sÃ¡Â»Â­ gÃ¡ÂºÂ§n Ã„â€˜ÃƒÂ¢y: %s
-                    User message: %s
+                    Vai trò user: %s
+                    Lịch sử gần đây: %s
+                    Câu hỏi user: %s
                     """.formatted(
                     TOOL_PLANNER_PROMPT,
                     user.getRole().name(),
@@ -339,12 +359,12 @@ public class ChatService {
             ArrayNode parts = userContent.putArray("parts");
             String input = """
                     %s
-                    Vai trÃƒÂ² user: %s
-                    LÃ¡Â»â€¹ch sÃ¡Â»Â­ gÃ¡ÂºÂ§n Ã„â€˜ÃƒÂ¢y: %s
-                    CÃƒÂ¢u hÃ¡Â»Âi user: %s
-                    Tool Ã„â€˜ÃƒÂ£ gÃ¡Â»Âi: %s
-                    KÃ¡ÂºÂ¿t quÃ¡ÂºÂ£ tool (JSON): %s
-                    HÃƒÂ£y trÃ¡ÂºÂ£ lÃ¡Â»Âi ngÃ¡ÂºÂ¯n gÃ¡Â»Ân, rÃƒÂµ rÃƒÂ ng, chÃ¡Â»â€° dÃ¡Â»Â±a trÃƒÂªn dÃ¡Â»Â¯ liÃ¡Â»â€¡u trÃƒÂªn.
+                    Vai trò user: %s
+                    Lịch sử gần đây: %s
+                    Câu hỏi user: %s
+                    Tool đã gọi: %s
+                    Kết quả tool (JSON): %s
+                    Hãy trả lời ngắn gọn, rõ ràng, chỉ dựa trên dữ liệu trên.
                     """.formatted(SYSTEM_PROMPT, user.getRole().name(), historyLines, userMessage, toolName, objectMapper.writeValueAsString(toolResult));
             parts.addObject().put("text", input);
 
@@ -362,33 +382,34 @@ public class ChatService {
     }
     private String localSummary(String toolName, Map<String, Object> toolResult) {
         if (toolResult == null) {
-            return "MÃ¬nh chÆ°a láº¥y Ä‘Æ°á»£c dá»¯ liá»‡u phÃ¹ há»£p. Báº¡n thá»­ há»i láº¡i cá»¥ thá»ƒ hÆ¡n.";
+            return "Mình chưa lấy được dữ liệu phù hợp. Bạn thử hỏi lại cụ thể hơn.";
         }
         return switch (toolName) {
             case "getMyPayroll", "getEmployeePayroll" -> summarizePayroll(toolResult);
             case "getMyAttendance" -> summarizeAttendance(toolResult);
             case "getMyLeaveBalance" -> summarizeLeave(toolResult);
+            case "getCompanyHeadcount" -> String.valueOf(toolResult.getOrDefault("message", "Đã lấy thông tin nhân sự công ty."));
             case "getCompanyPolicy", "getUpcomingPublicHolidays" ->
-                    String.valueOf(toolResult.getOrDefault("message", "ÄÃ£ láº¥y thÃ´ng tin."));
+                    String.valueOf(toolResult.getOrDefault("message", "Đã lấy thông tin."));
             case "getTeamStats" -> summarizeTeam(toolResult);
             case "getPendingRequests" -> summarizePending(toolResult);
-            case "approveRequest" -> String.valueOf(toolResult.getOrDefault("message", "ÄÃ£ xá»­ lÃ½ yÃªu cáº§u."));
-            default -> String.valueOf(toolResult.getOrDefault("message", "ÄÃ£ xá»­ lÃ½ yÃªu cáº§u thÃ nh cÃ´ng."));
+            case "approveRequest" -> String.valueOf(toolResult.getOrDefault("message", "Đã xử lý yêu cầu."));
+            default -> String.valueOf(toolResult.getOrDefault("message", "Đã xử lý yêu cầu thành công."));
         };
     }
 
     private String summarizePayroll(Map<String, Object> data) {
-        String employeeName = String.valueOf(data.getOrDefault("employeeName", "NhÃ¢n viÃªn"));
+        String employeeName = String.valueOf(data.getOrDefault("employeeName", "Nhan vien"));
         Object month = data.get("month");
         Object year = data.get("year");
         Object net = data.get("netSalary");
         Object gross = data.get("grossSalary");
         if (net == null && gross == null) {
-            return String.valueOf(data.getOrDefault("message", "Hiá»‡n chÆ°a cÃ³ báº£ng lÆ°Æ¡ng cho ká»³ nÃ y."));
+            return String.valueOf(data.getOrDefault("message", "Hiện chưa có bảng lương cho kỳ này."));
         }
         return String.format(
                 Locale.ROOT,
-                "LÆ°Æ¡ng thÃ¡ng %s/%s cá»§a %s:%n- Tá»•ng lÆ°Æ¡ng (Gross): %s%n- Thá»±c nháº­n (Net): %s",
+                "Lương tháng %s/%s của %s:%n- Tổng lương (Gross): %s%n- Thực nhận (Net): %s",
                 month, year, employeeName, formatCurrency(gross), formatCurrency(net)
         );
     }
@@ -396,7 +417,7 @@ public class ChatService {
     private String summarizeAttendance(Map<String, Object> data) {
         return String.format(
                 Locale.ROOT,
-                "Cháº¥m cÃ´ng thÃ¡ng %s/%s:%n- Sá»‘ báº£n ghi: %s%n- ÄÃºng giá»: %s ngÃ y%n- Äi muá»™n: %s ngÃ y%n- Tá»•ng giá» lÃ m: %s",
+                "Chấm công tháng %s/%s:%n- Số bản ghi: %s%n- Đúng giờ: %s ngày%n- Đi muộn: %s ngày%n- Tổng giờ làm: %s",
                 data.getOrDefault("month", "?"),
                 data.getOrDefault("year", "?"),
                 data.getOrDefault("records", 0),
@@ -409,7 +430,7 @@ public class ChatService {
     private String summarizeLeave(Map<String, Object> data) {
         return String.format(
                 Locale.ROOT,
-                "Sá»‘ dÆ° phÃ©p nÄƒm %s:%n- Quota: %s ngÃ y%n- ÄÃ£ dÃ¹ng: %s ngÃ y%n- CÃ²n láº¡i: %s ngÃ y",
+                "Số dư phép năm %s:%n- Quota: %s ngày%n- Đã dùng: %s ngày%n- Còn lại: %s ngày",
                 data.getOrDefault("year", LocalDateTime.now().getYear()),
                 data.getOrDefault("annualLeaveQuota", 12),
                 data.getOrDefault("usedAnnualLeaveDays", 0),
@@ -420,7 +441,7 @@ public class ChatService {
     private String summarizeTeam(Map<String, Object> data) {
         return String.format(
                 Locale.ROOT,
-                "Thá»‘ng kÃª team thÃ¡ng %s/%s:%n- Quy mÃ´ team: %s%n- Tá»•ng ngÃ y Ä‘i muá»™n: %s%n- Tá»•ng giá» OT: %s",
+                "Thống kê team tháng %s/%s:%n- Quy mô team: %s%n- Tổng ngày đi muộn: %s%n- Tổng giờ OT: %s",
                 data.getOrDefault("month", "?"),
                 data.getOrDefault("year", "?"),
                 data.getOrDefault("teamSize", 0),
@@ -435,7 +456,7 @@ public class ChatService {
         int ot = listSize(data.get("pendingOtRequests"));
         return String.format(
                 Locale.ROOT,
-                "ÄÆ¡n chá» duyá»‡t hiá»‡n táº¡i:%n- Nghá»‰ phÃ©p: %d%n- Giáº£i trÃ¬nh: %d%n- OT: %d",
+                "Đơn chờ duyệt hiện tại:%n- Nghỉ phép: %d%n- Giải trình: %d%n- OT: %d",
                 leave, apology, ot
         );
     }
@@ -614,12 +635,12 @@ public class ChatService {
 
         ChatIntent intent = deriveRecentIntent(history);
         return switch (intent) {
-            case PAYROLL, EMPLOYEE_PAYROLL -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n xem lÃ†Â°Ã†Â¡ng thÃƒÂ¡ng nÃƒÂ o hoÃ¡ÂºÂ·c so sÃƒÂ¡nh vÃ¡Â»â€ºi thÃƒÂ¡ng trÃ†Â°Ã¡Â»â€ºc?";
-            case ATTENDANCE -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n xem chÃ¡ÂºÂ¥m cÃƒÂ´ng theo thÃƒÂ¡ng nÃƒÂ o?";
-            case POLICY -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n xem thÃƒÂªm mÃ¡Â»Â¥c nÃƒÂ o trong chÃƒÂ­nh sÃƒÂ¡ch cÃƒÂ´ng ty?";
-            case TEAM -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n xem thÃƒÂªm thÃ¡Â»â€˜ng kÃƒÂª nÃƒÂ o cÃ¡Â»Â§a team?";
-            case LEAVE -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n xem sÃ¡Â»â€˜ dÃ†Â° phÃƒÂ©p hay hÃ†Â°Ã¡Â»â€ºng dÃ¡ÂºÂ«n tÃ¡ÂºÂ¡o Ã„â€˜Ã†Â¡n?";
-            default -> "OK. BÃ¡ÂºÂ¡n muÃ¡Â»â€˜n mÃƒÂ¬nh hÃ¡Â»â€” trÃ¡Â»Â£ gÃƒÂ¬ tiÃ¡ÂºÂ¿p theo trong hÃ¡Â»â€¡ thÃ¡Â»â€˜ng HRM?";
+            case PAYROLL, EMPLOYEE_PAYROLL -> "OK. Bạn muốn xem lương tháng nào hoặc so sánh với tháng trước?";
+            case ATTENDANCE -> "OK. Bạn muốn xem chấm công theo tháng nào?";
+            case POLICY -> "OK. Bạn muốn xem thêm mục nào trong chính sách công ty?";
+            case TEAM -> "OK. Bạn muốn xem thêm thống kê nào của team?";
+            case LEAVE -> "OK. Bạn muốn xem số dư phép hay hướng dẫn tạo đơn?";
+            default -> "OK. Bạn muốn mình hỗ trợ gì tiếp theo trong hệ thống HRM?";
         };
     }
 
@@ -681,10 +702,10 @@ public class ChatService {
             return "Chào bạn. Mình có thể hỗ trợ lương, công, phép và chính sách HRM.";
         }
         if (text.matches(".*\\b(cam on|thank|thanks)\\b.*")) {
-            return "Rất vui được hỗ trợ bạn.";
+            return "Rat vui duoc ho tro ban.";
         }
         if (text.contains("dung") || text.contains("huong dan") || text.contains("hoi gi") || text.contains("how to use")) {
-            return "Bạn có thể hỏi về lương, chấm công, nghỉ phép, OT hoặc chính sách công ty.";
+            return "Ban co the hoi ve luong, cham cong, nghi phep, OT hoac chinh sach cong ty.";
         }
         return null;
     }
@@ -715,6 +736,10 @@ public class ChatService {
 
         if (containsAny(text, "doi mat khau", "change password", "reset mat khau")) {
             return "Đổi mật khẩu: bấm avatar/header -> Đổi mật khẩu, nhập mật khẩu hiện tại và mật khẩu mới.";
+        }
+
+        if (containsAny(text, "tinh luong the nao", "cach tinh luong", "cong thuc tinh luong", "luong tinh nhu the nao")) {
+            return "Lương được tính theo công thức cơ bản: lương thực tế + tiền OT + phụ cấp - bảo hiểm - thuế TNCN. Lương thực tế phụ thuộc ngày công, OT phụ thuộc số giờ tăng ca và hệ số OT trong cấu hình công ty.";
         }
 
         if (containsAny(text, "thong bao", "notification", "chuong")) {
@@ -757,7 +782,7 @@ public class ChatService {
             return true;
         }
 
-        // BALANCED (default): chÃ¡Â»â€° chÃ¡ÂºÂ·n cÃƒÂ¡c cÃƒÂ¢u rÃƒÂµ rÃƒÂ ng lÃ¡Â»â€¡ch scope quÃƒÂ¡ xa HRM.
+        // BALANCED (default): chi chan cac cau ro rang lech scope qua xa HRM.
         if (isHrmRelated(text) || isContextualFollowUp(text, history)) return false;
         if (tryHandleSimpleSanity(text) != null) return false;
         if (tryHandleLightweightSocial(text) != null) return false;
@@ -795,10 +820,7 @@ public class ChatService {
                 "thong bao", "notification", "doi mat khau", "user management", "quan ly user",
                 "chatbot", "tro ly ai", "salary", "payslip", "timesheet", "policy", "approval", "overtime", "leave request"
         };
-        for (String keyword : keywords) {
-            if (text.contains(keyword)) return true;
-        }
-        return false;
+        return containsAnyApprox(text, keywords);
     }
 
     private boolean isContextualFollowUp(String text, List<ChatRequestDto.HistoryMessage> history) {
@@ -827,7 +849,7 @@ public class ChatService {
         String lowered = input.trim().toLowerCase(Locale.ROOT);
         String normalized = Normalizer.normalize(lowered, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "");
-        return normalized.replace("đ", "d");
+        return normalized.replace("\u0111", "d");
     }
 
     private boolean containsAny(String text, String... keywords) {
@@ -837,6 +859,114 @@ public class ChatService {
             }
         }
         return false;
+    }
+
+    private boolean containsAnyApprox(String text, String... keywords) {
+        for (String keyword : keywords) {
+            if (text.contains(keyword) || containsApproxPhrase(text, keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsApproxPhrase(String text, String phrase) {
+        String[] textTokens = tokenizeNormalized(text);
+        String[] phraseTokens = tokenizeNormalized(phrase);
+        if (textTokens.length == 0 || phraseTokens.length == 0 || phraseTokens.length > textTokens.length) {
+            return false;
+        }
+
+        for (int start = 0; start <= textTokens.length - phraseTokens.length; start++) {
+            boolean matched = true;
+            for (int offset = 0; offset < phraseTokens.length; offset++) {
+                if (!roughlyMatchesToken(textTokens[start + offset], phraseTokens[offset])) {
+                    matched = false;
+                    break;
+                }
+            }
+            if (matched) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String[] tokenizeNormalized(String text) {
+        return Arrays.stream(text.split("[^a-z0-9]+"))
+                .filter(token -> !token.isBlank())
+                .toArray(String[]::new);
+    }
+
+    private boolean roughlyMatchesToken(String actual, String expected) {
+        if (actual.equals(expected)) {
+            return true;
+        }
+        if (actual.length() <= 2 || expected.length() <= 2) {
+            return false;
+        }
+        if (Math.abs(actual.length() - expected.length()) > 1) {
+            return false;
+        }
+        return isOneEditAway(actual, expected) || isSingleAdjacentTranspose(actual, expected);
+    }
+
+    private boolean isSingleAdjacentTranspose(String left, String right) {
+        if (left.length() != right.length()) {
+            return false;
+        }
+        int firstDiff = -1;
+        int secondDiff = -1;
+        for (int i = 0; i < left.length(); i++) {
+            if (left.charAt(i) != right.charAt(i)) {
+                if (firstDiff == -1) {
+                    firstDiff = i;
+                } else if (secondDiff == -1) {
+                    secondDiff = i;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return firstDiff != -1
+                && secondDiff == firstDiff + 1
+                && left.charAt(firstDiff) == right.charAt(secondDiff)
+                && left.charAt(secondDiff) == right.charAt(firstDiff);
+    }
+
+    private boolean isOneEditAway(String left, String right) {
+        int leftLen = left.length();
+        int rightLen = right.length();
+        if (Math.abs(leftLen - rightLen) > 1) {
+            return false;
+        }
+
+        String shorter = leftLen <= rightLen ? left : right;
+        String longer = leftLen <= rightLen ? right : left;
+        int i = 0;
+        int j = 0;
+        int edits = 0;
+
+        while (i < shorter.length() && j < longer.length()) {
+            if (shorter.charAt(i) == longer.charAt(j)) {
+                i++;
+                j++;
+                continue;
+            }
+            edits++;
+            if (edits > 1) {
+                return false;
+            }
+            if (shorter.length() == longer.length()) {
+                i++;
+            }
+            j++;
+        }
+
+        if (j < longer.length() || i < shorter.length()) {
+            edits++;
+        }
+        return edits <= 1;
     }
 
     private UUID extractUuid(String text) {
@@ -900,7 +1030,7 @@ public class ChatService {
 
     private User resolveCurrentUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("KhÃƒÂ´ng tÃƒÂ¬m thÃ¡ÂºÂ¥y tÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜Ã„Æ’ng nhÃ¡ÂºÂ­p."));
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan dang nhap."));
     }
 
     private String extractJson(String text) {

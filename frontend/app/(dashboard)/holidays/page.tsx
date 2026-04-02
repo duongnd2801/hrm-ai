@@ -25,7 +25,7 @@ function getDaysInMonth(month: number, year: number) {
 function getFirstDayOfMonth(month: number, year: number) {
   // 0: Sunday, 1: Monday, ...
   // We want 0: Monday, 1: Tuesday, ... 6: Sunday
-  let day = new Date(year, month, 1).getDay();
+  const day = new Date(year, month, 1).getDay();
   return day === 0 ? 6 : day - 1;
 }
 
@@ -41,7 +41,7 @@ function MonthCalendar({ month, year, holidays }: { month: number; year: number;
     for (let i = 0; i < firstDay; i++) list.push(null);
     for (let i = 1; i <= daysInMonth; i++) list.push(i);
     return list;
-  }, [month, year, firstDay, daysInMonth]);
+  }, [firstDay, daysInMonth]);
 
   const isHoliday = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;

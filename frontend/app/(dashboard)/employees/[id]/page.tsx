@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import axios from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import Avatar from '@/components/Avatar';
@@ -214,7 +214,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
         const tasks: Promise<unknown>[] = [api.get(`/api/employees/${id}`)];
         if (isHRAdmin) tasks.push(fetchMeta(id));
         const [res] = await Promise.all(tasks);
-        setEmp((res as any).data as Employee);
+        setEmp((res as AxiosResponse<Employee>).data);
       } catch (err: unknown) {
         setError(getErrorMessage(err, 'Không thể truy cập hồ sơ nhân viên này.'));
       } finally {
@@ -452,7 +452,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                           { id: 'INACTIVE', label: 'Ngưng hoạt động' },
                         ]}
                         placeholder="Chọn trạng thái..."
-                        onSelect={(nextId) => setEmp({ ...emp, status: nextId as any })}
+                        onSelect={(nextId) => setEmp({ ...emp, status: nextId as Employee['status'] })}
                       />
                       <div>
                         <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">💰 Lương cơ bản (VND)</label>

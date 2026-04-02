@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,6 +87,18 @@ public class PayrollService {
                 page.getSize(),
                 page.getNumber()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public PayrollDTO getPayrollById(UUID payrollId, Authentication authentication) {
+        Payroll payroll = payrollRepository.findById(payrollId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu lương."));
+
+        if (!canAccessPayroll(payroll, authentication)) {
+            throw new AccessDeniedException("Bạn không có quyền xem phiếu lương này.");
+        }
+
+        return toDto(payroll);
     }
 
     private Payroll calculateForEmployee(Employee emp, int month, int year, CompanyConfig config) {
@@ -217,6 +230,17 @@ public class PayrollService {
         if (!allowed) {
             throw new AccessDeniedException("Bạn không có quyền thực hiện chức năng này.");
         }
+    }
+
+    private boolean canAccessPayroll(Payroll payroll, Authentication authentication) {
+        boolean elevated = authentication.getAuthorities().stream().anyMatch(a ->
+                a.getAuthority().equals("ROLE_HR") || a.getAuthority().equals("ROLE_ADMIN"));
+        if (elevated) {
+            return true;
+        }
+
+        Employee currentEmployee = resolveCurrentEmployee(authentication);
+        return payroll.getEmployee() != null && payroll.getEmployee().getId().equals(currentEmployee.getId());
     }
 
     private PayrollDTO toDto(Payroll entity) {

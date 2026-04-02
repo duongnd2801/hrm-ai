@@ -1,8 +1,8 @@
 'use client';
 
+import axios from 'axios';
 import { useState } from 'react';
 import { changePassword } from '@/lib/api';
-import { useRouter } from 'next/navigation';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -10,7 +10,6 @@ interface ChangePasswordModalProps {
 }
 
 export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
-  const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -59,8 +58,21 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
         setConfirmPassword('');
         onClose();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Failed to change password');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const data = err.response?.data;
+        if (typeof data === 'string') {
+          setError(data);
+        } else if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+          setError(data.message);
+        } else {
+          setError(err.message || 'Failed to change password');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to change password');
+      }
     } finally {
       setLoading(false);
     }

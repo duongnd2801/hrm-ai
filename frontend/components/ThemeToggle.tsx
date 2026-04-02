@@ -1,19 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { getThemeMode, setThemeMode, ThemeMode } from '@/lib/theme';
 
 export default function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>('system');
-  const [mounted, setMounted] = useState(false);
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [mode, setMode] = useState<ThemeMode>(() =>
+    typeof window === 'undefined' ? 'system' : getThemeMode()
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    setMode(getThemeMode());
-  }, []);
-
-  if (!mounted) return <div className="w-10 h-10" />;
+  if (!isClient) return <div className="w-10 h-10" />;
 
   const cycle = () => {
     let next: ThemeMode = 'light';

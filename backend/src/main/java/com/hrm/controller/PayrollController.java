@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payroll")
@@ -73,6 +74,28 @@ public class PayrollController {
         byte[] excelData = importExportService.exportPayrollToExcel(List.of(payroll), month, year);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=phieu_luong_" + month + "_" + year + ".xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelData);
+    }
+
+    @GetMapping("/statement/pdf/by-id/{payrollId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    public ResponseEntity<byte[]> downloadPayrollStatementPdfById(@PathVariable UUID payrollId, Authentication authentication) throws Exception {
+        PayrollDTO payroll = payrollService.getPayrollById(payrollId, authentication);
+        byte[] pdfData = payrollPdfService.generatePayrollStatement(payroll);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=phieu_luong_" + payroll.getEmployeeId() + "_" + payroll.getMonth() + "_" + payroll.getYear() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfData);
+    }
+
+    @GetMapping("/statement/excel/by-id/{payrollId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    public ResponseEntity<byte[]> downloadPayrollStatementExcelById(@PathVariable UUID payrollId, Authentication authentication) throws Exception {
+        PayrollDTO payroll = payrollService.getPayrollById(payrollId, authentication);
+        byte[] excelData = importExportService.exportPayrollToExcel(List.of(payroll), payroll.getMonth(), payroll.getYear());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=phieu_luong_" + payroll.getEmployeeId() + "_" + payroll.getMonth() + "_" + payroll.getYear() + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excelData);
     }

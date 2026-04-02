@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState, useSyncExternalStore } from 'react';
 import { getSession } from '@/lib/auth';
 import { UserSession } from '@/types';
 
@@ -17,18 +17,19 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<UserSession | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [version, setVersion] = useState(0);
 
   const refreshSession = () => {
-    const s = getSession();
-    setSession(s);
-    setLoading(false);
+    setVersion((prev) => prev + 1);
   };
 
-  useEffect(() => {
-    refreshSession();
-  }, []);
+  const session = useMemo(() => (isClient ? getSession() : null), [isClient, version]);
+  const loading = !isClient;
 
   return (
     <AuthContext.Provider value={{ session, loading, refreshSession }}>

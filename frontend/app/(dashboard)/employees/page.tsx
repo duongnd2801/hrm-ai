@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { useSession } from '@/components/AuthProvider';
 import { hasRole } from '@/lib/auth';
 import EmployeeTable from './components/EmployeeTable';
@@ -18,7 +18,7 @@ export default function EmployeesPage() {
   const [stats, setStats] = useState<{total: number, active: number, absent: number}>({ total: 0, active: 0, absent: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchStats = async () => {
+  const fetchStats = useEffectEvent(async () => {
     try {
       const res = await api.get('/api/employees/stats');
       setStats(res.data);
@@ -26,7 +26,7 @@ export default function EmployeesPage() {
       console.error('Stats load failed:', err);
       setStats({ total: 0, active: 0, absent: 0 });
     }
-  };
+  });
 
   useEffect(() => {
     void fetchStats();
