@@ -117,7 +117,7 @@ public class NotificationService {
 
         User currentUser = getCurrentUser();
         if (!notification.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Unauthorized access to notification");
+            throw new RuntimeException("Bạn không có quyền truy cập thông báo này");
         }
 
         notification.setRead(true);
@@ -153,7 +153,7 @@ public class NotificationService {
 
         User currentUser = getCurrentUser();
         if (!notification.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Unauthorized access to notification");
+            throw new RuntimeException("Bạn không có quyền truy cập thông báo này");
         }
 
         notificationRepository.delete(notification);

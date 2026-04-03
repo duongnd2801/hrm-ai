@@ -9,6 +9,7 @@ import com.hrm.dto.EmployeeDTO;
 import com.hrm.service.EmployeeService;
 import com.hrm.service.ImportExportService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -52,22 +53,18 @@ public class EmployeeController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public ResponseEntity<?> createEmployee(@RequestBody EmployeeDTO dto) {
-        try {
-            return ResponseEntity.ok(employeeService.createEmployee(dto));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
+    public ResponseEntity<EmployeeDTO> createEmployee(@Valid @RequestBody EmployeeDTO dto) {
+        return ResponseEntity.ok(employeeService.createEmployee(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable UUID id, @RequestBody EmployeeDTO dto) {
+    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable UUID id, @Valid @RequestBody EmployeeDTO dto) {
         return ResponseEntity.ok(employeeService.updateEmployee(id, dto));
     }
 
     @PatchMapping("/{id}/personal")
-    public ResponseEntity<EmployeeDTO> updatePersonalInfo(@PathVariable UUID id, @RequestBody EmployeeDTO dto, Authentication authentication) {
+    public ResponseEntity<EmployeeDTO> updatePersonalInfo(@PathVariable UUID id, @Valid @RequestBody EmployeeDTO dto, Authentication authentication) {
         return ResponseEntity.ok(employeeService.updatePersonalInfo(id, dto, authentication));
     }
 

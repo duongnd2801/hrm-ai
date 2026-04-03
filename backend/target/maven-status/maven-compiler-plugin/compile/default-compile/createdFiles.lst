@@ -42,6 +42,7 @@ com\hrm\dto\EmployeeStatsDTO.class
 com\hrm\entity\AttendanceStatus.class
 com\hrm\entity\User$UserBuilder.class
 com\hrm\dto\OTCreateRequest.class
+com\hrm\controller\HealthController.class
 com\hrm\repository\ApologyRepository.class
 com\hrm\dto\ReviewRequest.class
 com\hrm\dto\DepartmentDTO.class

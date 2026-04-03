@@ -29,6 +29,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\Das
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\AttendanceController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\CompanyConfigController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\CorsConfig.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\CookieUtil.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ApologyType.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\AuthController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ChatMessage.java
@@ -64,6 +65,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\UserManagementController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\LeaveRequestService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\GlobalExceptionHandler.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\SecurityHeadersFilter.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\OTRequestRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\LeaveRequestController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChatResponseDto.java

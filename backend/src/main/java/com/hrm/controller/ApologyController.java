@@ -5,9 +5,8 @@ import com.hrm.dto.ApologyDTO;
 import com.hrm.dto.ReviewRequest;
 import com.hrm.service.ApologyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,7 @@ public class ApologyController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
-    public ResponseEntity<ApologyDTO> create(@RequestBody ApologyCreateRequest request, Authentication authentication) {
+    public ResponseEntity<ApologyDTO> create(@Valid @RequestBody ApologyCreateRequest request, Authentication authentication) {
         return ResponseEntity.ok(apologyService.createMyApology(request, authentication));
     }
 
@@ -56,15 +55,5 @@ public class ApologyController {
     @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
     public ResponseEntity<ApologyDTO> reject(@PathVariable UUID id, @RequestBody(required = false) ReviewRequest request, Authentication authentication) {
         return ResponseEntity.ok(apologyService.review(id, false, request != null ? request.getNote() : null, authentication));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> badRequest(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> denied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 }

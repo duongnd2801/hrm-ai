@@ -1,5 +1,6 @@
 package com.hrm.security;
 
+import com.hrm.config.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,11 +42,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Extract JWT token with priority:
+     * 1. HttpOnly cookie "hrm_access" (preferred — secure, immune to XSS)
+     * 2. Authorization header "Bearer ..." (fallback — for Swagger / external clients)
+     */
     private String extractToken(HttpServletRequest request) {
+        // Priority 1: HttpOnly cookie
+        String cookieToken = CookieUtil.extractCookie(request.getCookies(), CookieUtil.ACCESS_COOKIE);
+        if (StringUtils.hasText(cookieToken)) {
+            return cookieToken;
+        }
+
+        // Priority 2: Authorization header (backward compat + Swagger)
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
+
         return null;
     }
 }

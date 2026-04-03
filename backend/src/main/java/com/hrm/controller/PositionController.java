@@ -2,6 +2,7 @@ package com.hrm.controller;
 
 import com.hrm.dto.PositionDTO;
 import com.hrm.service.CompanyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +26,13 @@ public class PositionController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PositionDTO> create(@RequestBody PositionDTO dto) {
+    public ResponseEntity<PositionDTO> create(@Valid @RequestBody PositionDTO dto) {
         return ResponseEntity.ok(companyService.createPosition(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PositionDTO> update(@PathVariable UUID id, @RequestBody PositionDTO dto) {
+    public ResponseEntity<PositionDTO> update(@PathVariable UUID id, @Valid @RequestBody PositionDTO dto) {
         return ResponseEntity.ok(companyService.updatePosition(id, dto));
     }
 

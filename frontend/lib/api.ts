@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
-import { getSession, clearSession, saveSession } from './auth';
-import type { ChatHistoryItem, ChatMessageRequest, ChatMessageResponse } from '@/types';
+import { clearSession, saveSession } from './auth';
+import type { ChatHistoryItem, ChatMessageRequest, ChatMessageResponse, UserSession } from '@/types';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
@@ -9,90 +9,88 @@ const API_BASE_URL =
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true, // Crucial for cookies
 });
 
-type RetriableConfig = InternalAxiosRequestConfig & {
-  _retry?: boolean;
-};
+// Single point of truth for refreshing to avoid multiple calls
+let refreshPromise: Promise<boolean> | null = null;
 
-let refreshPromise: Promise<string | null> | null = null;
-
-async function refreshAccessToken(): Promise<string | null> {
-  const session = getSession();
-  if (!session?.refreshToken) return null;
-
+/**
+ * Sync local metadata with backend /me endpoint
+ */
+export async function fetchCurrentSession(): Promise<UserSession | null> {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/api/auth/refresh`,
-      { refreshToken: session.refreshToken },
-      { timeout: 10000 }
-    );
-    const data = response.data;
-    if (!data?.token || !data?.refreshToken) return null;
-
-    saveSession({
-      token: data.token,
-      refreshToken: data.refreshToken,
-      email: data.email ?? session.email,
-      role: data.role ?? session.role,
-      employeeId: data.employeeId ?? session.employeeId,
-      profileCompleted:
-        typeof data.profileCompleted === 'boolean'
-          ? data.profileCompleted
-          : session.profileCompleted,
-    });
-    document.cookie = `hrm_token=${data.token}; path=/; max-age=86400`;
-    return data.token as string;
+    const response = await api.get('/api/auth/me');
+    const session = response.data as UserSession;
+    saveSession(session);
+    return session;
   } catch {
+    clearSession();
     return null;
   }
 }
 
-// Attach JWT to every request
-api.interceptors.request.use((config) => {
-  const session = getSession();
-  if (session?.token) {
-    config.headers.Authorization = `Bearer ${session.token}`;
+async function handleTokenRefresh(): Promise<boolean> {
+  try {
+    // Refresh endpoint reads refresh cookie, returns new access cookie
+    await axios.post(`${API_BASE_URL}/api/auth/refresh`, {}, { withCredentials: true });
+    return true;
+  } catch {
+    return false;
   }
-  return config;
-});
+}
 
-// Handle 401/403 globally
+// Global Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // D19: Safer URL check for login endpoint detection
-    const config = (error.config ?? {}) as RetriableConfig;
+    const config = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const requestUrl = config.url ?? '';
-    const isLoginEndpoint = requestUrl.includes('/api/auth/login');
-    const isRefreshEndpoint = requestUrl.includes('/api/auth/refresh');
-    const isUnauthorized = error.response?.status === 401;
+    
+    // Skip logic for login/refresh to avoid loops
+    if (requestUrl.includes('/api/auth/login') || requestUrl.includes('/api/auth/refresh')) {
+      return Promise.reject(error);
+    }
 
-    if (typeof window !== 'undefined' && isUnauthorized && !isLoginEndpoint && !isRefreshEndpoint) {
-      if (!config._retry) {
-        config._retry = true;
+    // 401 Unauthorized -> Attempt token refresh
+    if (error.response?.status === 401 && !config._retry) {
+      config._retry = true;
 
-        if (!refreshPromise) {
-          refreshPromise = refreshAccessToken().finally(() => {
-            refreshPromise = null;
-          });
-        }
-
-        const newAccessToken = await refreshPromise;
-        if (newAccessToken) {
-          config.headers = config.headers ?? {};
-          config.headers.Authorization = `Bearer ${newAccessToken}`;
-          return api.request(config);
-        }
+      if (!refreshPromise) {
+        refreshPromise = handleTokenRefresh().finally(() => {
+          refreshPromise = null;
+        });
       }
 
-      clearSession();
-      document.cookie = 'hrm_token=; path=/; max-age=0';
-      window.location.href = '/login';
+      const success = await refreshPromise;
+      if (success) {
+        return api.request(config);
+      }
+
+      // If refresh fails, clean up and redirect
+      if (typeof window !== 'undefined') {
+        clearSession();
+        // Redirect if not already on login page
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
+      }
     }
+
     return Promise.reject(error);
   }
 );
+
+export async function logout() {
+  try {
+    await api.post('/api/auth/logout');
+  } finally {
+    clearSession();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+}
 
 export default api;
 

@@ -46,7 +46,8 @@ public class AttendanceService {
         CompanyConfig config = getCompanyConfig();
         // D28: Safe null-checks for work start time and early check-in minutes
         if (config.getWorkStartTime() != null && config.getEarlyCheckinMinutes() != null) {
-            LocalDateTime earliest = LocalDateTime.of(today, config.getWorkStartTime().minusMinutes(config.getEarlyCheckinMinutes()));
+            LocalDateTime earliest = LocalDateTime.of(today,
+                    config.getWorkStartTime().minusMinutes(config.getEarlyCheckinMinutes()));
             if (now.isBefore(earliest)) {
                 throw new IllegalArgumentException("Chưa đến thời gian cho phép check-in.");
             }
@@ -88,7 +89,8 @@ public class AttendanceService {
     }
 
     @Transactional(readOnly = true)
-    public List<AttendanceDTO> getAttendanceForEmployee(UUID employeeId, Integer month, Integer year, Authentication authentication) {
+    public List<AttendanceDTO> getAttendanceForEmployee(UUID employeeId, Integer month, Integer year,
+            Authentication authentication) {
         Employee current = resolveCurrentEmployee(authentication);
         Employee target = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên."));
@@ -102,7 +104,7 @@ public class AttendanceService {
         int resolvedYear = year == null ? LocalDate.now(APP_ZONE).getYear() : year;
         LocalDate fromDate;
         LocalDate toDate;
-        
+
         if (month == null) {
             // No month specified: fetch entire year
             fromDate = LocalDate.of(resolvedYear, 1, 1);
@@ -114,7 +116,8 @@ public class AttendanceService {
         }
 
         CompanyConfig config = getCompanyConfig();
-        List<Attendance> records = attendanceRepository.findByEmployeeAndDateBetweenOrderByDateAsc(target, fromDate, toDate);
+        List<Attendance> records = attendanceRepository.findByEmployeeAndDateBetweenOrderByDateAsc(target, fromDate,
+                toDate);
         records.forEach(record -> normalizeStatus(record, config));
         return records.stream().map(this::toDto).toList();
     }
@@ -140,9 +143,9 @@ public class AttendanceService {
         // Case: Only check-in, no check-out yet (Today or in-progress)
         if (attendance.getCheckIn() != null && attendance.getCheckOut() == null) {
             // D27: Safe null-check for work start time
-            boolean isLate = config.getWorkStartTime() != null 
-                ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
-                : false;
+            boolean isLate = config.getWorkStartTime() != null
+                    ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
+                    : false;
             attendance.setStatus(isLate ? AttendanceStatus.LATE : AttendanceStatus.PENDING);
             attendance.setTotalHours(null);
             return;
@@ -153,15 +156,16 @@ public class AttendanceService {
         attendance.setTotalHours(totalHours);
 
         // D27: Safe null-check for work start time
-        boolean isLate = config.getWorkStartTime() != null 
-            ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
-            : false;
+        boolean isLate = config.getWorkStartTime() != null
+                ? attendance.getCheckIn().toLocalTime().isAfter(config.getWorkStartTime())
+                : false;
         BigDecimal standardHours = config.getStandardHours() == null
                 ? BigDecimal.valueOf(8)
                 : config.getStandardHours();
 
         if (totalHours.compareTo(standardHours) < 0) {
-            // Note: If it's today and they checked out but it's not actually "end of day" yet,
+            // Note: If it's today and they checked out but it's not actually "end of day"
+            // yet,
             // we still mark it insufficient if they actually punched out.
             attendance.setStatus(AttendanceStatus.INSUFFICIENT);
         } else {
@@ -174,7 +178,7 @@ public class AttendanceService {
         if (checkIn == null || checkOut == null) {
             return BigDecimal.ZERO;
         }
-        
+
         Duration total = Duration.between(checkIn, checkOut);
         if (total.isNegative()) {
             return BigDecimal.ZERO;
@@ -188,7 +192,7 @@ public class AttendanceService {
             LocalDateTime lunchEnd = LocalDateTime.of(date, config.getLunchBreakEnd());
             overlap = overlap(checkIn, checkOut, lunchStart, lunchEnd);
         }
-        
+
         Duration actual = total.minus(overlap);
         if (actual.isNegative()) {
             actual = Duration.ZERO;
@@ -222,7 +226,8 @@ public class AttendanceService {
 
     private boolean hasAnyRole(Authentication authentication, RoleType... roles) {
         for (RoleType role : roles) {
-            if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role.name()))) {
+            if (authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + role.name()))) {
                 return true;
             }
         }

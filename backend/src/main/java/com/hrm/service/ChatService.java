@@ -169,7 +169,7 @@ public class ChatService {
             }
 
             if (finalAnswer == null || finalAnswer.isBlank()) {
-                finalAnswer = "Mình đã nhận yêu cầu, nhưng chưa thể tạo phản hồi phù hợp. Bạn vui lòng hỏi lại rõ hơn.";
+                finalAnswer = "M�nh d� nh?n y�u c?u, nhung chua th? t?o ph?n h?i ph� h?p. B?n vui l�ng h?i l?i r� hon.";
             }
 
             saveMessage(user, user.getRole(), finalAnswer, false, toolName);
@@ -312,7 +312,7 @@ public class ChatService {
                     %s
                     Vai trò user: %s
                     Lịch sử gần đây: %s
-                    Câu hỏi user: %s
+                    C�u h?i user: %s
                     """.formatted(
                     TOOL_PLANNER_PROMPT,
                     user.getRole().name(),
@@ -361,7 +361,7 @@ public class ChatService {
                     %s
                     Vai trò user: %s
                     Lịch sử gần đây: %s
-                    Câu hỏi user: %s
+                    C�u h?i user: %s
                     Tool đã gọi: %s
                     Kết quả tool (JSON): %s
                     Hãy trả lời ngắn gọn, rõ ràng, chỉ dựa trên dữ liệu trên.
@@ -382,7 +382,7 @@ public class ChatService {
     }
     private String localSummary(String toolName, Map<String, Object> toolResult) {
         if (toolResult == null) {
-            return "Mình chưa lấy được dữ liệu phù hợp. Bạn thử hỏi lại cụ thể hơn.";
+            return "Mình chưa lấy được dữ liệu phù hợp. Bạn thử hỏi lại cụ thể hơn..";
         }
         return switch (toolName) {
             case "getMyPayroll", "getEmployeePayroll" -> summarizePayroll(toolResult);
@@ -702,10 +702,10 @@ public class ChatService {
             return "Chào bạn. Mình có thể hỗ trợ lương, công, phép và chính sách HRM.";
         }
         if (text.matches(".*\\b(cam on|thank|thanks)\\b.*")) {
-            return "Rat vui duoc ho tro ban.";
+            return "Rất vui được hỗ trợ bạn.";
         }
         if (text.contains("dung") || text.contains("huong dan") || text.contains("hoi gi") || text.contains("how to use")) {
-            return "Ban co the hoi ve luong, cham cong, nghi phep, OT hoac chinh sach cong ty.";
+            return "Bạn có thể hỏi về lương, chấm công, nghỉ phép, OT hoặc chính sách công ty.";
         }
         return null;
     }
@@ -714,7 +714,7 @@ public class ChatService {
         String text = normalizeText(message);
 
         if (containsAny(text, "he thong co gi", "co nhung chuc nang", "cac chuc nang", "module", "menu nao")) {
-            return "Hệ thống HRM hỗ trợ: nhân viên, chấm công, giải trình, nghỉ phép, tăng ca, bảng lương (Excel/PDF), cấu hình, thông báo và chatbot nội bộ.";
+            return "Hệ thống HRM hỗ trợ: nhân viên, chấm công, giải trình, nghỉ phép, tăng ca, bảng lương (Excel/PDF), cấu hình, thông báo và chatbot nội bộ..";
         }
 
         if (containsAny(text, "phan quyen", "quyen", "role")) {
@@ -740,6 +740,16 @@ public class ChatService {
 
         if (containsAny(text, "tinh luong the nao", "cach tinh luong", "cong thuc tinh luong", "luong tinh nhu the nao")) {
             return "Lương được tính theo công thức cơ bản: lương thực tế + tiền OT + phụ cấp - bảo hiểm - thuế TNCN. Lương thực tế phụ thuộc ngày công, OT phụ thuộc số giờ tăng ca và hệ số OT trong cấu hình công ty.";
+        }
+
+        if (containsAnyApprox(text,
+                "muc giam tru gia canh",
+                "giam tru gia canh",
+                "giam tru ban than",
+                "muc giam tru ban than",
+                "giam tru nguoi phu thuoc",
+                "muc giam tru nguoi phu thuoc")) {
+            return "Theo m\u1ee9c \u00e1p d\u1ee5ng t\u1eeb ng\u00e0y 01/01/2026, gi\u1ea3m tr\u1eeb gia c\u1ea3nh cho b\u1ea3n th\u00e2n l\u00e0 15,5 tri\u1ec7u \u0111\u1ed3ng/th\u00e1ng v\u00e0 cho m\u1ed7i ng\u01b0\u1eddi ph\u1ee5 thu\u1ed9c l\u00e0 6,2 tri\u1ec7u \u0111\u1ed3ng/th\u00e1ng.";
         }
 
         if (containsAny(text, "thong bao", "notification", "chuong")) {
@@ -810,6 +820,7 @@ public class ChatService {
     private boolean isHrmRelated(String text) {
         String[] keywords = {
                 "luong", "thuong", "phu cap", "bao hiem", "thue", "tncn",
+                "giam tru gia canh", "giam tru ban than", "nguoi phu thuoc",
                 "cham cong", "ngay cong", "gio lam", "ot", "tang ca",
                 "nghi phep", "xin nghi", "giai trinh", "chinh sach", "quy dinh",
                 "duyet don", "tu choi don", "payroll", "attendance", "leave",
@@ -992,7 +1003,7 @@ public class ChatService {
         HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(payload), headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new IllegalStateException("Gemini API call failed.");
+            throw new IllegalStateException("Gọi API Gemini thất bại.");
         }
 
         JsonNode root = objectMapper.readTree(response.getBody());
@@ -1030,7 +1041,7 @@ public class ChatService {
 
     private User resolveCurrentUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan dang nhap."));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản đăng nhập."));
     }
 
     private String extractJson(String text) {

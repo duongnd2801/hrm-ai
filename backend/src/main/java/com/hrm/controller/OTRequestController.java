@@ -4,6 +4,7 @@ import com.hrm.dto.OTCreateRequest;
 import com.hrm.dto.OTRequestDTO;
 import com.hrm.security.CustomUserDetails;
 import com.hrm.service.OTRequestService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +27,7 @@ public class OTRequestController {
     }
 
     @PostMapping
-    public OTRequestDTO createRequest(@AuthenticationPrincipal CustomUserDetails user, @RequestBody OTCreateRequest req) {
+    public OTRequestDTO createRequest(@AuthenticationPrincipal CustomUserDetails user, @Valid @RequestBody OTCreateRequest req) {
         return otRequestService.createRequest(user.getId(), req);
     }
 

@@ -2,6 +2,7 @@ package com.hrm.controller;
 
 import com.hrm.dto.CompanyConfigDTO;
 import com.hrm.service.CompanyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ public class CompanyConfigController {
 
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CompanyConfigDTO> updateConfig(@RequestBody CompanyConfigDTO dto) {
+    public ResponseEntity<CompanyConfigDTO> updateConfig(@Valid @RequestBody CompanyConfigDTO dto) {
         return ResponseEntity.ok(companyService.updateConfig(dto));
     }
 }

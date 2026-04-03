@@ -36,6 +36,11 @@ gemini:
 
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 springdoc:
   swagger-ui:
@@ -44,6 +49,9 @@ springdoc:
     path: /api-docs
 
 logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
   level:
     com.hrm: DEBUG
     org.flywaydb: INFO

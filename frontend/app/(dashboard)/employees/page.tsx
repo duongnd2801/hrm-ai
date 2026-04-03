@@ -187,7 +187,7 @@ export default function EmployeesPage() {
               </div>
            </div>
         </div>
-        <div className="overflow-hidden">
+        <div className="overflow-x-auto">
            <EmployeeTable search={searchQuery} refreshKey={refreshKey} />
         </div>
       </div>

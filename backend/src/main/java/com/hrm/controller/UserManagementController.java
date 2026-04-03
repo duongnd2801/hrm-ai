@@ -6,6 +6,7 @@ import com.hrm.dto.UserManagementDTO;
 import com.hrm.service.UserManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,7 +50,7 @@ public class UserManagementController {
     @Operation(summary = "Cập nhật vai trò người dùng", description = "Update user role")
     public ResponseEntity<UserManagementDTO> updateUserRole(
             @PathVariable UUID id,
-            @RequestBody UpdateUserRoleRequest request) {
+            @Valid @RequestBody UpdateUserRoleRequest request) {
         return ResponseEntity.ok(userManagementService.updateUserRole(id, request));
     }
 

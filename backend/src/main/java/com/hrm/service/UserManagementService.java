@@ -83,7 +83,7 @@ public class UserManagementService {
             User updated = userRepository.save(user);
             return mapToDTO(updated);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + request.getRole());
+            throw new RuntimeException("Quản trị viên không hợp lệ: " + request.getRole());
         }
     }
 

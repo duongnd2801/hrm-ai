@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveSession } from '@/lib/auth';
+import { saveSession, getSession, isAuthenticated } from '@/lib/auth';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -12,6 +12,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
+
+  // If already authenticated, redirect to dashboard immediately
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,15 +40,14 @@ export default function LoginPage() {
     try {
       const res = await api.post('/api/auth/login', { email, password });
       const data = res.data;
+      
+      // Save only non-sensitive metadata locally
       saveSession({
-        token: data.token,
-        refreshToken: data.refreshToken,
         email: data.email,
         role: data.role,
         employeeId: data.employeeId,
         profileCompleted: data.profileCompleted,
       });
-      document.cookie = `hrm_token=${data.token}; path=/; max-age=86400`;
 
       const mustComplete =
         data.role === 'EMPLOYEE' &&

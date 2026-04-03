@@ -71,7 +71,7 @@ public class CompanyService {
     @Transactional
     public DepartmentDTO createDepartment(DepartmentDTO dto) {
         if (departmentRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new RuntimeException("Department name already exists");
+            throw new RuntimeException("Tên phòng ban đã tồn tại");
         }
         Department dept = new Department();
         dept.setName(dto.getName());
@@ -85,7 +85,7 @@ public class CompanyService {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
         if (!dept.getName().equalsIgnoreCase(dto.getName()) && departmentRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new RuntimeException("Department name already exists");
+            throw new RuntimeException("Tên phòng ban đã tồn tại");
         }
         dept.setName(dto.getName());
         dept = departmentRepository.save(dept);
@@ -111,7 +111,7 @@ public class CompanyService {
     @Transactional
     public PositionDTO createPosition(PositionDTO dto) {
         if (positionRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new RuntimeException("Position name already exists");
+            throw new RuntimeException("Tên vị trí đã tồn tại");
         }
         Position pos = new Position();
         BeanUtils.copyProperties(dto, pos, "id");
@@ -125,10 +125,10 @@ public class CompanyService {
         Position pos = positionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Position not found"));
         if (pos.getIsLocked() != null && pos.getIsLocked()) {
-            throw new RuntimeException("Position is locked and cannot be edited");
+            throw new RuntimeException("Vị trí này đã bị khóa và không thể chỉnh sửa");
         }
         if (!pos.getName().equalsIgnoreCase(dto.getName()) && positionRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new RuntimeException("Position name already exists");
+            throw new RuntimeException("Tên vị trí đã tồn tại");
         }
         BeanUtils.copyProperties(dto, pos, "id", "isLocked");
         pos = positionRepository.save(pos);
@@ -152,7 +152,7 @@ public class CompanyService {
         Position pos = positionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Position not found"));
         if (pos.getIsLocked() != null && pos.getIsLocked()) {
-            throw new RuntimeException("Position is locked and cannot be deleted");
+            throw new RuntimeException("Vị trí này đã bị khóa và không thể xóa");
         }
         positionRepository.deleteById(id);
     }

@@ -42,7 +42,7 @@ public class AuthService {
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
         if (!jwtTokenProvider.isValidRefreshToken(refreshToken)) {
-            throw new RuntimeException("Refresh token is invalid or expired");
+            throw new RuntimeException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
         String email = jwtTokenProvider.getEmail(refreshToken);
@@ -69,17 +69,17 @@ public class AuthService {
 
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new RuntimeException("Mật khẩu hiện tại không chính xác");
         }
 
         // Check if new password and confirm password match
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("New password and confirm password do not match");
+            throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp");
         }
 
         // Check if new password is the same as current password
         if (request.getCurrentPassword().equals(request.getNewPassword())) {
-            throw new RuntimeException("New password must be different from current password");
+            throw new RuntimeException("Mật khẩu mới phải khác mật khẩu hiện tại");
         }
 
         // Update password

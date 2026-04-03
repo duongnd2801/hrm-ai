@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Listener para eventos de mudança de status de requests
- * Cria notificações automaticamente quando um request muda de status
+ * Listener cho sự kiện thay đổi trạng thái của các Request
+ * Tự động tạo thông báo khi một request thay đổi trạng thái
  */
 @Slf4j
 @Component
@@ -22,33 +22,33 @@ public class RequestStatusChangedEventListener {
     private final UserRepository userRepository;
 
     /**
-     * D30: Listener para mudanças de status de requests
-     * Cria notificações automáticas para usuários afetados
+     * D30: Listener cho sự kiện thay đổi trạng thái
+     * Tạo thông báo tự động cho người dùng liên quan
      */
     @EventListener
     @Transactional
     public void onRequestStatusChanged(RequestStatusChangedEvent event) {
-        log.info("Processando evento: {} [{}] -> {}", 
+        log.info("Đang xử lý sự kiện: {} [{}] -> {}", 
             event.getRequestType(), event.getRequestId(), event.getStatus());
 
         try {
-            // 1. Buscar usuário afetado
+            // 1. Tìm người dùng bị ảnh hưởng
             var user = userRepository.findById(event.getAffectedUserId())
                     .orElse(null);
             
             if (user == null) {
-                log.warn("Usuário não encontrado: {}", event.getAffectedUserId());
+                log.warn("Không tìm thấy người dùng: {}", event.getAffectedUserId());
                 return;
             }
 
-            // 2. Mapear status para tipo de notificação
+            // 2. Map trạng thái thành loại thông báo
             Notification.NotificationType notificationType = mapStatusToType(event.getStatus());
             
-            // 3. Criar título e mensagem baseado no tipo de request
+            // 3. Tạo tiêu đề và tin nhắn dựa trên loại request
             String title = buildTitle(event.getRequestType(), event.getStatus());
             String message = buildMessage(event.getRequestType(), event.getStatus(), event.getReason());
 
-            // 4. Criar notificação
+            // 4. Tạo thông báo
             notificationService.createNotification(
                 user,
                 title,
@@ -58,15 +58,15 @@ public class RequestStatusChangedEventListener {
                 event.getRequestId()
             );
 
-            log.info("Notificação criada para usuário: {} - {}", user.getEmail(), title);
+            log.info("Đã tạo thông báo cho người dùng: {} - {}", user.getEmail(), title);
             
         } catch (Exception ex) {
-            log.error("Erro ao processar RequestStatusChangedEvent", ex);
+            log.error("Lỗi khi xử lý RequestStatusChangedEvent", ex);
         }
     }
 
     /**
-     * Mapeia status para tipo de notificação
+     * Map trạng thái sang loại thông báo
      */
     private Notification.NotificationType mapStatusToType(String status) {
         return switch (status.toUpperCase()) {
@@ -78,7 +78,7 @@ public class RequestStatusChangedEventListener {
     }
 
     /**
-     * Constrói título da notificação
+     * Xây dựng tiêu đề thông báo
      */
     private String buildTitle(String requestType, String status) {
         String typeLabel = switch (requestType.toUpperCase()) {
@@ -89,15 +89,15 @@ public class RequestStatusChangedEventListener {
         };
 
         return typeLabel + " " + switch (status.toUpperCase()) {
-            case "APPROVED" -> "được duyệt ✅";
-            case "REJECTED" -> "bị từ chối ❌";
-            case "PENDING" -> "chờ xử lý ⏳";
+            case "APPROVED" -> "được duyệt";
+            case "REJECTED" -> "bị từ chối";
+            case "PENDING" -> "chờ xử lý";
             default -> "được cập nhật";
         };
     }
 
     /**
-     * Constrói nội dung của notificação
+     * Xây dựng nội dung thông báo
      */
     private String buildMessage(String requestType, String status, String reason) {
         String baseMsg = switch (requestType.toUpperCase()) {

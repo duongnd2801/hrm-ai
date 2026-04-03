@@ -58,7 +58,7 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
   const visibleItems = NAV_ITEMS.filter((item) => hasRole(...item.roles));
 
   return (
-    <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl relative ${collapsed ? 'w-[88px]' : 'w-[280px]'}`}>
+      <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-50 md:z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl fixed inset-y-0 left-0 md:relative ${collapsed ? '-translate-x-full md:translate-x-0 w-[280px] md:w-[88px]' : 'translate-x-0 w-[280px]'}`}>
       
       {/* Glow Effect */}
       {!collapsed && (

@@ -4,9 +4,8 @@ import com.hrm.dto.LeaveCreateRequest;
 import com.hrm.dto.LeaveRequestDTO;
 import com.hrm.service.LeaveRequestService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +22,7 @@ public class LeaveRequestController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
-    public ResponseEntity<LeaveRequestDTO> create(@RequestBody LeaveCreateRequest request, Authentication authentication) {
+    public ResponseEntity<LeaveRequestDTO> create(@Valid @RequestBody LeaveCreateRequest request, Authentication authentication) {
         return ResponseEntity.ok(leaveRequestService.createMyRequest(request, authentication));
     }
 
@@ -55,15 +54,5 @@ public class LeaveRequestController {
     @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
     public ResponseEntity<LeaveRequestDTO> reject(@PathVariable UUID id, Authentication authentication) {
         return ResponseEntity.ok(leaveRequestService.review(id, false, authentication));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> badRequest(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> denied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 }

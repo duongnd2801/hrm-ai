@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { clearSession, hasRole } from '@/lib/auth';
+import { hasRole } from '@/lib/auth';
+import api, { logout } from '@/lib/api';
 import type { UserSession } from '@/types';
 import { NAV_ITEMS } from './Sidebar';
 import ThemeToggle from './ThemeToggle';
 import ChangePasswordModal from './ChangePasswordModal';
 import NotificationPanel from './NotificationPanel';
+import axios from 'axios'; // Still used for weather
 
 interface HeaderProps {
   session: UserSession;
@@ -35,10 +36,7 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:8080/api/notifications/my/unread-count',
-          { headers: { Authorization: `Bearer ${session?.token}` } }
-        );
+        const response = await api.get('/api/notifications/my/unread-count');
         setUnreadCount(response.data);
       } catch (error) {
         // silently fail
@@ -82,18 +80,16 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
      return isAllowed && isPill;
   });
 
-  function handleLogout() {
-    clearSession();
-    document.cookie = 'hrm_token=; path=/; max-age=0';
-    router.push('/login');
+  async function handleLogout() {
+    await logout();
   }
 
   return (
-    <header className="h-24 shrink-0 px-8 flex items-center justify-between relative z-20">
-      <div className="flex items-center gap-4 flex-1">
+    <header className="h-20 md:h-24 shrink-0 px-4 md:px-8 flex items-center justify-between relative z-20">
+      <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
          <button 
            onClick={onToggleSidebar}
-           className="w-12 h-12 flex items-center justify-center bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-2xl border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl transition-all active:scale-95 group mr-2"
+           className="shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-xl md:rounded-2xl border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl transition-all active:scale-95 group mr-0 md:mr-2"
          >
            {collapsed ? (
              <svg className="w-6 h-6 text-slate-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
@@ -102,7 +98,7 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
            )}
          </button>
 
-         <div className="flex items-center bg-white/80 dark:bg-white/10 backdrop-blur-3xl rounded-[24px] p-1.5 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
+         <div className="hidden lg:flex items-center bg-white/80 dark:bg-white/10 backdrop-blur-3xl rounded-[24px] p-1.5 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
             {pillItems.map((item) => {
                const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                return (
@@ -128,8 +124,8 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
           </div>
       </div>
 
-      <div className="flex items-center gap-6">
-         <div className="flex items-center gap-4 bg-white/80 dark:bg-white/10 backdrop-blur-3xl px-6 py-3 rounded-[24px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
+      <div className="flex items-center gap-2 md:gap-6 shrink-0 ml-2">
+         <div className="hidden sm:flex items-center gap-4 bg-white/80 dark:bg-white/10 backdrop-blur-3xl px-6 py-3 rounded-[24px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
              <div className="flex items-center gap-2 pr-4 border-r border-black/5 dark:border-white/10">
                 {isRainy ? (
                   <svg className="w-5 h-5 text-blue-500 dark:text-blue-300" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z" /></svg>
@@ -143,12 +139,12 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
              <span className="text-base font-black font-mono text-slate-800 dark:text-white tracking-[0.2em]">{timeText}</span>
          </div>
 
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
+          <div className="flex items-center gap-1 md:gap-2">
+            <div className="hidden sm:block"><ThemeToggle /></div>
             <button
               title="Thông báo"
               onClick={() => setShowNotificationPanel(!showNotificationPanel)}
-              className="relative p-3.5 text-slate-400 dark:text-white/30 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-2xl transition-all"
+              className="relative p-2.5 md:p-3.5 text-slate-400 dark:text-white/30 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-xl md:rounded-2xl transition-all"
             >
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -160,14 +156,14 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
             <button 
               title="Đổi mật khẩu"
               onClick={() => setShowChangePasswordModal(true)}
-              className="p-3.5 text-slate-400 dark:text-white/30 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-2xl transition-all"
+              className="hidden sm:block p-2.5 md:p-3.5 text-slate-400 dark:text-white/30 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-xl md:rounded-2xl transition-all"
             >
                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
             </button>
             <button 
               title="Đăng xuất"
               onClick={handleLogout}
-              className="p-3.5 text-slate-400 dark:text-white/30 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all"
+              className="p-2.5 md:p-3.5 text-slate-400 dark:text-white/30 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-xl md:rounded-2xl transition-all"
             >
                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>

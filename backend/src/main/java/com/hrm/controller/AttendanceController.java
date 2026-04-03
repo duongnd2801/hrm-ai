@@ -62,4 +62,11 @@ public class AttendanceController {
     public ResponseEntity<String> handleDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGeneral(Exception ex) {
+        // Log is needed here for debugging — in prod add a logger
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Lỗi xử lý chấm công: " + ex.getMessage());
+    }
 }

@@ -1,13 +1,13 @@
-## Canonical Project Snapshot (2026-04-01)
+## Canonical Project Snapshot (2026-04-03)
 
 Mục tiêu phần này: đọc nhanh trạng thái dự án mà không thay đổi spec gốc.
 Toàn bộ nội dung chi tiết bên dưới vẫn được giữ nguyên.
 
-- Project status: `Completed core phases + QA, entering maintenance mode`
+- Project status: `Hardening & Security Phase Completed`
 - Current focus:
-  - Vận hành ổn định và theo dõi phản hồi người dùng
+  - Vận hành ổn định với bảo mật cao (HttpOnly Cookies, CSRF, Security Headers)
   - Hoàn thiện backlog `D14` (import chấm công máy chấm công)
-  - Nâng chất lượng test tự động + bảo mật cấu hình
+  - Theo dõi phản hồi người dùng sau đợt cập nhật bảo mật
 - Canonical runtime docs:
   - Active plan: `.gemini/plan.md` (mục `Canonical Plan Snapshot`)
   - Session memory: `.gemini/memory.md` (mục `Canonical Memory Snapshot`)
@@ -129,6 +129,7 @@ Dự án này áp dụng mô hình "Lộ trình Agentic" kết hợp Workflow ch
 | Phase 7 | Tính lương: Công thức VN đầy đủ + Bảng lương + Export Excel/PDF | ✅ | |
 | Phase 8 | Trang chủ Dashboard: Widget thời tiết + Check-in widget + Thống kê nhanh | ✅ | |
 | Phase 9 | Phân quyền hoàn thiện: Menu FE động theo role + Spring Security endpoint guards | ✅ | |
+| Phase Hardening | Bảo mật chuyên sâu: HttpOnly Cookies, CSRF, Security Headers, RS256, @Valid | ✅ | Đã hoàn thành 03/04/2026 |
 
 **Rule:** Chỉ chuyển phase tiếp khi phase hiện tại chạy đúng local. AI không tự chuyển phase — human confirm.
 

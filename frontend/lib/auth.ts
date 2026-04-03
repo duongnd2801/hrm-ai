@@ -22,6 +22,7 @@ export function getSession(): UserSession | null {
 export function clearSession(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(SESSION_KEY);
+    // document.cookie and other sensitive removals are handled by backend /logout
   }
 }
 

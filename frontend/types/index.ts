@@ -3,8 +3,6 @@
 export type RoleType = 'EMPLOYEE' | 'MANAGER' | 'HR' | 'ADMIN';
 
 export interface AuthResponse {
-  token: string;
-  refreshToken: string;
   email: string;
   role: RoleType;
   employeeId?: string;
@@ -12,8 +10,6 @@ export interface AuthResponse {
 }
 
 export interface UserSession {
-  token: string;
-  refreshToken: string;
   email: string;
   role: RoleType;
   employeeId?: string;

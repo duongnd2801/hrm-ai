@@ -2,19 +2,22 @@
 
 Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 
-## Canonical Memory Snapshot (2026-04-01)
+## Canonical Memory Snapshot (2026-04-03)
 
 Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ liệu lịch sử.
 Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
 
-- Current phase: `Done (All phases completed)`
-- Current status: `Production-ready / đang theo dõi vận hành`
-- Next task (canonical): theo dõi phản hồi user, xử lý backlog D14, cải thiện test + bảo mật cấu hình.
-- Blockers: chưa có blocker nghiêm trọng đang mở.
+- Current phase: `Hardening & Security (Done)`
+- Current status: `Security Hardened / Cookie-based Auth / Production-ready`
+- Next task (canonical): Theo dõi vận hành, xử lý backlog D14 (Import máy chấm công).
+- Blockers: Không có.
 
 ### Open Backlog (Canonical)
-- D14: Attendance import từ máy chấm công (MEDIUM, chưa triển khai đầy đủ).
-- D10, D12: tinh chỉnh UX/Auth mức LOW.
+- D14: Attendance import từ máy chấm công (MEDIUM).
+
+### Security Hardening Summary (2026-04-03)
+- **Backend:** HttpOnly Cookies, RS256 JWT, CSRF Protection, Strict DTO Validation, Security Headers.
+- **Frontend:** withCredentials=true, API client logic fix, removal of localStorage JWTs, session sync via /me.
 
 ### Data Integrity Note
 - Không xóa entries cũ.
@@ -147,3 +150,16 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 
 - [2026-04-01T16:41:31+07:00] Làm sạch tài liệu vận hành mà không mất dữ liệu: thêm Canonical Snapshot ở GEMINI/plan/memory để đọc nhanh, giữ nguyên toàn bộ nội dung lịch sử bên dưới; chuẩn hóa trạng thái backlog mở (D14 medium, D10-D12 low) phục vụ giai đoạn bảo trì.
 - [2026-04-02T09:34:00+07:00] Thực hiện QA v3 toàn diện (Test BE API + logic FE). Kết quả: 100% test cases PASSED. Phát hiện và fix Bug D29: GlobalExceptionHandler bắt nhầm AccessDeniedException thành 500 thay vì 403 Forbidden. Đã fix lỗi bằng cách thêm handler cụ thể. Hệ thống vượt qua toàn bộ các bài test (Auth, Dashboard, Employee CRUD, Import/Export, Attendance, Apologies, Leave/OT, Payroll, RBAC) và đang hoạt động cực kỳ ổn định. Sẵn sàng bàn giao.
+- [2026-04-03T15:10:00+07:00] **Phase Hardening & Security Completed**:
+  - BE: Triển khai HttpOnly + SameSite=Lax cookies cho JWT (Access/Refresh).
+  - BE: Chuyển sang RS256 signing, tích hợp CSRF protection & Security Headers Filter.
+  - BE: Enforce @Valid trên toàn bộ Controller và nâng cấp DTO validation.
+  - FE: Refactor api.ts (withCredentials), gỡ bỏ localStorage JWT, fix luồng logout/refresh.
+  - FE: Sync session tại DashboardLayout qua backend verification (/me).
+  - System status: Hardened & Secure 🚀.
+- [2026-04-03T15:30:00+07:00] **Final Stability Patch for Hardening**:
+  - Sửa lỗi Infinite Redirect Loop: Đồng bộ logic middleware.ts (đổi từ hrm_token sang hrm_access) và logic client-side isAuthenticated.
+  - Fix Logout: Loại bỏ CSRF check cho endpoint /logout để đảm bảo người dùng luôn thoát được phiên làm việc trong mọi điều kiện.
+  - Cải thiện UX: Chuyển path hrm_refresh cookie về '/' để tăng tính tương thích và hiển thị trực quan trong DevTools.
+  - Xử lý lint: Fix triệt để các cảnh báo Null Safety trong ApologyService.
+  - Kết luận: Dự án đạt trạng thái "Production-Ready", bảo mật đa lớp (XSS/CSRF protection), logic auth cực kỳ ổn định. Sẵn sàng vận hành thực tế.

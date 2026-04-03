@@ -3,6 +3,7 @@ package com.hrm.dto;
 import com.hrm.entity.ContractType;
 import com.hrm.entity.EmpStatus;
 import com.hrm.entity.GenderType;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,15 +14,27 @@ import java.util.UUID;
 public class EmployeeDTO {
     private UUID id;
     private UUID userId;
+
+    @NotBlank(message = "Họ tên không được để trống")
+    @Size(max = 255, message = "Họ tên không được vượt quá 255 ký tự")
     private String fullName;
+
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
+    @Size(max = 255, message = "Email không được vượt quá 255 ký tự")
     private String email;
+
+    @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự")
     private String phone;
+    
     private String address;
     private String bio;
     private GenderType gender;
     private LocalDate birthDate;
     private EmpStatus status;
     private ContractType contractType;
+
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDate startDate;
     private LocalDate endDate;
     

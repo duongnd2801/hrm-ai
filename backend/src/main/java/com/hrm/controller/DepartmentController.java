@@ -2,6 +2,7 @@ package com.hrm.controller;
 
 import com.hrm.dto.DepartmentDTO;
 import com.hrm.service.CompanyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +26,13 @@ public class DepartmentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DepartmentDTO> create(@RequestBody DepartmentDTO dto) {
+    public ResponseEntity<DepartmentDTO> create(@Valid @RequestBody DepartmentDTO dto) {
         return ResponseEntity.ok(companyService.createDepartment(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DepartmentDTO> update(@PathVariable UUID id, @RequestBody DepartmentDTO dto) {
+    public ResponseEntity<DepartmentDTO> update(@PathVariable UUID id, @Valid @RequestBody DepartmentDTO dto) {
         return ResponseEntity.ok(companyService.updateDepartment(id, dto));
     }
 

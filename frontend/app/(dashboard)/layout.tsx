@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useSyncExternalStore, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { fetchCurrentSession } from '@/lib/api';
 import type { UserSession } from '@/types';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -10,30 +11,47 @@ import { AuthProvider } from '@/components/AuthProvider';
 import ChatWidget from '@/components/ChatWidget';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const isClient = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const [collapsed, setCollapsed] = useState(false);
-  const session = isClient ? (getSession() as UserSession | null) : null;
+  const router = useRouter();
+  const [collapsed, setCollapsed] = useState(true);
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [loading, setLoading] = useState(true);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
-    if (isClient && !session) {
-      router.push('/login');
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setCollapsed(false);
     }
-  }, [isClient, pathname, router, session]);
 
-  // Prevent hydration mismatch by only rendering content after mount
-  if (!isClient || !session) {
+    async function initSession() {
+      // 1. Try local metadata first for fast render
+      const local = getSession();
+      if (local) setSession(local);
+
+      // 2. Verify with backend /me (handles refresh and cookie check)
+      const current = await fetchCurrentSession();
+      if (current) {
+        setSession(current);
+      } else if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.replace('/login');
+      }
+      setLoading(false);
+    }
+    
+    void initSession();
+  }, [router]);
+
+  // Show spinner during initial load
+  if (loading && !session) {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="h-screen w-screen bg-slate-950 flex items-center justify-center transition-opacity duration-700">
+        <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin shadow-2xl shadow-indigo-500/20" />
       </div>
     );
   }
+
+  if (!session) return null;
 
   return (
     <AuthProvider>
@@ -56,6 +74,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Floating UI Container */}
         <div className="relative z-10 flex w-full h-full">
+           {/* Mobile Drawer Overlay */}
+           {!collapsed && (
+              <div 
+                 className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden transition-all duration-500 animate-in fade-in"
+                 onClick={() => setCollapsed(true)}
+              />
+           )}
            <Sidebar session={session} collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
            <div className="flex flex-col flex-1 overflow-hidden min-w-0">
@@ -66,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  pathname={pathname}
               />
 
-              <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-2 relative scrollbar-thin scrollbar-thumb-white/10 min-w-0">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6 py-2 relative scrollbar-thin scrollbar-thumb-white/10 min-w-0">
                  {children}
               </main>
            </div>
