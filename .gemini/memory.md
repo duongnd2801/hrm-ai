@@ -7,8 +7,9 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ liệu lịch sử.
 Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
 
-- Current phase: `Hardening & Security (Done)`
-- Current status: `Security Hardened / Cookie-based Auth / Production-ready`
+- Current phase: `Polishing & UX Refinement (Done)`
+- Current focus: `Chatbot Intelligence Optimization`
+- Current status: `Gemini Reasoning Implemented / Rigid Logic Removed`
 - Next task (canonical): Theo dõi vận hành, xử lý backlog D14 (Import máy chấm công).
 - Blockers: Không có.
 
@@ -19,11 +20,22 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 - **Backend:** HttpOnly Cookies, RS256 JWT, CSRF Protection, Strict DTO Validation, Security Headers.
 - **Frontend:** withCredentials=true, API client logic fix, removal of localStorage JWTs, session sync via /me.
 
+### UI/UX Refinement Summary (2026-04-06)
+- **Standardization:** Nâng cấp contrast tiêu đề bảng (`dark:text-white/70`) và icon tác vụ rực rỡ luôn hiển thị trên toàn hệ thống.
+- **Visual Polish:** Đậm hóa trạng thái khóa (`rose-700`) và tăng cường hiệu ứng thị giác (wave underline).
+- **Integrity Fix:** Khôi phục 100% lỗi mã hóa tiếng Việt phát sinh do thao tác CLI.
+
 ### Data Integrity Note
 - Không xóa entries cũ.
 - Nếu có entry mâu thuẫn nhẹ theo thời điểm, ưu tiên mốc thời gian mới hơn.
 
 - Current phase: Done (All phases completed)
+- [2026-04-06T11:45:00+07:00] **UI Refinement & Encoding Recovery**:
+  - **Standardization:** Cập nhật độ tương phản tiêu đề bảng (`thead`) lên `dark:text-white/70` cho toàn bộ các module (Employees, Users, Projects, OT, Apologies, Leave, Payroll, Positions, Departments) để tăng khả năng đọc trong Dark Mode.
+  - **UX Enhancement:** Cải thiện `HoverInfoCard` trong bảng Nhân sự, tăng độ tương phản cho các nhãn thông tin (Phòng ban, Địa chỉ).
+  - **Encoding Fix:** Khôi phục hoàn toàn lỗi mã hóa tiếng Việt (mojibake) tại `EmployeeTable.tsx`, `leave/page.tsx` và `PositionTable.tsx` phát sinh do lệnh PowerShell sai bảng mã. Đảm bảo toàn bộ hệ thống hiển thị tiếng Việt UTF-8 chuẩn xác.
+  - **Visual Polishing:** Nâng cấp trạng thái "Hệ thống khóa" và nút "Bị khóa" trong Danh mục chức vụ sang màu đỏ đậm (`rose-700`) rực rỡ, kèm hiệu ứng gạch chân sóng (`underline decoration-wavy`) để tăng tính cảnh báo và thẩm mỹ.
+  - **Verification:** Rà soát và xác nhận tất cả các bảng dữ liệu khác hoạt động ổn định, không còn lỗi hiển thị.
 - Phase status: Dự án đã hoàn thành các giai đoạn chính và được polish ổn định.
 - **[MEMORY]** 2026-03-31: Hoàn thành Phase QA. Đã fix toàn bộ các lỗi nghiêm trọng sau:
     - **Postgres Enum (BE):** Xử lý lỗi 500 khi GET /api/ot-requests/pending bằng cách thêm `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` vào `OTRequest.java`.
@@ -163,3 +175,25 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - Cải thiện UX: Chuyển path hrm_refresh cookie về '/' để tăng tính tương thích và hiển thị trực quan trong DevTools.
   - Xử lý lint: Fix triệt để các cảnh báo Null Safety trong ApologyService.
   - Kết luận: Dự án đạt trạng thái "Production-Ready", bảo mật đa lớp (XSS/CSRF protection), logic auth cực kỳ ổn định. Sẵn sàng vận hành thực tế.
+- [2026-04-06T08:57:00+07:00] **Phase Project: Quản lý dự án Completed**:
+  - BE: Tạo migration V13, tạo JPA Entity, Repository, DTO, Service, Controller cho bảng `projects` và `project_members`.
+  - BE: Build thành công không có lỗi syntax, các API CRUD hoạt động cơ bản với Role PM, DEV, QA...
+  - FE: Cập nhật `types/index.ts`, thêm `projectApi.ts`.
+  - FE: Thiết kế giao diện `ProjectsPage`, `ProjectDialog`, `ProjectDetailsPage`, `ProjectMemberDialog`.
+  - UI: Áp dụng form thiết kế glassmorphic hiện đại, đồng bộ bảng theo template có sẵn.
+  - FE: Bổ sung item "Dự án" vào Sidebar (cho mọi role hợp lệ).
+- [2026-04-06T11:05:00+07:00] **Comprehensive UI/UX Standardization**:
+  - **Design System Standard:** Tăng độ tương phản Dark mode (`dark:bg-slate-900/40`), thu gọn padding hàng (`py-2.5`/`py-3`), sử dụng icon tác vụ rực rỡ (Eye, Pencil, Trash) và luôn hiển thị (không hover-reveal).
+  - **Module Projects:** Tách cột Timeline (Ngày bắt đầu/Kết thúc), nén hàng, icon luôn hiện. Cập nhật màu Ngày kết thúc (`Sky-400`) và mở rộng độ rộng bảng (`1200px`).
+  - **Module Users (Quản lý TK):** Đổi tên, fix lỗi icon, tăng contrast hàng tối, icon luôn hiện. Triển khai **UserDetailModal** và khôi phục **Hover Info Card** tại cột Tên, tăng size chữ tên.
+  - **Module Employees:** Áp dụng chuẩn nén hàng và icon rực rỡ luôn hiển thị (Mắt/Chì).
+  - **Company Config (Phòng ban/Vị trí):** Đồng bộ Header sáng, icon sửa/xóa rực rỡ và luôn hiển thị.
+  - **Sidebar:** Đồng bộ nhãn "Quản lý TK".
+- [2026-04-06T13:54:30+07:00] **Chatbot Intelligence Optimization (Done)**:
+  - **Refactor:** Loại bỏ logic `forcedToolDecision` quá cứng nhắc cho các module Dự án và Nhân viên, chuyển giao quyền quyết định hoàn toàn cho Gemini reasoning.
+  - **Prompt Engineering:** Đại tu `TOOL_PLANNER_PROMPT` và tóm tắt hội thoại, giúp AI hiểu sâu ngữ cảnh dự án, lịch sử hội thoại và tự động phân tích dữ liệu THẬT thay vì trả lời theo mẫu.
+  - **Logic Tool:** Nâng cấp `getProjectMembers` hỗ trợ trả về thống kê tổng quát khi không có từ khóa dự án.
+  - **Context Buffer:** Tăng lịch sử hội thoại gửi lên AI từ 10 lên 20 messages để bot "nhớ" ngữ cảnh dự án tốt hơn.
+  - **Refinement:** Nâng cấp bộ trích xuất từ khóa (`extractProjectKeyword`) để nhận diện mã dự án trong ngoặc vuông `[CODE]` (giúp user copy-paste nhanh từ danh sách).
+  - **Logic Order:** Chuyển `tryHandleSystemGuide` vào fallback để tránh tranh chấp từ khóa với tên dự án (ví dụ: dự án tên 'Chatbot' không còn bị Bot chặn ngang).
+  - **Verification:** Chatbot hiện có khả năng tự suy luận: "Số người trong dự án" -> liệt kê tất cả; "Thành viên dự án [AI_BOT]" -> liệt kê đúng người; "Còn dự án B thì sao?" -> tự hiểu context thành viên.

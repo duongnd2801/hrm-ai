@@ -28,6 +28,8 @@ public class ChatToolService {
     private final ApologyRepository apologyRepository;
     private final OTRequestRepository otRequestRepository;
     private final CompanyConfigRepository companyConfigRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     private final LeaveRequestService leaveRequestService;
     private final ApologyService apologyService;
@@ -51,6 +53,8 @@ public class ChatToolService {
             case "getCompanyPolicy" -> getCompanyPolicy();
             case "getUpcomingPublicHolidays" -> getUpcomingPublicHolidays(arguments);
             case "getPendingRequests" -> getPendingRequests(currentUser);
+            case "getProjects" -> getProjects(arguments, currentUser);
+            case "getProjectMembers" -> getProjectMembers(arguments, currentUser);
             case "approveRequest" -> approveRequest(arguments, currentUser, authentication);
             case "getMySummary" -> getMySummary(arguments, currentUser, fallbackMonth, fallbackYear);
             default -> Map.of("error", "Tool không hợp lệ: " + toolName);
@@ -645,6 +649,117 @@ public class ChatToolService {
         return ChronoUnit.DAYS.between(effectiveStart, effectiveEnd) + 1;
     }
 
+    private Map<String, Object> getProjects(JsonNode arguments, User currentUser) {
+        String keyword = getTextArg(arguments, "projectKeyword", "").trim();
+        boolean onlyMyProjects = arguments.path("onlyMyProjects").asBoolean(false);
+        List<Project> projects;
+
+        if ((currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) && !onlyMyProjects) {
+            if (!keyword.isEmpty()) {
+                // Use flexible keyword search
+                Optional<Project> singleProject = findProjectByKeywordFlexible(keyword, currentUser);
+                if (singleProject.isPresent()) {
+                    projects = List.of(singleProject.get());
+                } else {
+                    // Fallback to database search if flexible search returns nothing
+                    String normK = normalize(keyword);
+                    projects = projectRepository.searchByKeyword(normK);
+                }
+            } else {
+                projects = projectRepository.findAll();
+            }
+        } else {
+            List<Project> accessibleProjects = getAccessibleProjects(currentUser);
+            if (keyword.isEmpty()) {
+                projects = accessibleProjects;
+            } else {
+                // Use flexible search among accessible projects
+                String normK = normalize(keyword);
+                projects = accessibleProjects.stream()
+                        .filter(p -> normalize(p.getName()).contains(normK) || normalize(p.getCode()).contains(normK))
+                        .toList();
+            }
+        }
+
+        List<Map<String, Object>> projectList = projects.stream().limit(15).map(p -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", p.getId());
+            m.put("code", p.getCode());
+            m.put("name", p.getName());
+            m.put("status", String.valueOf(p.getStatus()));
+            m.put("startDate", p.getStartDate());
+            m.put("endDate", p.getEndDate());
+            return m;
+        }).toList();
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("projects", projectList);
+        data.put("count", projects.size());
+        data.put("message", projects.isEmpty() ? "Không tìm thấy dự án nào phù hợp." : "Đã lấy danh sách dự án.");
+        return data;
+    }
+
+    private Map<String, Object> getProjectMembers(JsonNode arguments, User currentUser) {
+        String projectKeyword = getTextArg(arguments, "projectKeyword", "").trim();
+        boolean isCountQuery = arguments.path("isCountQuery").asBoolean(false);
+        
+        if (projectKeyword.isEmpty()) {
+            // Return summary of all projects with counts
+            List<Project> allProjects;
+            if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) {
+                allProjects = projectRepository.findAll();
+            } else {
+                Employee emp = findEmployeeByUser(currentUser);
+                allProjects = projectMemberRepository.findByEmployeeId(emp.getId())
+                        .stream()
+                        .map(ProjectMember::getProject)
+                        .distinct()
+                        .toList();
+            }
+            
+            List<Map<String, Object>> summaries = allProjects.stream().map(p -> {
+                long memberCount = projectMemberRepository.countByProjectId(p.getId());
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("code", p.getCode());
+                m.put("name", p.getName());
+                m.put("memberCount", memberCount);
+                m.put("status", p.getStatus());
+                return m;
+            }).toList();
+            
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("projectSummaries", summaries);
+            data.put("message", "Đã lấy thống kê số lượng thành viên của " + summaries.size() + " dự án.");
+            return data;
+        }
+
+        // Use flexible search to find project (handles partial/noisy input)
+        Optional<Project> projectOpt = findProjectByKeywordFlexible(projectKeyword, currentUser);
+
+        if (projectOpt.isEmpty()) {
+            return Map.of("message", "Không tìm thấy dự án nào có tên hoặc mã khớp với '" + projectKeyword + "'.");
+        }
+
+        Project project = projectOpt.get();
+        List<ProjectMember> members = projectMemberRepository.findByProjectId(project.getId());
+
+        List<Map<String, Object>> memberList = members.stream().map(m -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("employeeName", m.getEmployee().getFullName());
+            item.put("role", m.getRole() != null ? m.getRole().name() : "MEMBER");
+            return item;
+        }).toList();
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("projectCode", project.getCode());
+        data.put("projectName", project.getName());
+        data.put("members", memberList);
+        data.put("count", memberList.size());
+        data.put("isCountQuery", isCountQuery);  // Pass flag to formatter
+        data.put("message", "Đã lấy danh sách thành viên dự án " + project.getName());
+        return data;
+    }
+
     private int safeInt(Integer value) {
         return value != null ? value : 0;
     }
@@ -655,6 +770,106 @@ public class ChatToolService {
 
     private double round1(double value) {
         return Math.round(value * 10.0) / 10.0;
+    }
+
+    /**
+     * Intelligently find a project even if the keyword is noisy or partial.
+     * Doesn't require ChatService to perfectly extract keywords.
+     * Splits keyword into meaningful words and searches flexibly.
+     */
+    private Optional<Project> findProjectByKeywordFlexible(String keyword, User currentUser) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Step 1: Try exact code match
+        Optional<Project> exactMatch = projectRepository.findByCodeIgnoreCase(keyword);
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+
+        // Step 2: Extract meaningful words (remove stop words and noise)
+        Set<String> meaningfulWords = extractMeaningfulWords(keyword);
+        if (meaningfulWords.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Get accessible projects
+        List<Project> accessibleProjects = getAccessibleProjects(currentUser);
+
+        // Step 3: Try to find by any meaningful word (prioritize longer matches)
+        Optional<Project> bestMatch = Optional.empty();
+        int bestMatchLength = 0;
+
+        for (String word : meaningfulWords) {
+            String normWord = normalize(word);
+            
+            // Try database search with this word
+            List<Project> dbResults = projectRepository.searchByKeyword(normWord);
+            for (Project p : dbResults) {
+                if (isAccessible(p, accessibleProjects)) {
+                    int matchLength = word.length();
+                    if (matchLength > bestMatchLength) {
+                        bestMatch = Optional.of(p);
+                        bestMatchLength = matchLength;
+                    }
+                }
+            }
+
+            // Also try local normalized search against accessible projects
+            for (Project p : accessibleProjects) {
+                if (normalize(p.getCode()).contains(normWord) || normalize(p.getName()).contains(normWord)) {
+                    int matchLength = word.length();
+                    if (matchLength > bestMatchLength) {
+                        bestMatch = Optional.of(p);
+                        bestMatchLength = matchLength;
+                    }
+                }
+            }
+        }
+
+        return bestMatch;
+    }
+
+    /**
+     * Extract meaningful words from keyword by filtering out common stop words.
+     */
+    private Set<String> extractMeaningfulWords(String keyword) {
+        Set<String> stopWords = Set.of(
+            "co", "la", "cua", "trong", "hien", "tai", "toi", "minh", "ban", 
+            "anh", "chi", "em", "so", "nay", "vua", "roi", "do", "cho", "hoi", 
+            "biet", "gia", "dinh", "nhom", "du", "an", "project", "nguoi", 
+            "thanh", "vien", "nhan", "su", "nao", "gi", "nhung", "may", "lam", 
+            "ai", "bao", "nhieu", "sao", "de", "ma", "tao", "ho", "trang"
+        );
+
+        String[] words = keyword.toLowerCase(Locale.ROOT).split("\\s+");
+        Set<String> meaningful = new LinkedHashSet<>();
+
+        for (String word : words) {
+            if (word.length() >= 2 && !stopWords.contains(word.trim())) {
+                meaningful.add(word.trim());
+            }
+        }
+
+        return meaningful;
+    }
+
+    private List<Project> getAccessibleProjects(User currentUser) {
+        if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) {
+            return projectRepository.findAll();
+        } else {
+            Employee emp = findEmployeeByUser(currentUser);
+            return projectMemberRepository.findByEmployeeId(emp.getId())
+                    .stream()
+                    .map(ProjectMember::getProject)
+                    .distinct()
+                    .toList();
+        }
+    }
+
+    private boolean isAccessible(Project project, List<Project> accessibleProjects) {
+        return accessibleProjects.stream().anyMatch(p -> p.getId().equals(project.getId()));
     }
 
     private String normalize(String input) {

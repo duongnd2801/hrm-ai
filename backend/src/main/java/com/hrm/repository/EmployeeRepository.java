@@ -22,7 +22,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     long countByStatus(EmpStatus status);
     long countByStatusNot(EmpStatus status);
 
-    @Query("SELECT e FROM Employee e WHERE " +
+    @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.user WHERE " +
            "LOWER(e.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(e.phone) LIKE LOWER(CONCAT('%', :search, '%'))")

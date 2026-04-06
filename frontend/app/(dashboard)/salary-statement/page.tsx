@@ -187,7 +187,7 @@ export default function SalaryStatementPage() {
                   <div className="flex justify-between items-center py-2 pt-3 border-t-2 border-rose-500/20">
                     <span className="font-black text-slate-900 dark:text-white">TỔNG CHIẾT KHẤU</span>
                     <span className="font-black text-rose-600 dark:text-rose-400 text-lg">
-                      {formatVND(selectedPayroll.bhxh + selectedPayroll.bhyt + selectedPayroll.bhtn + selectedPayroll.incomeTax)}
+                      {formatVND((selectedPayroll.bhxh ?? 0) + (selectedPayroll.bhyt ?? 0) + (selectedPayroll.bhtn ?? 0) + selectedPayroll.incomeTax)}
                     </span>
                   </div>
                 </div>

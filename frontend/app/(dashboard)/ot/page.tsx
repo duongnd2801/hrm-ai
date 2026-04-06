@@ -242,13 +242,13 @@ export default function OTPage() {
 
                   <div className="flex-1 overflow-x-auto">
                      <table className="w-full border-collapse">
-                        <thead>
-                           <tr className="border-b border-black/5 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.02]">
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/4">Nhân viên</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Công việc</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Định mức</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Trạng thái</th>
-                              {activeTab === 'pending' && <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Hành động</th>}
+                        <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+                           <tr>
+                              <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap">CÔNG VIỆC</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">ĐỊNH MỨC</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">TRẠNG THÁI</th>
+                              {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">HÀNH ĐỘNG</th>}
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -286,7 +286,7 @@ export default function OTPage() {
                                  </td>
                                  {activeTab === 'pending' && (
                                     <td className="px-8 py-6 text-right">
-                                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <div className="flex items-center justify-end gap-3 transition-all shrink-0">
                                           <button 
                                             onClick={() => void review(item.id, true)}
                                             className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"

@@ -10,6 +10,8 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   withCredentials: true, // Crucial for cookies
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
 // Single point of truth for refreshing to avoid multiple calls
@@ -53,24 +55,25 @@ api.interceptors.response.use(
     }
 
     // 401 Unauthorized -> Attempt token refresh
-    if (error.response?.status === 401 && !config._retry) {
-      config._retry = true;
+    if (error.response?.status === 401) {
+      if (!config._retry) {
+        config._retry = true;
 
-      if (!refreshPromise) {
-        refreshPromise = handleTokenRefresh().finally(() => {
-          refreshPromise = null;
-        });
+        if (!refreshPromise) {
+          refreshPromise = handleTokenRefresh().finally(() => {
+            refreshPromise = null;
+          });
+        }
+
+        const success = await refreshPromise;
+        if (success) {
+          return api.request(config);
+        }
       }
 
-      const success = await refreshPromise;
-      if (success) {
-        return api.request(config);
-      }
-
-      // If refresh fails, clean up and redirect
+      // If refresh fails OR it was already a retry and still 401
       if (typeof window !== 'undefined') {
         clearSession();
-        // Redirect if not already on login page
         if (!window.location.pathname.startsWith('/login')) {
           window.location.href = '/login';
         }

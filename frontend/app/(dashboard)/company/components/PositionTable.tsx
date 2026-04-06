@@ -6,6 +6,8 @@ import api from "@/lib/api";
 import DraggableModal from "@/components/DraggableModal";
 import { Position } from "@/types";
 
+import { Pencil, Trash2 } from "lucide-react";
+
 type PositionForm = {
   name: string;
   description: string;
@@ -160,11 +162,11 @@ export default function PositionTable() {
       ) : (
         <div className="overflow-x-auto rounded-[32px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl bg-white/80 dark:bg-white/5 backdrop-blur-3xl mx-2 lg:mx-6 overflow-hidden">
           <table className="min-w-full divide-y divide-black/5 dark:divide-white/5 text-slate-900 dark:text-white">
-            <thead className="bg-black/[0.03] dark:bg-black/40">
-              <tr className="text-[11px] uppercase text-slate-500/60 dark:text-white/50 tracking-[0.2em] border-b border-black/5 dark:border-white/10">
-                <th className="px-8 py-6 font-black">Chức vụ & Vị trí</th>
-                <th className="px-8 py-6 font-black text-center">Trạng thái khóa</th>
-                <th className="px-8 py-6 font-black text-right">Quản lý thao tác</th>
+            <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+              <tr>
+                <th className="px-8 py-6 rounded-tl-3xl text-left whitespace-nowrap">CHỨC VỤ & VỊ TRÍ</th>
+                <th className="px-8 py-6 text-center whitespace-nowrap">TRẠNG THÁI KHÓA</th>
+                <th className="px-8 py-6 text-right pr-10 rounded-tr-3xl whitespace-nowrap">QUẢN LÝ THAO TÁC</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -174,34 +176,34 @@ export default function PositionTable() {
                 </tr>
               ) : (
                 positions.map((position) => (
-                  <tr key={position.id} className={`hover:bg-black/[0.02] dark:hover:bg-white/5 transition-all duration-300 group ${position.isLocked ? "bg-slate-50 dark:bg-black/20" : ""}`}>
-                    <td className="px-8 py-6">
-                       <span className={`text-sm font-black uppercase tracking-tight ${position.isLocked ? "text-slate-400 dark:text-white/30" : "text-slate-900 dark:text-white"}`}>{position.name}</span>
+                  <tr key={position.id} className={`group hover:bg-indigo-500/[0.05] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300 ${position.isLocked ? "bg-slate-50 dark:bg-slate-900/60 opacity-60" : ""}`}>
+                    <td className="px-8 py-3">
+                       <span className={`text-[12px] font-black uppercase tracking-tight ${position.isLocked ? "text-slate-400 dark:text-white/30" : "text-slate-900 dark:text-white"}`}>{position.name}</span>
                     </td>
-                    <td className="px-8 py-6 text-center">
+                    <td className="px-8 py-3 text-center">
                       <button
                         onClick={() => void toggleLock(position.id, position.isLocked)}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                        className={`px-5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
                           position.isLocked 
-                            ? "bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white shadow-rose-500/20" 
-                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white shadow-emerald-500/20"
+                            ? "bg-rose-700 text-white shadow-xl shadow-rose-700/40" 
+                            : "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
                         }`}
                       >
                         {position.isLocked ? "Bị khóa" : "Sẵn dụng"}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right text-sm font-bold space-x-3">
+                    <td className="px-8 py-3 text-right space-x-2">
                       {!position.isLocked ? (
                         <>
-                          <button onClick={() => openEditModal(position)} className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 hover:bg-blue-500 hover:text-white transition-all active:scale-95">
-                            Sửa
+                          <button onClick={() => openEditModal(position)} className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-lg transition-all active:scale-95" title="Sửa vị trí">
+                             <Pencil className="w-5 h-5" />
                           </button>
-                          <button onClick={() => openDeleteModal(position)} className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white transition-all active:scale-95">
-                            Xóa
+                          <button onClick={() => openDeleteModal(position)} className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 shadow-lg transition-all active:scale-95" title="Xóa vị trí">
+                             <Trash2 className="w-5 h-5" />
                           </button>
                         </>
                       ) : (
-                         <span className="text-[10px] font-black text-rose-500/40 uppercase tracking-widest">Không thể can thiệp</span>
+                         <span className="text-[10px] font-black text-rose-700 uppercase tracking-widest underline decoration-wavy decoration-rose-700/30">Hệ thống khóa</span>
                       )}
                     </td>
                   </tr>
@@ -281,7 +283,7 @@ export default function PositionTable() {
                 disabled={submitting}
                 className="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 text-white shadow-2xl shadow-indigo-500/30 transition-all disabled:opacity-30 active:scale-95 duration-300"
               >
-                {submitting ? "Đang nạp..." : editingPosition ? "Cập nhật vị trí" : "Xác nhận tạo mới"}
+                {submitting ? "Đang nộp..." : editingPosition ? "Cập nhật vị trí" : "Xác nhận tạo mới"}
               </button>
             </div>
           </form>

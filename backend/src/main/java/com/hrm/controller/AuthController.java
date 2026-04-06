@@ -127,12 +127,6 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
-    @PostMapping("/logout")
-    @Operation(summary = "Đăng xuất", description = "Xóa HttpOnly cookies phía server")
-    public ResponseEntity<Map<String, String>> logout(HttpServletResponse response) {
-        CookieUtil.clearAuthCookies(response);
-        return ResponseEntity.ok(Map.of("message", "Đăng xuất thành công"));
-    }
 
     @PostMapping("/change-password")
     @PreAuthorize("isAuthenticated()")

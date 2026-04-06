@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { chatApi } from '@/lib/api';
 import { getSession } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 type UiMessage = {
   id: string;
@@ -88,8 +89,8 @@ function ChatBubbleIcon() {
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [fullScreen, setFullScreen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const [text, setText] = useState('');
   const [hasUnread, setHasUnread] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('chat');
@@ -334,41 +335,35 @@ export default function ChatWidget() {
     }
   }
 
-  return (
-    <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-end gap-2">
-      {open && (
-        <div
-          className={`mb-1 rounded-2xl border border-slate-200/80 dark:border-white/15 bg-white/92 dark:bg-slate-900/92 text-slate-900 dark:text-slate-100 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col ${
-            fullScreen
-              ? 'w-[min(1040px,calc(100vw-24px))] h-[min(88vh,780px)]'
-              : 'w-[430px] max-w-[calc(100vw-18px)] h-[78vh] max-h-[640px] min-h-[500px]'
-          }`}
-        >
-          <div className="px-4 py-3 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-r from-violet-100/60 via-indigo-100/40 to-transparent dark:from-violet-900/35 dark:via-indigo-900/20 dark:to-transparent flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold tracking-wide">Trợ lý HRM AI</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">Hỗ trợ lương, công, phép, OT, chính sách</p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setFullScreen((v) => !v)}
-                className="text-xs px-2.5 py-1 rounded-md bg-slate-200/70 hover:bg-slate-300/80 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
-              >
-                {fullScreen ? 'Thu nhỏ' : 'Mở lớn'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  setFullScreen(false);
-                }}
-                className="text-xs px-2.5 py-1 rounded-md bg-slate-200/70 hover:bg-slate-300/80 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
+  const chatWindow = (
+    <div
+      className="mb-1 w-[430px] max-w-[calc(100vw-18px)] h-[78vh] max-h-[640px] min-h-[500px] rounded-2xl border border-slate-200/80 dark:border-white/15 bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl backdrop-blur-2xl overflow-hidden flex flex-col transition-all duration-300"
+    >
+      <div className="px-4 py-3 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-r from-violet-100/60 via-indigo-100/40 to-transparent dark:from-violet-900/35 dark:via-indigo-900/20 dark:to-transparent flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold tracking-wide">Trợ lý HRM AI</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300">Hỗ trợ nhanh lương, công, phép</p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              router.push('/chat');
+            }}
+            className="text-xs px-2.5 py-1 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 transition-all font-bold shadow-glow-sm shadow-indigo-500/20"
+          >
+            Mở rộng
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="text-xs px-2.5 py-1 rounded-md bg-slate-200/70 hover:bg-slate-300/80 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
 
           <div className="px-3 pt-2 pb-1 border-b border-slate-200/70 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/70">
             <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-200/80 dark:bg-white/10 p-1">
@@ -507,59 +502,62 @@ export default function ChatWidget() {
             </div>
           )}
         </div>
-      )}
+      );
 
-      {open && pendingDeleteSessionId && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-900/45 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 dark:border-white/15 bg-white dark:bg-slate-900 shadow-2xl p-4">
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Xác nhận xóa đoạn chat</p>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              Bạn có chắc muốn xóa đoạn chat này không? Thao tác này không thể hoàn tác.
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setPendingDeleteSessionId(null)}
-                className="px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteSession}
-                className="px-3 py-1.5 rounded-lg text-sm bg-rose-600 text-white hover:bg-rose-700"
-              >
-                Xóa
-              </button>
+  return (
+    <>
+      <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-end gap-2">
+        {open && chatWindow}
+
+        {open && pendingDeleteSessionId && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-900/45 px-4">
+            <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 dark:border-white/15 bg-white dark:bg-slate-900 shadow-2xl p-4">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Xác nhận xóa đoạn chat</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                Bạn có chắc muốn xóa đoạn chat này không? Thao tác này không thể hoàn tác.
+              </p>
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPendingDeleteSessionId(null)}
+                  className="px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteSession}
+                  className="px-3 py-1.5 rounded-lg text-sm bg-rose-600 text-white hover:bg-rose-700"
+                >
+                  Xóa
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={() => {
-          setOpen((v) => !v);
-          setActiveTab('chat');
-          if (open) {
-            setFullScreen(false);
-          }
-        }}
-        className="group relative h-14 w-14 rounded-full bg-gradient-to-br from-violet-500 via-indigo-500 to-blue-500 text-white shadow-xl transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-        aria-label="Mở chatbot"
-      >
-        <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-        <span className="relative z-10 flex items-center justify-center">
-          <ChatBubbleIcon />
-        </span>
-
-        {hasUnread && (
-          <span className="absolute -top-0.5 -right-0.5 z-20 flex h-3.5 w-3.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
-            <span className="relative inline-flex h-3.5 w-3.5 rounded-full border border-white/80 bg-rose-500" />
-          </span>
         )}
-      </button>
-    </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setOpen((v) => !v);
+            setActiveTab('chat');
+          }}
+          className="group relative h-14 w-14 rounded-full bg-gradient-to-br from-violet-500 via-indigo-500 to-blue-500 text-white shadow-xl transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          aria-label="Mở chatbot"
+        >
+          <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+          <span className="relative z-10 flex items-center justify-center">
+            <ChatBubbleIcon />
+          </span>
+
+          {hasUnread && (
+            <span className="absolute -top-0.5 -right-0.5 z-20 flex h-3.5 w-3.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex h-3.5 w-3.5 rounded-full border border-white/80 bg-rose-500" />
+            </span>
+          )}
+        </button>
+      </div>
+    </>
   );
 }

@@ -6,6 +6,8 @@ import api from "@/lib/api";
 import DraggableModal from "@/components/DraggableModal";
 import { Department } from "@/types";
 
+import { Pencil, Trash2 } from "lucide-react";
+
 function getErrorMessage(err: unknown, fallback: string): string {
   if (!axios.isAxiosError(err)) return fallback;
   const data = err.response?.data;
@@ -116,10 +118,10 @@ export default function DepartmentTable() {
       ) : (
         <div className="overflow-x-auto rounded-[32px] border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl mx-2 lg:mx-6 overflow-hidden">
           <table className="min-w-full divide-y divide-black/5 dark:divide-white/5">
-            <thead className="bg-black/[0.03] dark:bg-black/40">
-              <tr className="text-[11px] uppercase text-slate-500/60 dark:text-white/50 tracking-[0.2em] border-b border-black/5 dark:border-white/10">
-                <th className="px-8 py-6 font-black">Mã & Tên phòng ban</th>
-                <th className="px-8 py-6 font-black text-right">Quản lý thao tác</th>
+            <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+              <tr>
+                <th className="px-8 py-6 rounded-tl-3xl text-left whitespace-nowrap">MÃ & TÊN PHÒNG BAN</th>
+                <th className="px-8 py-6 text-right pr-10 rounded-tr-3xl whitespace-nowrap">QUẢN LÝ THAO TÁC</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -129,8 +131,8 @@ export default function DepartmentTable() {
                 </tr>
               ) : (
                 departments.map((department) => (
-                  <tr key={department.id} className="hover:bg-black/[0.02] dark:hover:bg-white/5 transition-all duration-300 group">
-                    <td className="px-8 py-6">
+                  <tr key={department.id} className="group hover:bg-indigo-500/[0.05] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300">
+                    <td className="px-8 py-3.5">
                        <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-white/5 flex items-center justify-center text-indigo-600 dark:text-white text-xs font-black ring-1 ring-indigo-500/20">
                              {department.name.substring(0,2).toUpperCase()}
@@ -138,18 +140,20 @@ export default function DepartmentTable() {
                           <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{department.name}</span>
                        </div>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
+                    <td className="px-8 py-3.5 text-right space-x-2">
                        <button 
                          onClick={() => openEditModal(department)} 
-                         className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 hover:bg-blue-500 hover:text-white transition-all active:scale-95"
+                         className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-lg transition-all active:scale-95"
+                         title="Sửa phòng ban"
                        >
-                         Sửa
+                         <Pencil className="w-5 h-5" />
                        </button>
                        <button 
                          onClick={() => openDeleteModal(department)} 
-                         className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400 border border-rose-500/10 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
+                         className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 shadow-lg transition-all active:scale-95"
+                         title="Xóa phòng ban"
                        >
-                         Xóa
+                         <Trash2 className="w-5 h-5" />
                        </button>
                     </td>
                   </tr>

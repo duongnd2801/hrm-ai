@@ -170,72 +170,70 @@ export default function PayrollPage() {
            {canManage ? `Bảng lương tổng hợp ${formatMonth(month, year)}` : 'Lịch sử thu nhập cá nhân'}
         </h2>
 
-        <div className={`overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 transition-all duration-300 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'} min-h-[400px]`}>
+        <div className={`overflow-x-auto transition-all duration-300 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'} min-h-[400px]`}>
           {!payrolls.length && !loading ? (
             <div className="p-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest italic">
                Không có dữ liệu lương trong giai đoạn này.
             </div>
           ) : (
             <>
-              <table className="min-w-[1200px] w-full text-left text-sm relative">
-                <thead className="text-[10px] uppercase text-slate-500 dark:text-white/30 tracking-widest border-b border-black/5 dark:border-white/5 bg-white/5 backdrop-blur-sm sticky top-0 z-10">
+              <table className="w-full text-left text-base relative">
+                <thead className="text-sm uppercase tracking-[0.15em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
                   <tr>
-                    <th className="px-5 py-5 font-black">Thời điểm</th>
-                    <th className="px-5 py-5 font-black">Nhân viên</th>
-                    <th className="px-5 py-5 font-black">Lương CB</th>
-                    <th className="px-5 py-5 font-black">Công thực</th>
-                    <th className="px-5 py-5 font-black">OT</th>
-                    <th className="px-5 py-5 font-black">Tổng thu nhập</th>
-                    <th className="px-5 py-5 font-black">Bảo hiểm</th>
-                    <th className="px-5 py-5 font-black">Thuế TNCN</th>
-                    <th className="px-5 py-5 font-black text-emerald-400">Thực nhận</th>
-                    <th className="px-5 py-5 font-black text-center">Phiếu lương</th>
+                    <th className="px-2 py-3 rounded-tl-2xl whitespace-nowrap">THỜI ĐIỂM</th>
+                    <th className="px-2 py-3 whitespace-nowrap">NHÂN VIÊN</th>
+                    <th className="px-2 py-3 whitespace-nowrap">LƯƠNG CB</th>
+                    <th className="px-2 py-3 whitespace-nowrap">CÔNG THỰC</th>
+                    <th className="px-2 py-3 whitespace-nowrap">OT</th>
+                    <th className="px-2 py-3 whitespace-nowrap">TỔNG THU NHẬP</th>
+                    <th className="px-2 py-3 whitespace-nowrap">BẢO HIỂM</th>
+                    <th className="px-2 py-3 whitespace-nowrap text-rose-500">THUẾ TNCN</th>
+                    <th className="px-2 py-3 font-black text-emerald-600 whitespace-nowrap">THỰC NHẬN</th>
+                    <th className="px-2 py-3 text-center rounded-tr-2xl whitespace-nowrap">PHIẾU</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 relative">
                   {loading && payrolls.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-5 py-20 text-center text-slate-400 font-bold uppercase tracking-widest">Đang chuẩn bị dữ liệu...</td>
+                      <td colSpan={10} className="px-2 py-16 text-center text-slate-400 font-bold uppercase tracking-widest">Đang chuẩn bị dữ liệu...</td>
                     </tr>
                   ) : (
                     payrolls.map((p) => (
                       <tr key={p.id} className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all group animate-in slide-in-from-left-2 duration-300">
-                        <td className="px-5 py-5 font-black text-slate-500/50 dark:text-white/50">{formatMonth(p.month, p.year)}</td>
-                        <td className="px-5 py-5 font-bold text-slate-900 dark:text-white uppercase tracking-tight">{p.employeeName}</td>
-                        <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{formatVND(p.baseSalary)}</td>
-                        <td className="px-5 py-5 text-slate-500/60 dark:text-white/60">{p.actualDays}/{p.standardDays}</td>
-                        <td className="px-5 py-5 text-indigo-700 dark:text-indigo-400 font-bold">+{formatVND(p.otAmount)}</td>
-                        <td className="px-5 py-5 font-black text-slate-900 dark:text-white">{formatVND(p.grossSalary)}</td>
-                        <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND((p.bhxh||0)+(p.bhyt||0)+(p.bhtn||0))}</td>
-                        <td className="px-5 py-5 text-rose-600 font-bold">-{formatVND(p.incomeTax)}</td>
-                        <td className="px-5 py-5">
-                          <span className="text-xl font-black text-emerald-400 tracking-tighter">{formatVND(p.netSalary)}</span>
+                        <td className="px-2 py-3 font-bold text-slate-500/60 dark:text-white/50 text-sm">{formatMonth(p.month, p.year)}</td>
+                        <td className="px-2 py-3 font-bold text-slate-900 dark:text-white text-sm uppercase">{p.employeeName}</td>
+                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm">{formatVND(p.baseSalary)}</td>
+                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm">{p.actualDays}/{p.standardDays}</td>
+                        <td className="px-2 py-3 text-indigo-700 dark:text-indigo-400 font-bold text-sm">+{formatVND(p.otAmount)}</td>
+                        <td className="px-2 py-3 font-black text-slate-900 dark:text-white text-sm">{formatVND(p.grossSalary)}</td>
+                        <td className="px-2 py-3 text-rose-600 font-bold text-sm">-{formatVND((p.bhxh||0)+(p.bhyt||0)+(p.bhtn||0))}</td>
+                        <td className="px-2 py-3 text-rose-600 font-bold text-sm">-{formatVND(p.incomeTax)}</td>
+                        <td className="px-2 py-3">
+                          <span className="text-sm font-black text-emerald-400 tracking-tight">{formatVND(p.netSalary)}</span>
                         </td>
-                        <td className="px-5 py-5">
-                          <div className="flex items-center gap-2 justify-center">
+                        <td className="px-2 py-3">
+                          <div className="flex items-center gap-1 justify-center">
                             <button
                               onClick={() => handleDownloadStatement(p, 'pdf')}
                               disabled={downloading === `${p.id}-pdf`}
                               title="Tải PDF"
-                              className="relative px-3 py-2 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
+                              className="relative px-2 py-1.5 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-md font-bold text-[9px] tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-0.5 group"
                             >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm3.5 14.5h-1v-3h1v3zm-4-3h1v3h-1v-3zm-4 3h1v-3h-1v3z"/>
                               </svg>
                               <span>PDF</span>
-                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-lg transition-opacity" />
                             </button>
                             <button
                               onClick={() => handleDownloadStatement(p, 'excel')}
                               disabled={downloading === `${p.id}-excel`}
                               title="Tải Excel"
-                              className="relative px-3 py-2 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-lg font-bold text-xs tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-1 group"
+                              className="relative px-2 py-1.5 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-md font-bold text-[9px] tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-0.5 group"
                             >
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
                               </svg>
                               <span>XLS</span>
-                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-lg transition-opacity" />
                             </button>
                           </div>
                         </td>

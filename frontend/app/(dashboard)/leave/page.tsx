@@ -61,7 +61,7 @@ export default function LeavePage() {
         return data.message;
       }
     }
-    return fallback;
+    fallback;
   };
 
   const loadData = useCallback(async () => {
@@ -129,7 +129,7 @@ export default function LeavePage() {
       {/* Hero Header */}
       <div className="pt-10 mb-2 flex flex-col md:flex-row md:items-end justify-between gap-6">
          <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]">
+            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
               Nghỉ phép<br/>& Công tác
             </h1>
             <div className="flex items-center gap-4 mt-6 ml-2">
@@ -141,7 +141,7 @@ export default function LeavePage() {
          {isAdminOrHR && (
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl"
             >
               {showForm ? 'Hủy' : 'Đăng ký nghỉ cá nhân'}
             </button>
@@ -208,7 +208,7 @@ export default function LeavePage() {
                      <button
                        onClick={() => void submit()}
                        disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-200 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[26px] transition-all"
+                       className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-200 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-xl"
                      >
                        {loading ? '...' : 'GỬI ĐƠN XÉT DUYỆT'}
                      </button>
@@ -223,7 +223,6 @@ export default function LeavePage() {
                         <div key={item.id} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 flex justify-between items-center group hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all">
                            <div className="text-left w-3/5">
                               <p className="text-slate-900 dark:text-white font-bold text-[11px] truncate uppercase">{leaveTypeOptions.find(t=>t.value===item.type)?.label}</p>
-                              <p className="text-[10px] text-slate-500 dark:text-white/30 font-black tracking-widest mt-0.5 uppercase">{formatDate(item.startDate)}</p>
                            </div>
                            <StatusBadge status={item.status} />
                         </div>
@@ -261,35 +260,34 @@ export default function LeavePage() {
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-x-auto">
+                  <div className="flex-1 overflow-x-auto text-slate-900 dark:text-white">
                      <table className="w-full border-collapse">
-                        <thead>
-                           <tr className="border-b border-black/5 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.02]">
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/4">Nhân viên</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Loại hình</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Thời gian</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Lý do / Trạng thái</th>
-                              {activeTab === 'pending' && <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Hành động</th>}
+                        <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+                           <tr>
+                              <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">LOẠI HÌNH</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">THỜI GIAN</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">TRẠNG THÁI</th>
+                              {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">HÀNH ĐỘNG</th>}
                            </tr>
                         </thead>
-                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                        <tbody className="divide-y divide-black/5 dark:divide-white/5 bg-white/5">
                            {!currentDisplayItems.length && (
                               <tr>
-                                 <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold text-slate-900 dark:text-white">
-                                    Không có dữ liệu hiển thị trong mục này.
+                                 <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold">
+                                    Không có dữ liệu hiển thị.
                                  </td>
                               </tr>
                            )}
                            {currentDisplayItems.map(item => (
-                              <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
+                              <tr key={item.id} className="group hover:bg-white/10 transition-colors">
                                  <td className="px-8 py-6">
                                     <div className="flex items-center gap-4">
                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-800 flex items-center justify-center text-white font-black text-sm uppercase">
                                           {item.employeeName?.charAt(0) || '?'}
                                        </div>
                                        <div>
-                                          <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                                          <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
+                                          <p className="font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
                                        </div>
                                     </div>
                                  </td>
@@ -300,33 +298,31 @@ export default function LeavePage() {
                                  </td>
                                  <td className="px-8 py-6">
                                     <div className="space-y-1">
-                                       <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.startDate)}</p>
+                                       <p className="font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.startDate)}</p>
                                        <p className="text-[9px] text-slate-400 dark:text-white/20 font-black uppercase tracking-[0.1em]">Đến {formatDate(item.endDate)}</p>
                                     </div>
                                  </td>
                                  <td className="px-8 py-6">
                                     {activeTab === 'pending' ? (
-                                       <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs">{item.reason || '...'}</p>
+                                       <p className="text-[10px] italic font-medium line-clamp-1 max-w-[150px] uppercase opacity-50">&quot;{item.reason || '...'}&quot;</p>
                                     ) : (
                                        <StatusBadge status={item.status} />
                                     )}
                                  </td>
                                  {activeTab === 'pending' && (
                                     <td className="px-8 py-6 text-right">
-                                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <div className="flex items-center justify-end gap-3 transition-all shrink-0">
                                           <button 
-                                            onClick={() => void review(item.id, true)}
-                                            className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
-                                            title="Phê duyệt"
+                                             onClick={() => void review(item.id, true)}
+                                             className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
                                           >
                                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                                           </button>
                                           <button 
-                                            onClick={() => void review(item.id, false)}
-                                            className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all"
-                                            title="Từ chối"
+                                             onClick={() => void review(item.id, false)}
+                                             className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all font-black text-xs"
                                           >
-                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                             ✕
                                           </button>
                                        </div>
                                     </td>
@@ -360,6 +356,6 @@ export default function LeavePage() {
             )}
          </div>
       </div>
-    </div>
+   </div>
   );
 }

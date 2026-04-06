@@ -81,11 +81,21 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   });
 
   async function handleLogout() {
-    await logout();
+    try {
+      // Must wait for server to send Set-Cookie (Max-Age=0) headers
+      await api.post('/api/auth/logout');
+    } catch (e) {
+      console.error('Logout API failed', e);
+    } finally {
+      // Always clear local data and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login';
+    }
   }
 
   return (
-    <header className="h-20 md:h-24 shrink-0 px-4 md:px-8 flex items-center justify-between relative z-20">
+    <header className="h-20 md:h-24 shrink-0 px-4 md:px-8 flex items-center justify-between relative z-[9999]">
       <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
          <button 
            onClick={onToggleSidebar}
@@ -162,7 +172,17 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
             </button>
             <button 
               title="Đăng xuất"
-              onClick={handleLogout}
+              onClick={async () => {
+                try {
+                  await api.post('/api/auth/logout');
+                } catch (e) {
+                  // silent fail
+                } finally {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  window.location.assign('/login');
+                }
+              }}
               className="p-2.5 md:p-3.5 text-slate-400 dark:text-white/30 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-xl md:rounded-2xl transition-all"
             >
                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>

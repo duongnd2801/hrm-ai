@@ -57,6 +57,7 @@ export interface Employee {
   positionName?: string;
   managerId?: string;
   managerName?: string;
+  role?: RoleType;
   baseSalary?: number | null;
   taxDependents?: number | null;
 }
@@ -190,4 +191,34 @@ export interface ChatHistoryItem {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+}
+
+export type ProjectStatus = 'ACTIVE' | 'OVERDUE' | 'COMPLETED' | 'ON_HOLD';
+export type ProjectType = 'PRODUCT_DEVELOPMENT' | 'OUTSOURCING' | 'INTERNAL' | 'MAINTENANCE';
+export type ProjectRole = 'PM' | 'DEV' | 'QA' | 'TESTER' | 'BA' | 'DESIGNER' | 'COMTER' | 'GUEST';
+
+export interface Project {
+  id: string;
+  name: string;
+  code: string;
+  color?: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  status: ProjectStatus;
+  type: ProjectType;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  employeeId: string;
+  employeeName?: string;
+  employeeEmail?: string;
+  employeeAvatar?: string;
+  role: ProjectRole;
+  joinedAt?: string;
+  leftAt?: string;
 }

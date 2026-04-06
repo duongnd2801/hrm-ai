@@ -124,9 +124,9 @@ public class EmployeeService {
         }
         
         // Update user email if changed
-        if (!emp.getEmail().equals(dto.getEmail())) {
-            User user = emp.getUser();
-            if (user != null) {
+        User user = emp.getUser();
+        if (user != null) {
+            if (!emp.getEmail().equals(dto.getEmail())) {
                 user.setEmail(dto.getEmail());
                 userRepository.save(user);
             }
@@ -161,7 +161,10 @@ public class EmployeeService {
     private EmployeeDTO mapToDTO(Employee emp) {
         EmployeeDTO dto = new EmployeeDTO();
         BeanUtils.copyProperties(emp, dto);
-        if (emp.getUser() != null) dto.setUserId(emp.getUser().getId());
+        if (emp.getUser() != null) {
+            dto.setUserId(emp.getUser().getId());
+            dto.setRole(emp.getUser().getRole());
+        }
         if (emp.getDepartment() != null) {
             dto.setDepartmentId(emp.getDepartment().getId());
             dto.setDepartmentName(emp.getDepartment().getName());

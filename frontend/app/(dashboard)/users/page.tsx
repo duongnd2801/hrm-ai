@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import DraggableModal from '@/components/DraggableModal';
 import Toast, { ToastState } from '@/components/Toast';
+import { Key, ShieldCheck, User as UserIcon, RefreshCcw, Trash2, Search, MoreHorizontal, UserCog, ChevronLeft, ChevronRight, Eye, Calendar, Mail, Tag } from 'lucide-react';
 
 interface User {
   id: string;
@@ -26,6 +27,7 @@ export default function UserManagementPage() {
   const [searchEmail, setSearchEmail] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [newRole, setNewRole] = useState<User['role']>('EMPLOYEE');
   const [actionType, setActionType] = useState<ActionType>(null);
   const [targetUser, setTargetUser] = useState<User | null>(null);
@@ -67,7 +69,7 @@ export default function UserManagementPage() {
       setUsers(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, 'Kh�ng th? t?i danh s�ch t�i kho?n.'));
+      pushToast('error', getErrorMessage(err, 'Không thể tải danh sách tài khoản.'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export default function UserManagementPage() {
       setTotalPages(response.data.totalPages || 0);
       setPage(0);
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, 'T�m ki?m th?t b?i.'));
+      pushToast('error', getErrorMessage(err, 'Tìm kiếm thất bại.'));
     } finally {
       setLoading(false);
     }
@@ -114,7 +116,7 @@ export default function UserManagementPage() {
       await fetchUsers();
       await fetchStats();
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, 'Kh�ng th? c?p nh?t quy?n.'));
+      pushToast('error', getErrorMessage(err, 'Không thể cập nhật quyền.'));
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +148,7 @@ export default function UserManagementPage() {
       await fetchUsers();
       await fetchStats();
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, 'Thao t�c th?t b?i.'));
+      pushToast('error', getErrorMessage(err, 'Thao tác thất bại.'));
     } finally {
       setSubmitting(false);
     }
@@ -154,10 +156,10 @@ export default function UserManagementPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20';
-      case 'HR': return 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20';
-      case 'MANAGER': return 'bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20';
-      default: return 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20';
+      case 'ADMIN': return 'bg-rose-500 text-white shadow-rose-500/20';
+      case 'HR': return 'bg-sky-500 text-white shadow-sky-500/20';
+      case 'MANAGER': return 'bg-violet-500 text-white shadow-violet-500/20';
+      default: return 'bg-slate-400 text-white shadow-slate-500/20';
     }
   };
 
@@ -175,16 +177,15 @@ export default function UserManagementPage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 3);
   };
 
-
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-20">
       <Toast toast={toast} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
 
       {/* Main Title Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
         <div>
-          <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>QUẢN LÝ USER</h1>
-          <p className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>QUẢN TRỊ TÀI KHOẢN & PHÂN QUYỀN</p>
+          <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Quản lý TK</h1>
+          <p className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Hệ thống định danh & Phân quyền truy cập</p>
         </div>
       </div>
 
@@ -192,108 +193,107 @@ export default function UserManagementPage() {
       <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-none">
          <StatCard icon="🔑" label="Quyền Quản trị" value={globalStats.admins} desc="Admin & HR" color="rose" />
          <StatCard icon="👔" label="Quản lý" value={globalStats.managers} desc="Team Managers" color="violet" />
-         <StatCard icon="👤" label="Nhân viên" value={globalStats.employees} desc="Standard accounts" color="emerald" />
+         <StatCard icon="👤" label="Nhân viên" value={globalStats.employees} desc="Accounts" color="emerald" />
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+      <div className="bg-white/60 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] p-12 border border-black/5 dark:border-white/10 shadow-3xl overflow-hidden relative group">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-rose-500/5 opacity-100 transition-opacity duration-700 pointer-events-none" />
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-8 relative z-10">
            <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest px-1 text-center md:text-left">Danh sách tài khoản hệ thống</h2>
-              <p className="text-xs font-medium text-slate-500 dark:text-white/40 mt-1 px-1">Tìm thấy {users.length} tài khoản trong trang này</p>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-wider px-1">Danh mục định danh</h2>
+              <p className="text-[10px] font-black text-indigo-400 tracking-[0.2em] mt-2 ml-1 uppercase leading-none italic">Tổng quan hệ sinh thái tài khoản hệ thống</p>
            </div>
            
-           <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="relative group w-full sm:w-80">
-                 <input 
-                    type="text" 
-                    placeholder="Tìm email..." 
-                    value={searchEmail} 
-                    onChange={(e) => setSearchEmail(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3 px-6 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-900/10 dark:focus:bg-white/10 transition-all shadow-inner" 
-                 />
-                 <svg onClick={handleSearch} className="absolute right-4 top-3 w-5 h-5 text-slate-400 dark:text-white/20 cursor-pointer hover:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+           <div className="flex items-center gap-4">
+              <div className="relative group">
+                <input 
+                  type="text" 
+                  placeholder="Tra cứu email..." 
+                  value={searchEmail} 
+                  onChange={(e) => setSearchEmail(e.target.value)} 
+                  className="bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3.5 px-8 text-[11px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white dark:focus:bg-white/10 transition-all w-72 shadow-inner font-bold uppercase tracking-widest" 
+                />
+                <Search className="absolute right-6 top-4 w-4 h-4 text-slate-400 dark:text-white/20 cursor-pointer hover:text-indigo-500" />
               </div>
-              <button 
-                onClick={() => { setSearchEmail(''); setPage(0); fetchUsers(); }}
-                className="p-3 bg-white/50 dark:bg-white/5 text-slate-500 dark:text-white/30 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-2xl transition-all border border-black/5 dark:border-white/5 active:scale-95"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              </button>
            </div>
         </div>
 
-        <div className="overflow-x-auto rounded-3xl border border-black/5 dark:border-white/10">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-slate-100/50 dark:bg-white/5 text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-white/40">
-                <th className="px-8 py-5 text-left font-black">Người dùng</th>
-                <th className="px-6 py-5 text-left font-black">Email & ID</th>
-                <th className="px-6 py-5 text-left font-black">Quyền hạn</th>
-                <th className="px-6 py-5 text-left font-black">Ngày tạo</th>
-                <th className="px-8 py-5 text-right font-black">Thao tác</th>
+        <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 pb-6 bg-transparent border-none relative z-10">
+          <table className="min-w-[1000px] w-full text-left border-separate border-spacing-0">
+            <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+              <tr>
+                <th className="px-8 py-6 rounded-tl-3xl">TÀI KHOẢN</th>
+                <th className="px-8 py-6">EMAIL ĐĂNG NHẬP</th>
+                <th className="px-8 py-6 text-center">VAI TRÒ / QUYỀN</th>
+                <th className="px-8 py-6 text-center">NGÀY KHỞI TẠO</th>
+                <th className="px-8 py-6 text-right pr-10 rounded-tr-3xl">TÁC VỤ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/5 dark:divide-white/5 bg-transparent">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest animate-pulse">Đang tải dữ liệu...</td>
-                </tr>
+                <tr><td colSpan={5} className="py-32 text-center text-slate-400 dark:text-white/15 font-black uppercase tracking-[0.5em] text-xl animate-pulse">ĐANG TẢI DỮ LIỆU...</td></tr>
               ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-20 text-center text-slate-400 dark:text-white/20 font-black uppercase tracking-widest italic">Không tìm thấy tài khoản nào</td>
-                </tr>
+                <tr><td colSpan={5} className="py-32 text-center text-slate-400 dark:text-white/15 font-black uppercase tracking-[0.5em] text-xl italic">KHÔNG TÌM THẤY TÀI KHOẢN</td></tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="group hover:bg-slate-900/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl ${getAvatarColor(user.fullName || user.email)} flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/50 dark:ring-white/5`}>
+                  <tr key={user.id} className="group hover:bg-slate-900/[0.04] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300">
+                    <td className="px-8 py-3.5">
+                      <div className="flex items-center gap-5">
+                        <div className={`w-12 h-12 rounded-xl ${getAvatarColor(user.fullName || user.email)} flex items-center justify-center text-white font-black text-lg shadow-xl ring-2 ring-white/10 group-hover:rotate-6 transition-all duration-500`}>
                           {getInitials(user.fullName || user.email)}
                         </div>
-                        <div>
-                          <p className="font-black text-slate-900 dark:text-white text-base leading-tight uppercase tracking-tight">{user.fullName || 'Chưa cập nhật tên'}</p>
-                          <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mt-1">ID: {user.id.substring(0, 8).toUpperCase()}</p>
+                        <div className="relative group/name">
+                          <p onClick={() => { setSelectedUser(user); setNewRole(user.role); setShowDetailModal(true); }} className="font-black text-slate-900 dark:text-white text-[17px] leading-tight uppercase tracking-wider truncate cursor-pointer hover:text-indigo-500 transition-colors">{user.fullName || 'Chưa cập nhật tên'}</p>
+                          <p className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.2em] mt-1 opacity-60">ID: {user.id.substring(0, 8).toUpperCase()}</p>
+                          
+                          {/* Hover Info Card - Right Side Fixed */}
+                          <div className="fixed z-[9999] p-7 w-72 bg-white dark:bg-slate-950 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/15 opacity-0 invisible group-hover/name:opacity-100 group-hover/name:visible transition-all duration-300 pointer-events-none transform translate-x-10 -translate-y-1/2 mt-0 ml-10">
+                            <div className="space-y-4">
+                               <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                                  <Mail className="w-5 h-5 text-indigo-500" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/80 truncate">{user.email}</span>
+                               </div>
+                               <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                                  <ShieldCheck className="w-5 h-5 text-rose-500" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/80">Quyền: {user.role}</span>
+                               </div>
+                               <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                                  <Calendar className="w-5 h-5 text-emerald-500" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/80">Ngày tạo: {new Date(user.createdAt).toLocaleDateString('vi-VN')}</span>
+                               </div>
+                            </div>
+                            <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-slate-950 rotate-45 border-l border-b border-black/5 dark:border-white/15" />
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-6">
-                      <p className="font-bold text-slate-600 dark:text-white/70">{user.email}</p>
-                      <p className="text-[10px] font-medium text-slate-400 dark:text-white/20 mt-1 italic">Tài khoản nhân viên</p>
-                    </td>
-                    <td className="px-6 py-6">
-                      <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest border ${getRoleColor(user.role)}`}>
+                    <td className="px-8 py-3.5 text-[11px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest italic">{user.email}</td>
+                    <td className="px-8 py-3.5 text-center">
+                      <span className={`inline-flex px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg ${getRoleColor(user.role)}`}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-6">
-                      <p className="font-bold text-slate-700 dark:text-white/60">{new Date(user.createdAt).toLocaleDateString('vi-VN')}</p>
-                      <p className="text-[10px] font-medium text-slate-400 dark:text-white/20 mt-1 tracking-wider uppercase">{new Date(user.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <td className="px-8 py-3.5 text-center">
+                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{new Date(user.createdAt).toLocaleDateString('vi-VN')}</p>
+                      <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-1 opacity-60 tracking-widest">{new Date(user.createdAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</p>
                     </td>
-                    <td className="px-8 py-6 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-8 py-3.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-3">
                         <button 
-                          onClick={() => openRoleModal(user)}
-                          title="Đổi quyền"
-                          className="p-3 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-2xl transition-all border border-indigo-500/20 active:scale-95"
+                          onClick={() => { setSelectedUser(user); setNewRole(user.role); setShowDetailModal(true); }} 
+                          className="w-10 h-10 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-xl transition-all active:scale-95 group/btn"
+                          title="Quản lý tài khoản"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                          <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" strokeWidth={2.5} />
                         </button>
-                        <button 
-                          onClick={() => openActionConfirm('reset', user)}
-                          title="Reset mật khẩu"
-                          className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white rounded-2xl transition-all border border-amber-500/20 active:scale-95"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>
+                        <button onClick={() => openActionConfirm('reset', user)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-500 hover:bg-amber-500 hover:text-white transition-all border border-amber-500/20 shadow-lg active:scale-90" title="Reset mật khẩu">
+                          <RefreshCcw className="w-5 h-5" />
                         </button>
                         {user.role !== 'ADMIN' && (
-                          <button 
-                            onClick={() => openActionConfirm('delete', user)}
-                            title="Xóa tài khoản"
-                            className="p-3 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white rounded-2xl transition-all border border-rose-500/20 active:scale-95"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                          <button onClick={() => openActionConfirm('delete', user)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 shadow-lg active:scale-90" title="Xóa tài khoản">
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         )}
                       </div>
@@ -305,91 +305,126 @@ export default function UserManagementPage() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Pagination - Premium */}
         {totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-between">
-            <p className="text-xs font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">Trang {page + 1} / {totalPages}</p>
-            <div className="flex gap-2">
+          <div className="mt-12 pt-10 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
+            <div className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">
+               Trang <span className="text-slate-900 dark:text-white ml-2">{page + 1} / {totalPages}</span>
+            </div>
+            <div className="flex gap-4">
               <button 
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-6 py-2.5 bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/40 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 disabled:opacity-30 transition-all disabled:pointer-events-none active:scale-95"
+                className="px-8 py-3 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 disabled:opacity-20 transition-all flex items-center gap-2"
               >
-                Trước
+                <ChevronLeft className="w-4 h-4" /> TRƯỚC
               </button>
               <button 
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-6 py-2.5 bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/40 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 disabled:opacity-30 transition-all disabled:pointer-events-none active:scale-95"
+                className="px-8 py-3 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 disabled:opacity-20 transition-all flex items-center gap-2"
               >
-                Sau
+                SAU <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Modals */}
-      {showRoleModal && selectedUser && (
-        <DraggableModal title="Đổi quyền tài khoản" onClose={closeRoleModal} widthClassName="max-w-lg">
-          <div className="space-y-6 pt-4">
-            <div className="flex items-center gap-4 bg-slate-900/5 dark:bg-white/5 p-4 rounded-3xl border border-black/5 dark:border-white/5">
-                <div className={`w-14 h-14 rounded-2xl ${getAvatarColor(selectedUser.fullName || selectedUser.email)} flex items-center justify-center text-white font-black text-xl shadow-xl`}>
-                  {getInitials(selectedUser.fullName || selectedUser.email)}
-                </div>
-                <div>
-                   <p className="text-xs font-black text-slate-500 dark:text-white/40 uppercase tracking-widest">Tài khoản</p>
-                   <p className="text-lg font-black text-slate-900 dark:text-white leading-tight mt-1">{selectedUser.fullName || selectedUser.email}</p>
-                </div>
+      {/* Modals - Standard consistency */}
+      {/* Minimalist User Detail Modal */}
+      {showDetailModal && selectedUser && (
+        <DraggableModal title="Phân quyền tài khoản" onClose={() => setShowDetailModal(false)} widthClassName="max-w-md">
+          <div className="p-10 space-y-10">
+            {/* Minimal Header */}
+            <div className="flex items-center gap-6">
+              <div className={`w-20 h-20 rounded-[28px] ${getAvatarColor(selectedUser.fullName || selectedUser.email)} flex items-center justify-center text-white font-black text-3xl shadow-xl shrink-0 ring-4 ring-black/5 dark:ring-white/5`}>
+                {getInitials(selectedUser.fullName || selectedUser.email)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase truncate tracking-tight">{selectedUser.fullName || 'N/A'}</h3>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] truncate mt-1 italic">{selectedUser.email}</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40 mb-3 px-1">Chọn quyền hạn mới</label>
-              <select
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value)}
-                className="w-full rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/10 px-5 py-4 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-indigo-500/15 transition-all appearance-none"
-                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236366f1\' stroke-width=\'3\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19.5 8.25l-7.5 7.5-7.5-7.5\' /%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.25rem center', backgroundSize: '1rem' }}
-              >
-                <option value="ADMIN">ADMIN (Quản trị tối cao)</option>
-                <option value="HR">HR (Quản lý nhân sự)</option>
-                <option value="MANAGER">MANAGER (Quản lý đội nhóm)</option>
-                <option value="EMPLOYEE">EMPLOYEE (Nhân viên)</option>
-              </select>
+
+            {/* Premium Role Selector */}
+            <div className="space-y-6">
+               <div className="grid grid-cols-2 gap-3">
+                  {(['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'] as const).map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setNewRole(role)}
+                      className={`relative p-5 rounded-3xl border transition-all duration-300 text-left group overflow-hidden ${
+                        newRole === role 
+                        ? 'bg-indigo-600 border-indigo-600 shadow-[0_15px_35px_rgba(79,70,229,0.3)]' 
+                        : 'bg-slate-900/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:border-indigo-500/30'
+                      }`}
+                    >
+                      <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${newRole === role ? 'text-white/70' : 'text-slate-400 dark:text-white/30'}`}>
+                        VAI TRÒ
+                      </div>
+                      <div className={`text-xs font-black uppercase tracking-widest ${newRole === role ? 'text-white' : 'text-slate-700 dark:text-white/70'}`}>
+                        {role}
+                      </div>
+                      {newRole === role && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+               </div>
+
+               <button 
+                  onClick={handleUpdateRole}
+                  disabled={submitting || newRole === selectedUser.role}
+                  className={`w-full py-5 rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all flex items-center justify-center gap-4 ${
+                    newRole === selectedUser.role 
+                    ? 'bg-slate-100 dark:bg-white/5 text-slate-300 pointer-events-none opacity-50' 
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/30 active:scale-[0.98]'
+                  }`}
+               >
+                  {submitting ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                  {submitting ? 'ĐANG LƯU' : 'XÁC NHẬN VAI TRÒ'}
+               </button>
             </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <button onClick={closeRoleModal} className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/5 transition-all">Hủy</button>
-              <button onClick={handleUpdateRole} disabled={submitting} className="px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-50 shadow-lg shadow-indigo-600/30 active:scale-95">{submitting ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN CẬP NHẬT'}</button>
-            </div>
+
+            <button 
+                onClick={() => setShowDetailModal(false)}
+                className="w-full text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 dark:text-white/10 hover:text-rose-500 transition-all text-center pt-2"
+            >
+                [ ĐÓNG ]
+            </button>
           </div>
         </DraggableModal>
       )}
 
       {actionType && targetUser && (
-        <DraggableModal title={actionType === 'reset' ? 'Reset mật khẩu' : 'Xóa tài khoản'} onClose={closeActionConfirm} widthClassName="max-w-md">
-          <div className="space-y-6 pt-4 text-center">
-            <div className={`w-20 h-20 mx-auto rounded-3xl ${actionType === 'reset' ? 'bg-amber-500/20 text-amber-500' : 'bg-rose-500/20 text-rose-500'} flex items-center justify-center text-3xl shadow-inner`}>
-              {actionType === 'reset' ? '🔑' : '⚠️'}
+        <DraggableModal title={actionType === 'reset' ? 'Khôi phục bảo mật' : 'Xóa định danh'} onClose={closeActionConfirm} widthClassName="max-w-md">
+          <div className="space-y-8 pt-8 text-center">
+            <div className={`w-24 h-24 mx-auto rounded-[32px] ${actionType === 'reset' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-500/10' : 'bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-rose-500/10'} border-2 flex items-center justify-center text-4xl shadow-2xl group`}>
+              {actionType === 'reset' ? <Key className="w-10 h-10" /> : <Trash2 className="w-10 h-10" />}
             </div>
-            <div>
-               <p className="text-xl font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tight px-4">
-                 {actionType === 'reset' ? 'Khôi phục mật khẩu mặc định?' : 'Xác nhận xóa vĩnh viễn?'}
-               </p>
-               <p className="mt-4 text-sm font-semibold text-slate-500 dark:text-white/60 leading-relaxed px-4">
+            <div className="px-4">
+               <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight">
+                 {actionType === 'reset' ? 'THIẾT LẬP LẠI MẬT KHẨU?' : 'GỠ BỎ TÀI KHOẢN NÀY?'}
+               </h3>
+               <p className="mt-5 text-sm font-bold text-slate-500 dark:text-white/40 leading-relaxed px-2">
                  {actionType === 'reset' ? (
-                   <>Bạn đang thực hiện đặt lại mật khẩu cho <span className="font-black text-slate-900 dark:text-white underline decoration-amber-500/50 decoration-4">{targetUser.email}</span> về mặc định <span className="font-black text-amber-600 dark:text-amber-400">Emp@123</span>.</>
+                   <>Đặt lại mật khẩu cho <span className="font-black text-slate-900 dark:text-white underline decoration-amber-500 decoration-2">{targetUser.email}</span> về chuỗi mặc định <span className="text-amber-500">Emp@123</span>.</>
                  ) : (
-                   <>Tài khoản <span className="font-black text-slate-900 dark:text-white underline decoration-rose-500/50 decoration-4">{targetUser.email}</span> sẽ bị gỡ bỏ khỏi hệ thống. Thao tác này không thể thu hồi.</>
+                   <>Tài khoản <span className="font-black text-slate-900 dark:text-white underline decoration-rose-500 decoration-2">{targetUser.email}</span> sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu hệ thống.</>
                  )}
                </p>
             </div>
-            <div className="flex justify-center gap-3 pt-2">
-              <button onClick={closeActionConfirm} className="px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-white/70 hover:bg-black/5 dark:hover:bg-white/5 transition-all">Không, đóng</button>
+            <div className="flex justify-center gap-4 pt-4">
+              <button onClick={closeActionConfirm} className="px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all">Hủy bỏ</button>
               <button 
                 onClick={handleConfirmAction} 
                 disabled={submitting} 
-                className={`px-10 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all shadow-xl active:scale-95 ${actionType === 'reset' ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30' : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30'}`}
+                className={`px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all shadow-2xl shadow-black/20 active:scale-95 ${actionType === 'reset' ? 'bg-amber-500 hover:bg-amber-400' : 'bg-rose-600 hover:bg-rose-500'}`}
               >
-                {submitting ? 'ĐANG CHẠY...' : 'TÔI ĐỒNG Ý'}
+                {submitting ? 'ĐANG CHẠY...' : 'TÔI XÁC NHẬN'}
               </button>
             </div>
           </div>
@@ -401,31 +436,34 @@ export default function UserManagementPage() {
 
 function StatCard({ icon, label, value, desc, color }: { icon: string, label: string, value: number, desc: string, color: string }) {
   const colorMap: Record<string, string> = {
-    rose: 'from-rose-500 via-red-500 to-orange-500 border-rose-500/20 shadow-rose-500/20 text-rose-600 dark:text-rose-400 dark:via-rose-500/10 dark:to-red-500/10',
-    violet: 'from-violet-500 via-purple-500 to-fuchsia-500 border-violet-500/20 shadow-violet-500/20 text-violet-600 dark:text-violet-400 dark:via-violet-500/10 dark:to-purple-500/10',
-    emerald: 'from-emerald-500 via-teal-500 to-cyan-500 border-emerald-500/20 shadow-emerald-500/20 text-emerald-600 dark:text-emerald-400 dark:via-emerald-500/10 dark:to-teal-500/10'
+    rose: 'from-rose-500/30 via-red-500/10 to-orange-500/5 dark:from-rose-500/20 dark:via-rose-600/10 border-rose-500/20 text-rose-500',
+    violet: 'from-violet-500/30 via-purple-500/10 to-fuchsia-500/5 dark:from-violet-500/20 dark:via-violet-600/10 border-violet-500/20 text-violet-500',
+    emerald: 'from-emerald-500/30 via-teal-500/10 to-cyan-500/5 dark:from-emerald-500/20 dark:via-emerald-600/10 border-emerald-500/20 text-emerald-500'
   };
 
-  const bgClasses = colorMap[color] || colorMap.emerald;
+  const ringGlow: Record<string, string> = {
+    rose: 'bg-rose-500 shadow-rose-500/50',
+    violet: 'bg-violet-500 shadow-violet-500/50',
+    emerald: 'bg-emerald-500 shadow-emerald-500/50'
+  };
 
   return (
-    <div className="relative group min-w-[320px] rounded-[40px] overflow-hidden transition-all duration-500 hover:-translate-y-2">
-      <div className={`absolute inset-0 bg-gradient-to-br ${bgClasses} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-      <div className="relative bg-gradient-to-br from-white/90 via-white/70 to-slate-50 dark:from-white/10 dark:via-slate-500/5 dark:to-slate-800/10 backdrop-blur-2xl border border-white/40 dark:border-white/5 p-8 shadow-xl dark:shadow-2xl">
+    <div className="relative group min-w-[320px] rounded-[48px] overflow-hidden">
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorMap[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+      <div className={`relative bg-gradient-to-br from-white/90 via-white/70 to-slate-50 dark:from-white/5 dark:via-white/[0.02] dark:to-white/[0.01] backdrop-blur-3xl border border-white/40 dark:border-white/5 p-10 shadow-3xl`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-sm font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.2em] mb-4">{label}</p>
-              <h3 className="text-5xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{value}</h3>
+              <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.3em] mb-4">{label}</p>
+              <h3 className="text-6xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{value}</h3>
             </div>
-            <div className={`w-16 h-16 rounded-[24px] bg-gradient-to-br ${bgClasses.split(' border')[0]} flex items-center justify-center text-2xl shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+            <div className={`w-16 h-16 rounded-[24px] ${ringGlow[color]} flex items-center justify-center text-2xl shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
               <span className="filter grayscale group-hover:grayscale-0 transition-all">{icon}</span>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5">
-            <p className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.25em]">{desc}</p>
+          <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5">
+            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">{desc}</p>
           </div>
       </div>
     </div>
   );
 }
-

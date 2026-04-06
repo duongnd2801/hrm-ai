@@ -252,16 +252,16 @@ export default function ApologiesPage() {
 
                   <div className="flex-1 overflow-x-auto">
                      <table className="w-full border-collapse">
-                        <thead>
-                           <tr className="border-b border-black/5 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.02]">
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/4">Nhân viên</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Sự cố</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em] w-1/5">Ngày ghi nhận</th>
-                              <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Nội dung giải trình</th>
-                              {activeTab === 'pending' && <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-white/20 uppercase tracking-[0.2em]">Tác vụ</th>}
+                        <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+                           <tr>
+                              <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap">SỰ CỐ</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">NGÀY GHI NHẬN</th>
+                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">NỘI DUNG</th>
+                              {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">TÁC VỤ</th>}
                            </tr>
                         </thead>
-                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                        <tbody className="divide-y divide-black/5 dark:divide-white/5 bg-white/5">
                            {!currentDisplayItems.length && (
                               <tr>
                                  <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold text-slate-900 dark:text-white">
@@ -270,7 +270,7 @@ export default function ApologiesPage() {
                               </tr>
                            )}
                            {currentDisplayItems.map(item => (
-                              <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
+                              <tr key={item.id} className="group hover:bg-white/10 transition-colors">
                                  <td className="px-8 py-6">
                                     <div className="flex items-center gap-4">
                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-800 flex items-center justify-center text-white font-black text-sm uppercase">
@@ -278,7 +278,6 @@ export default function ApologiesPage() {
                                        </div>
                                        <div>
                                           <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                                          <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Thành viên Team</p>
                                        </div>
                                     </div>
                                  </td>
@@ -294,25 +293,25 @@ export default function ApologiesPage() {
                                  </td>
                                  <td className="px-8 py-6">
                                     {activeTab === 'pending' ? (
-                                       <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">&quot;{item.reason || '...'}&quot;</p>
+                                       <p className="text-[10px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-1 max-w-[200px] uppercase">&quot;{item.reason || '...'}&quot;</p>
                                     ) : (
                                        <StatusBadge status={item.status} />
                                     )}
                                  </td>
                                  {activeTab === 'pending' && (
                                     <td className="px-8 py-6 text-right">
-                                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <div className="flex items-center justify-end gap-3 transition-all shrink-0">
                                           <button 
                                             onClick={() => void review(item.id, true)}
-                                            className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all font-black"
+                                            className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
                                           >
                                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                                           </button>
                                           <button 
                                             onClick={() => void review(item.id, false)}
-                                            className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all"
+                                            className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all font-black text-xs"
                                           >
-                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                             ✕
                                           </button>
                                        </div>
                                     </td>
@@ -335,7 +334,7 @@ export default function ApologiesPage() {
                      <div className="flex gap-4 items-center justify-center">
                         <div className="px-8 py-5 bg-white/5 rounded-[30px] border border-white/10 flex-1">
                            <span className="block text-2xl font-black text-indigo-400">{myItems.length}</span>
-                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">Đơn đã gửi</span>
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">Đã gửi</span>
                         </div>
                         <div className="px-8 py-5 bg-white/5 rounded-[30px] border border-white/10 flex-1">
                            <span className="block text-2xl font-black text-emerald-400">{myItems.filter(i=>i.status==='APPROVED').length}</span>
