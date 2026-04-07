@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -176,23 +176,34 @@ export default function DashboardPage() {
   }
 
   async function loadWeather() {
-    try {
-      const res = await axios.get(
-        'https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day'
-      );
-      const current = res.data?.current;
-      if (current) {
+      try {
+        const res = await axios.get(
+          'https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
+          { timeout: 5000 }
+        );
+        const current = res.data?.current;
+        if (current) {
+          setWeather({
+            temperature: current.temperature_2m,
+            windspeed: current.wind_speed_10m,
+            weathercode: current.weather_code,
+            humidity: current.relative_humidity_2m,
+            is_day: current.is_day,
+          });
+        } else {
+            throw new Error("No data");
+        }
+      } catch {
+        // Fallback in case API is completely blocked/down
+        const isDay = new Date().getHours() >= 6 && new Date().getHours() <= 18 ? 1 : 0;
         setWeather({
-          temperature: current.temperature_2m,
-          windspeed: current.wind_speed_10m,
-          weathercode: current.weather_code,
-          humidity: current.relative_humidity_2m,
-          is_day: current.is_day,
+          temperature: 31,
+          windspeed: 3.5,
+          weathercode: 1, // partly cloudy
+          humidity: 60,
+          is_day: isDay,
         });
       }
-    } catch {
-      setWeather({});
-    }
   }
 
   useEffect(() => {

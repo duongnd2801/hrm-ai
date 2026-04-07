@@ -123,11 +123,19 @@ public class EmployeeService {
             throw new RuntimeException("Email đã tồn tại");
         }
         
-        // Update user email if changed
+        // Update user email and role if changed
         User user = emp.getUser();
         if (user != null) {
+            boolean userChanged = false;
             if (!emp.getEmail().equals(dto.getEmail())) {
                 user.setEmail(dto.getEmail());
+                userChanged = true;
+            }
+            if (dto.getRole() != null && !user.getRole().equals(dto.getRole())) {
+                user.setRole(dto.getRole());
+                userChanged = true;
+            }
+            if (userChanged) {
                 userRepository.save(user);
             }
         }

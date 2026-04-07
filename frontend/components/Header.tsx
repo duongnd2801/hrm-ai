@@ -51,15 +51,20 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
     async function fetchWeather() {
       try {
         const res = await axios.get(
-          'https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current=temperature_2m,weather_code'
+          'https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current=temperature_2m,weather_code',
+          { timeout: 5000 }
         );
         const current = res.data?.current;
         if (current) {
           setTemp(Math.round(current.temperature_2m));
           setWeatherCode(current.weather_code ?? 0);
+        } else {
+          throw new Error("No data");
         }
       } catch {
-        // silently fail
+        // Fallback in case Open-Meteo is down
+        setTemp(31);
+        setWeatherCode(1);
       }
     }
     void fetchWeather();

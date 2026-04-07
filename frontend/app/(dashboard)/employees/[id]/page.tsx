@@ -238,6 +238,28 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                </div>
                
                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                  {canEditStructure && (
+                      <>
+                          <div className="md:col-span-1">
+                            <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">👤 Họ và Tên</label>
+                            <input
+                              type="text"
+                              value={emp.fullName || ''}
+                              onChange={(e) => setEmp({ ...emp, fullName: e.target.value })}
+                              className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300"
+                            />
+                          </div>
+                          <div className="md:col-span-1">
+                            <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">✉️ Email đăng nhập</label>
+                            <input
+                              type="email"
+                              value={emp.email || ''}
+                              onChange={(e) => setEmp({ ...emp, email: e.target.value })}
+                              className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300"
+                            />
+                          </div>
+                      </>
+                  )}
                   <div>
                     <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📱 Số điện thoại</label>
                     <input
@@ -318,8 +340,33 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         allowClear
                         onSelect={(nextId) => {
                           const selected = positions.find((p) => p.id === nextId);
-                          setEmp({ ...emp, positionId: nextId, positionName: selected?.name });
+                          let autoRole = emp.role;
+                          if (selected) {
+                            const posName = selected.name.toUpperCase();
+                            if (posName.includes('HR')) {
+                              autoRole = 'HR';
+                            } else if (posName.includes('ADMIN') || posName.includes('CEO') || posName.includes('DIRECTOR')) {
+                              autoRole = 'ADMIN';
+                            } else if (posName.includes('PM') || posName.includes('MANAGER') || posName.includes('HEAD') || posName.includes('LEAD') || posName.includes('MNG')) {
+                              autoRole = 'MANAGER';
+                            } else {
+                              autoRole = 'EMPLOYEE';
+                            }
+                          }
+                          setEmp({ ...emp, positionId: nextId, positionName: selected?.name, role: autoRole as Employee['role'] });
                         }}
+                      />
+                      <SearchableSelect
+                        label="🔑 Quyền hệ thống (Hệ thống đăng nhập)"
+                        value={emp.role}
+                        options={[
+                          { id: 'EMPLOYEE', label: 'Nhân viên (EMPLOYEE)' },
+                          { id: 'MANAGER', label: 'Quản lý (MANAGER)' },
+                          { id: 'HR', label: 'Nhân sự (HR)' },
+                          { id: 'ADMIN', label: 'Quản trị viên (ADMIN)' },
+                        ]}
+                        placeholder="Chọn quyền..."
+                        onSelect={(nextId) => setEmp({ ...emp, role: nextId as Employee['role'] })}
                       />
                       <SearchableSelect
                         label="👨‍💼 Người quản lý trực tiếp"
