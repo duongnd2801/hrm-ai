@@ -31,8 +31,8 @@ jwt:
 
 gemini:
   api:
-    key: ${GEMINI_API_KEY:AIzaSyD94z234iSj39Sd_-iyh-2AeCSeAzFD7uA}
-  model: ${GEMINI_MODEL:gemini-2.5-flash}
+  key: ${GEMINI_API_KEY:key}
+  model: ${GEMINI_MODEL:gemini-3-flash}
 
 server:
   port: 8080
