@@ -20,6 +20,11 @@ export default function ProjectsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
+  
+  const isEmployee = session?.role === 'EMPLOYEE';
+  const isAdminOrHR = session?.role === 'ADMIN' || session?.role === 'HR';
+  const canManage = session?.role && session.role !== 'EMPLOYEE'; // ADMIN, HR, MANAGER
+  const canDelete = isAdminOrHR; // Only ADMIN, HR
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
@@ -104,15 +109,17 @@ export default function ProjectsPage() {
             <p className="text-lg font-bold uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Điều phối nhân sự & tiến độ tập trung</p>
          </div>
 
-         <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-6 md:mt-0 px-4 py-3">
-            <button
-               onClick={() => setShowCreate(true)}
-               className="flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase"
-            >
-               <Plus className="w-4 h-4" strokeWidth={3} />
-               Thêm dự án
-            </button>
-         </div>
+         {canManage && (
+            <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-6 md:mt-0 px-4 py-3">
+               <button
+                  onClick={() => setShowCreate(true)}
+                  className="flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase"
+               >
+                  <Plus className="w-4 h-4" strokeWidth={3} />
+                  Thêm dự án
+               </button>
+            </div>
+         )}
       </div>
 
       <div className="bg-white/60 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] p-8 md:p-10 border border-black/5 dark:border-white/10 shadow-3xl overflow-hidden relative group">
@@ -187,20 +194,26 @@ export default function ProjectsPage() {
                           >
                             <Eye className="w-5 h-5" strokeWidth={2.5} />
                           </Link>
-                          <button 
-                            onClick={() => setSelectedProject(p)} 
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg active:scale-90"
-                            title="Chỉnh sửa"
-                          >
-                            <Pencil className="w-5 h-5" strokeWidth={2.5} />
-                          </button>
-                          <button 
-                            onClick={() => { setProjectToDelete(p.id); setShowConfirm(true); }} 
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 transition-all shadow-lg active:scale-90"
-                            title="Xóa dự án"
-                          >
-                            <Trash2 className="w-5 h-5" strokeWidth={2.5} />
-                          </button>
+                          
+                          {canManage && (
+                            <button 
+                              onClick={() => setSelectedProject(p)} 
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg active:scale-90"
+                              title="Chỉnh sửa"
+                            >
+                              <Pencil className="w-5 h-5" strokeWidth={2.5} />
+                            </button>
+                          )}
+                          
+                          {canDelete && (
+                            <button 
+                              onClick={() => { setProjectToDelete(p.id); setShowConfirm(true); }} 
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 transition-all shadow-lg active:scale-90"
+                              title="Xóa dự án"
+                            >
+                              <Trash2 className="w-5 h-5" strokeWidth={2.5} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

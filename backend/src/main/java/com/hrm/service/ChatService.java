@@ -52,50 +52,63 @@ public class ChatService {
             """;
 
     private static final String TOOL_PLANNER_PROMPT = """
-            Bạn đang ở chế độ function-calling cho hệ thống HRM.
-            Nhiệm vụ: Phân tích ý định người dùng và chọn tool phù hợp. 
-            
-            CHỈ trả về JSON đúng schema, KHÔNG thêm markdown, KHÔNG giải thích.
-            {
-              "needTool": true|false,
-              "tool": "getMyPayroll|getEmployeePayroll|getMyAttendance|getMyLeaveBalance|getTeamStats|getCompanyPolicy|getUpcomingPublicHolidays|getPendingRequests|getProjects|getProjectMembers|approveRequest|getMySummary|none",
-              "arguments": { 
-                "month": number, 
-                "year": number, 
-                "type": "LEAVE|APOLOGY|OT", 
-                "id": "uuid", 
-                "action": "APPROVE|REJECT", 
-                "projectKeyword": "string",
-                "employeeKeyword": "string",
-                "onlyMyProjects": boolean
-              },
-              "response": "nội dung trả lời nếu không cần gọi tool"
-            }
-            
-            Hướng dẫn chọn tool:
-            - Lương/Phiếu lương cá nhân: getMyPayroll.
-            - Lương người khác (ADMIN/HR/MANAGER): getEmployeePayroll (cần employeeKeyword).
-            - Chấm công/Giờ làm/Đi muộn cá nhân: getMyAttendance.
-            - Nghỉ phép/Số dư phép: getMyLeaveBalance.
-            - Thống kê team/Đơn từ team: getTeamStats.
-            - Chính sách/Giờ làm/Quy định/OT rate: getCompanyPolicy.
-            - Ngày lễ: getUpcomingPublicHolidays.
-            - Đơn chờ duyệt: getPendingRequests.
-            - DANH SÁCH DỰ ÁN (liệt kê tên, mã, trạng thái): getProjects. Sử dụng khi user hỏi "dự án nào?", "có dự án gì?", "dự án của tôi?". Set onlyMyProjects=true nếu hỏi "dự án của tôi".
-            - THÀNH VIÊN/NHÂN SỰ DỰ ÁN (số người, tên người, vai trò): getProjectMembers.Sử dụng khi user hỏi "có bao nhiêu người?", "ai làm?", "nhân sự?", "thành viên?", "có những ai?", hoặc hỏi về con người trong dự án.
-              - TRÍCH XUẤT CHÍNH XÁC tên/mã dự án. TUYỆT ĐỐI loại bỏ: "người", "ai", "bao nhiêu", "có", "dự án", "project", "làm", "lam".
-              - Ví dụ: "dự án AI_UNIT có bao nhiêu người" -> projectKeyword="AI_UNIT"
-              - Ví dụ: "dự án HRM_2026 có những ai" -> projectKeyword="HRM_2026"
-              - Nếu không có projectKeyword (hỏi chung chung), truyền projectKeyword=""
-            - Duyệt/Từ chối: approveRequest (Cần type, action, id).
-            - Tóm tắt tổng quan bản thân: getMySummary.
-            
-            QUYẾT ĐỊNH NHANH:
-            - getProjects: User hỏi về "dự án gì?", "dự án nào?", "danh sách dự án?"
-            - getProjectMembers: User hỏi về "ai?", "bao nhiêu người?", "thành viên?", "nhân sự?", "có ai?", "đội ngũ?"
-            
-            Lưu ý: Luôn ưu tiên suy luận từ lịch sử hội thoại để điền month, year hoặc projectKeyword nếu user không nhắc lại.
-            """;
+        Bạn là trợ lý HRM thông minh. Nhiệm vụ: quyết định có cần gọi tool hay tự trả lời.
+        
+        CHỈ trả về JSON đúng schema, KHÔNG thêm markdown, KHÔNG giải thích.
+        {
+          "needTool": true|false,
+          "tool": "getMyPayroll|getEmployeePayroll|getMyAttendance|getMyLeaveBalance|getTeamStats|getCompanyPolicy|getUpcomingPublicHolidays|getPendingRequests|getProjects|getProjectMembers|approveRequest|getMySummary|none",
+          "arguments": {
+            "month": number,
+            "year": number,
+            "type": "LEAVE|APOLOGY|OT",
+            "id": "uuid",
+            "action": "APPROVE|REJECT",
+            "projectKeyword": "string",
+            "employeeKeyword": "string",
+            "onlyMyProjects": boolean
+          },
+          "response": "Trả lời trực tiếp nếu không cần tool."
+        }
+
+        ƯU TIÊN TỰ TRẢ LỜI (needTool=false) khi:
+        - Câu hỏi mang tính giải thích, hướng dẫn, khái niệm (ví dụ: "OT rate là gì?", "phép năm tính thế nào?")
+        - Câu hỏi về quy trình, cách làm (ví dụ: "làm thế nào để xin nghỉ?", "cách giải trình công?")
+        - Câu hỏi chung về HRM không cần số liệu cụ thể
+        - Câu chào hỏi, hỏi về chatbot, hỏi ngày giờ, tính toán đơn giản
+        - Câu follow-up mang tính làm rõ hoặc xác nhận
+        - Câu hỏi mà lịch sử hội thoại đã có đủ thông tin để trả lời
+        - Câu hỏi về chính sách mà KHÔNG cần số liệu thực tế từ DB (ví dụ: "OT ngày lễ tính thế nào?" → giải thích công thức, không cần gọi tool)
+
+        CHỈ gọi tool khi user cần SỐ LIỆU THỰC TẾ từ hệ thống:
+        - Lương/Payroll cụ thể của ai đó → getMyPayroll / getEmployeePayroll
+        - Chấm công thực tế tháng nào đó → getMyAttendance
+        - Số ngày phép còn lại → getMyLeaveBalance
+        - Thống kê team → getTeamStats
+        - Cấu hình công ty (giờ làm, OT rate số cụ thể) → getCompanyPolicy
+        - Ngày lễ sắp tới → getUpcomingPublicHolidays
+        - Đơn chờ duyệt → getPendingRequests
+        - Danh sách / thành viên dự án → getProjects / getProjectMembers
+        - Duyệt/từ chối đơn → approveRequest
+
+        Hướng dẫn chọn tool (khi bắt buộc phải gọi):
+        - Lương cá nhân → getMyPayroll
+        - Lương người khác (ADMIN/HR/MANAGER, cần employeeKeyword) → getEmployeePayroll
+        - Chấm công cá nhân → getMyAttendance
+        - Số dư phép → getMyLeaveBalance
+        - Thống kê team → getTeamStats
+        - Cấu hình/chính sách số liệu → getCompanyPolicy
+        - Ngày lễ → getUpcomingPublicHolidays
+        - Đơn chờ duyệt → getPendingRequests
+        - Danh sách dự án → getProjects (onlyMyProjects=true nếu hỏi "dự án của tôi")
+        - Thành viên dự án → getProjectMembers (trích xuất projectKeyword chính xác, bỏ "người/ai/bao nhiêu/có/dự án")
+        - Duyệt/từ chối → approveRequest (cần type, action, id)
+
+        Lưu ý:
+        - Nếu user hỏi về ngày giờ hiện tại, dùng Thời gian hiện tại được cung cấp để trả lời trực tiếp.
+        - Luôn suy luận month/year/projectKeyword từ lịch sử nếu user không nhắc lại.
+        - Trả lời bằng tiếng Việt, thân thiện, chuyên nghiệp.
+        """;
 
 
     private static final Pattern SIMPLE_MATH_PATTERN = Pattern.compile("^\\s*(-?\\d+)\\s*([+\\-*/xX])\\s*(-?\\d+)\\s*$");
@@ -128,6 +141,12 @@ public class ChatService {
         if (sanityResponse != null) {
             saveMessage(user, user.getRole(), sanityResponse, false, null);
             return ChatResponseDto.builder().message(sanityResponse).timestamp(LocalDateTime.now()).build();
+        }
+
+        String dateTimeResponse = tryHandleDateTime(userMessage);
+        if (dateTimeResponse != null) {
+            saveMessage(user, user.getRole(), dateTimeResponse, false, null);
+            return ChatResponseDto.builder().message(dateTimeResponse).timestamp(LocalDateTime.now()).build();
         }
 
         String socialResponse = tryHandleLightweightSocial(userMessage);
@@ -350,11 +369,13 @@ public class ChatService {
             String plannerInput = """
                     %s
                     Vai trò user: %s
+                    Thời gian hiện tại: %s
                     Lịch sử gần đây: %s
                     Câu hỏi user: %s
                     """.formatted(
                     TOOL_PLANNER_PROMPT,
                     user.getRole().name(),
+                    LocalDateTime.now(),
                     historyLines,
                     userMessage
             );
@@ -694,7 +715,11 @@ public class ChatService {
         if (text.length() > 64) return false;
         if (!text.matches("[a-z0-9@._\\s]+")) return false;
         if (containsAny(text, "bao nhieu", "la gi", "the nao", "nhu nao", "sao", "ra sao", "lam sao",
-                "tinh", "cong", "ot", "nua ngay", "gio lam", "ngay le", "giai trinh", "nghi phep")) {
+                "tinh", "cong", "ot", "nua ngay", "gio lam", "ngay le", "giai trinh", "nghi phep",
+                "ban la ai", "may la ai", "la ai", "em la ai",
+                "nay la", "hom nay", "bay gio",
+                "ngay nao", "ngay gi", "ngay may", "ngay bao nhieu",
+                "thu may", "may gio", "bao gio")) {
             return false;
         }
         return true;
@@ -803,6 +828,45 @@ public class ChatService {
         };
     }
 
+    private String tryHandleDateTime(String message) {
+        String text = normalizeText(message);
+
+        if (containsAny(text, "nay la ngay nao", "nay la ngay bao nhieu", "nay la ngay gi",
+                             "hom nay la ngay nao", "hom nay la ngay gi", "hom nay ngay nao",
+                             "ngay bao nhieu roi", "ngay may roi")) {
+            LocalDateTime now = LocalDateTime.now();
+            int dayOfWeek = now.getDayOfWeek().getValue();
+            String thu = dayOfWeek == 7 ? "Chủ Nhật" : "Thứ " + (dayOfWeek + 1);
+            return String.format("Hôm nay là %s, ngày %02d/%02d/%d. Bây giờ là %02d:%02d.",
+                    thu, now.getDayOfMonth(), now.getMonthValue(), now.getYear(),
+                    now.getHour(), now.getMinute());
+        }
+
+        // "nay la thu may", "hom nay la ngay bao nhieu", "bay gio la may gio", "bay gio la may gio roi", "hom nay ngay may"
+        if (containsAny(text, "thu may", "ngay may", "may gio", "bao nhieu", "la gi", "nhu nao") 
+                && containsAny(text, "nay", "hom nay", "bay gio", "hien tai", "thoi gian", "ngay")) {
+            
+            // Check specific combinations for day of week / current time / current date
+            if (containsAny(text, "thu may", "may gio", "ngay may", "ngay bao nhieu", "ngay gi")) {
+                LocalDateTime now = LocalDateTime.now();
+                int dayOfWeek = now.getDayOfWeek().getValue(); // 1 = Monday, 7 = Sunday
+                String thu = switch (dayOfWeek) {
+                    case 7 -> "Chủ Nhật";
+                    default -> "Thứ " + (dayOfWeek + 1);
+                };
+                
+                if (text.contains("may gio") || text.contains("gio hien tai")) {
+                    return String.format("Bây giờ là %02d:%02d. Hôm nay là %s, ngày %02d/%02d/%d.",
+                            now.getHour(), now.getMinute(), thu, now.getDayOfMonth(), now.getMonthValue(), now.getYear());
+                }
+                
+                return String.format("Hôm nay là %s, ngày %02d/%02d/%d. Bây giờ là %02d:%02d.",
+                        thu, now.getDayOfMonth(), now.getMonthValue(), now.getYear(), now.getHour(), now.getMinute());
+            }
+        }
+        return null;
+    }
+
     private String tryHandleLightweightSocial(String message) {
         String text = normalizeText(message);
         if (text.matches(".*\\b(xin chao|chao|hello|helo|hi|hey)\\b.*")) {
@@ -810,6 +874,10 @@ public class ChatService {
         }
         if (text.matches(".*\\b(cam on|thank|thanks)\\b.*")) {
             return "Rất vui được hỗ trợ bạn.";
+        }
+        if (containsAny(text, "ban la ai", "may la ai", "em la ai", "bot la ai",
+                             "you are", "who are you", "what are you")) {
+            return "Mình là trợ lý HRM nội bộ. Mình hỗ trợ các vấn đề về lương, chấm công, nghỉ phép, OT và chính sách công ty.";
         }
         if (text.contains("dung") || text.contains("huong dan") || text.contains("hoi gi") || text.contains("how to use")) {
             return "Bạn có thể hỏi về lương, chấm công, nghỉ phép, OT hoặc chính sách công ty.";
