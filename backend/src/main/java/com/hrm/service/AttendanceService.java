@@ -55,7 +55,11 @@ public class AttendanceService {
 
         attendance.setCheckIn(now);
         normalizeStatus(attendance, config);
-        return toDto(attendanceRepository.save(attendance));
+        try {
+            return toDto(attendanceRepository.saveAndFlush(attendance));
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Bạn đã check-in hoặc thao tác đang được xử lý.");
+        }
     }
 
     @Transactional

@@ -197,3 +197,11 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Refinement:** Nâng cấp bộ trích xuất từ khóa (`extractProjectKeyword`) để nhận diện mã dự án trong ngoặc vuông `[CODE]` (giúp user copy-paste nhanh từ danh sách).
   - **Logic Order:** Chuyển `tryHandleSystemGuide` vào fallback để tránh tranh chấp từ khóa với tên dự án (ví dụ: dự án tên 'Chatbot' không còn bị Bot chặn ngang).
   - **Verification:** Chatbot hiện có khả năng tự suy luận: "Số người trong dự án" -> liệt kê tất cả; "Thành viên dự án [AI_BOT]" -> liệt kê đúng người; "Còn dự án B thì sao?" -> tự hiểu context thành viên.
+- [2026-04-08T09:14:00+07:00] **Concurrency & Race Condition Fix**: 
+  - Xử lý race condition trên luồng Chấm công (AttendanceService) và Tính lương (PayrollService).
+  - Tận dụng triệt để các Unique Constraints sẵn có ở cấp DB.
+  - Bổ sung cơ chế saveAndFlush() / saveAllAndFlush() và bắt DataIntegrityViolationException để trả ra thông báo lỗi (400) thay vì crash (500).
+- [2026-04-08T09:35:00+07:00] **Concurrency Verification & Refinement**:
+  - Cập nhật GlobalExceptionHandler.java thêm handler cho IllegalArgumentException trả về 400 Bad Request giúp UX tốt hơn.
+  - Thực hiện simulation 10 requests đồng thời: Kết quả 1 SUCCESS, 9 FAILED (400) đúng kỳ vọng.
+  - Dọn dẹp test_race.js, sẵn sàng cho D14.

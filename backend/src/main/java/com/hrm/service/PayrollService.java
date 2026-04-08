@@ -50,10 +50,16 @@ public class PayrollService {
 
         for (Employee emp : allEmployees) {
             Payroll payroll = calculateForEmployee(emp, month, year, config);
-            results.add(payrollRepository.save(payroll));
+            results.add(payroll);
         }
 
-        return results.stream().map(this::toDto).collect(Collectors.toList());
+        try {
+            return payrollRepository.saveAllAndFlush(results).stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Bảng lương tháng này đang được người khác tính toán, vui lòng thử lại sau.");
+        }
     }
 
     @Transactional(readOnly = true)
