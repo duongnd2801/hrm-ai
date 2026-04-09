@@ -7,12 +7,13 @@ import { useSession } from '@/components/AuthProvider';
 import type { OTRequest } from '@/types';
 import Toast, { ToastState } from '@/components/Toast';
 import { formatDate } from '@/lib/utils';
+import { LayoutGrid, List } from 'lucide-react';
 
 function StatusBadge({ status }: { status: OTRequest['status'] }) {
   const map: Record<OTRequest['status'], string> = {
-    PENDING: 'bg-amber-500/20 text-amber-500 border-amber-500/20',
-    APPROVED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
-    REJECTED: 'bg-rose-500/20 text-rose-400 border-rose-500/20',
+    PENDING: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-200 dark:border-amber-500/20',
+    APPROVED: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20',
+    REJECTED: 'bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20',
   };
   const label: Record<OTRequest['status'], string> = {
     PENDING: 'Chờ duyệt',
@@ -38,6 +39,7 @@ export default function OTPage() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
+  const [myViewMode, setMyViewMode] = useState<'card' | 'table'>('card');
 
   const role = session?.role ?? null;
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
@@ -61,7 +63,7 @@ export default function OTPage() {
         tasks.push(api.get<OTRequest[]>('/api/ot-requests/pending'));
         tasks.push(api.get<OTRequest[]>('/api/ot-requests/reviewed'));
       }
-      
+
       const res = await Promise.all(tasks);
       setMyItems(res[0].data ?? []);
       if (canReview) {
@@ -116,222 +118,302 @@ export default function OTPage() {
 
       {/* Hero Header */}
       <div className="pt-10 mb-2 flex flex-col md:flex-row md:items-end justify-between gap-6">
-         <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-               Tăng ca<br/>& Overtime
-            </h1>
-            <div className="flex items-center gap-4 mt-6 ml-2">
-               <span className="w-8 h-1 bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-               <p className="text-sm font-bold uppercase tracking-[0.4em] italic text-white/80" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Phê duyệt & Ghi nhận ngoài giờ</p>
-            </div>
-         </div>
-         
-         {isAdminOrHR && (
-            <button 
-              onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
-            >
-              {showForm ? 'Hủy' : 'Đăng ký tăng ca'}
-            </button>
-         )}
+        <div>
+          <h1 className="text-8xl font-black text-slate-900 dark:text-white px-1 tracking-tighter mix-blend-overlay dark:mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+            Tăng ca<br />& Overtime
+          </h1>
+          <div className="flex items-center gap-4 mt-6 ml-2">
+            <span className="w-8 h-1 bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
+            <p className="text-sm font-bold uppercase tracking-[0.4em] italic text-slate-700 dark:text-white/80" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>Phê duyệt & Ghi nhận ngoài giờ</p>
+          </div>
+        </div>
+
+        {isAdminOrHR && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-8 py-4 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
+          >
+            {showForm ? 'Hủy' : 'Đăng ký tăng ca'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-         {/* Left Side: Creation Form */}
-         {showForm && (
-            <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
-               <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[40px] p-8 border border-white/10 shadow-3xl">
-                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-8 flex items-center gap-3">
-                     <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
-                     Ghi nhận ca
-                  </h3>
+        {/* Left Side: Creation Form */}
+        {showForm && (
+          <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
+            <div className="bg-white/90 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[40px] p-8 border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-3xl">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-widest mb-8 flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
+                Ghi nhận ca
+              </h3>
 
-                  <div className="space-y-6">
-                     <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Ngày thực hiện</label>
-                       <input
-                         type="date"
-                         value={date}
-                         onChange={(e) => setDate(e.target.value)}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none shadow-inner"
-                       />
-                     </div>
-                     
-                     <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Số giờ OT dự kiến</label>
-                       <div className="flex items-center gap-4">
-                         <input
-                           type="range"
-                           min={1}
-                           max={12}
-                           step={0.5}
-                           value={hours}
-                           onChange={(e) => setHours(parseFloat(e.target.value))}
-                           className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
-                         />
-                         <span className="w-16 text-center text-rose-400 font-black text-lg">{hours}h</span>
-                       </div>
-                     </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Ngày thực hiện</label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-rose-500/50 shadow-inner transition-all"
+                  />
+                </div>
 
-                     <div>
-                       <label className="block text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Giải trình công việc</label>
-                       <textarea
-                         rows={4}
-                         value={reason}
-                         onChange={(e) => setReason(e.target.value)}
-                         placeholder="VD: Fix bug gấp chuẩn bị release..."
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold outline-none focus:ring-2 focus:ring-rose-500/50 resize-none shadow-inner"
-                       />
-                     </div>
-
-                     <button
-                       onClick={() => void submit()}
-                       disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-rose-600 hover:bg-rose-500 disabled:bg-white/10 disabled:text-white/20 text-white font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-xl shadow-rose-500/10"
-                     >
-                       {loading ? '...' : 'GỬI ĐƠN PHÊ DUYỆT'}
-                     </button>
+                <div>
+                  <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Số giờ OT dự kiến</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={1}
+                      max={12}
+                      step={0.5}
+                      value={hours}
+                      onChange={(e) => setHours(parseFloat(e.target.value))}
+                      className="flex-1 h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                    />
+                    <span className="w-16 text-center text-rose-500 dark:text-rose-400 font-black text-lg">{hours}h</span>
                   </div>
-               </div>
+                </div>
 
-               {/* My OT Statistics */}
-               <div className="bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-white/5 shadow-3xl max-h-[350px] flex flex-col">
-                  <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-6 px-1">Lịch sử cá nhân</h3>
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                     {myItems.map(item => (
-                        <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all flex justify-between items-center group">
-                           <div className="text-left w-2/3">
-                              <p className="text-white font-bold text-[11px] truncate uppercase">{formatDate(item.date)}</p>
-                              <p className="text-[10px] text-rose-400 font-black mt-0.5">{item.hours} GIỜ TĂNG CA</p>
-                           </div>
-                           <StatusBadge status={item.status} />
-                        </div>
-                     ))}
-                  </div>
-               </div>
+                <div>
+                  <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Giải trình công việc</label>
+                  <textarea
+                    rows={4}
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="VD: Fix bug gấp chuẩn bị release..."
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-white/20 font-bold outline-none focus:ring-2 focus:ring-rose-500/50 resize-none shadow-inner transition-all"
+                  />
+                </div>
+
+                <button
+                  onClick={() => void submit()}
+                  disabled={loading || !reason.trim()}
+                  className="w-full py-5 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-100 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-white font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-xl shadow-rose-500/20"
+                >
+                  {loading ? '...' : 'GỬI ĐƠN PHÊ DUYỆT'}
+                </button>
+              </div>
             </div>
-         )}
 
-         {/* Center/Right Side: Approval Console */}
-         <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
-            {canReview ? (
-               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
-                  {/* Header & Tabs */}
-                  <div className="p-10 border-b border-black/5 dark:border-white/10 space-y-10">
-                     <div className="flex items-center justify-between">
-                        <div>
-                           <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Kiểm soát OT</h3>
-                           <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1 italic">Quản lý định mức làm việc ngoài giờ</p>
-                        </div>
-                        <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-[24px] border border-black/5 dark:border-white/10">
-                           <button 
-                             onClick={() => setActiveTab('pending')}
-                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
-                           >
-                              Chưa duyệt ({pendingItems.length})
-                           </button>
-                           <button 
-                             onClick={() => setActiveTab('history')}
-                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
-                           >
-                              Đã xử lý ({reviewedItems.length})
-                           </button>
-                        </div>
-                     </div>
+            {/* My OT History */}
+            <div className="bg-slate-50 dark:bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-3xl max-h-[350px] flex flex-col">
+              <h3 className="text-[10px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-widest mb-6 px-1">Lịch sử cá nhân</h3>
+              <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
+                {myItems.map(item => (
+                  <div key={item.id} className="p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex justify-between items-center">
+                    <div className="text-left w-2/3">
+                      <p className="text-slate-700 dark:text-white font-bold text-[11px] truncate uppercase">{formatDate(item.date)}</p>
+                      <p className="text-[10px] text-rose-500 dark:text-rose-400 font-black mt-0.5">{item.hours} GIỜ TĂNG CA</p>
+                    </div>
+                    <StatusBadge status={item.status} />
                   </div>
+                ))}
+                {myItems.length === 0 && (
+                  <p className="text-slate-400 dark:text-white/20 text-xs text-center py-8 font-bold uppercase tracking-widest">Chưa có dữ liệu</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                  <div className="flex-1 overflow-x-auto">
-                     <table className="w-full border-collapse">
-                        <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
-                           <tr>
-                              <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap">CÔNG VIỆC</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">ĐỊNH MỨC</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">TRẠNG THÁI</th>
-                              {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">HÀNH ĐỘNG</th>}
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                           {!currentDisplayItems.length && (
-                              <tr>
-                                 <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold text-slate-900 dark:text-white">
-                                    Không có dữ liệu hiển thị.
-                                 </td>
-                              </tr>
-                           )}
-                           {currentDisplayItems.map(item => (
-                              <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
-                                 <td className="px-8 py-6">
-                                    <div className="flex items-center gap-4">
-                                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase">
-                                          {item.employeeName?.charAt(0) || '?'}
-                                       </div>
-                                       <div>
-                                          <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                                          <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
-                                       </div>
-                                    </div>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <p className="text-[11px] text-slate-600 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">&quot;{item.reason || '...'}&quot;</p>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <div className="space-y-1">
-                                       <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.date)}</p>
-                                       <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em]">{item.hours} GIỜ</p>
-                                    </div>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <StatusBadge status={item.status} />
-                                 </td>
-                                 {activeTab === 'pending' && (
-                                    <td className="px-8 py-6 text-right">
-                                       <div className="flex items-center justify-end gap-3 transition-all shrink-0">
-                                          <button 
-                                            onClick={() => void review(item.id, true)}
-                                            className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
-                                          >
-                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                                          </button>
-                                          <button 
-                                            onClick={() => void review(item.id, false)}
-                                            className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all"
-                                          >
-                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                          </button>
-                                       </div>
-                                    </td>
-                                 )}
-                              </tr>
-                           ))}
-                        </tbody>
-                     </table>
+        {/* Center/Right Side */}
+        <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
+          {canReview ? (
+            /* ── MANAGER/HR/ADMIN: Approval Console (Table) ── */
+            <div className="bg-white/90 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
+              <div className="p-10 border-b border-slate-100 dark:border-white/10 space-y-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Kiểm soát OT</h3>
+                    <p className="text-xs font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.3em] mt-1 italic">Quản lý định mức làm việc ngoài giờ</p>
                   </div>
-               </div>
-            ) : (
-               <div className="bg-rose-950/30 backdrop-blur-3xl rounded-[48px] border border-white/5 p-20 flex flex-col items-center text-center space-y-12 h-full justify-center">
-                  <div className="w-32 h-32 bg-white/5 rounded-[40px] flex items-center justify-center text-rose-400 shadow-3xl transform -rotate-3 border border-white/5 group hover:rotate-0 transition-transform">
-                     <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-[24px] border border-slate-200 dark:border-white/10">
+                    <button
+                      onClick={() => setActiveTab('pending')}
+                      className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
+                    >
+                      Chưa duyệt ({pendingItems.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('history')}
+                      className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
+                    >
+                      Đã xử lý ({reviewedItems.length})
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/40 text-slate-500 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-slate-100 dark:border-white/5">
+                    <tr>
+                      <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">Nhân viên</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap">Công việc</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Định mức</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Trạng thái</th>
+                      {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">Hành động</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {!currentDisplayItems.length && (
+                      <tr>
+                        <td colSpan={5} className="py-32 text-center text-slate-400 dark:text-white/30 italic font-bold">
+                          Không có dữ liệu hiển thị.
+                        </td>
+                      </tr>
+                    )}
+                    {currentDisplayItems.map(item => (
+                      <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
+                              {item.employeeName?.charAt(0) || '?'}
+                            </div>
+                            <div>
+                              <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <p className="text-[11px] text-slate-500 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                        </td>
+                        <td className="px-8 py-6">
+                          <div className="space-y-1">
+                            <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.date)}</p>
+                            <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em]">{item.hours} GIỜ</p>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <StatusBadge status={item.status} />
+                        </td>
+                        {activeTab === 'pending' && (
+                          <td className="px-8 py-6 text-right">
+                            <div className="flex items-center justify-end gap-3 transition-all shrink-0">
+                              <button
+                                onClick={() => void review(item.id, true)}
+                                className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                              >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                              </button>
+                              <button
+                                onClick={() => void review(item.id, false)}
+                                className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all"
+                              >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            /* ── EMPLOYEE: My OT with Card/Table toggle ── */
+            <div className="space-y-6">
+              {/* Stats + Toggle header */}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-4">
+                  <div className="px-6 py-4 bg-white/80 dark:bg-white/5 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none text-center">
+                    <span className="block text-2xl font-black text-rose-500 dark:text-rose-400">{myItems.length}</span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Đã đăng ký</span>
+                  </div>
+                  <div className="px-6 py-4 bg-white/80 dark:bg-white/5 rounded-[24px] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none text-center">
+                    <span className="block text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                      {myItems.filter(i => i.status === 'APPROVED').reduce((acc, curr) => acc + curr.hours, 0)}h
+                    </span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Đã tích lũy</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl flex gap-1 border border-slate-200 dark:border-white/5">
+                  <button
+                    onClick={() => setMyViewMode('card')}
+                    className={`p-2.5 rounded-xl transition-all duration-300 ${myViewMode === 'card' ? 'bg-white dark:bg-white/10 text-rose-500 dark:text-rose-400 shadow-sm' : 'text-slate-400 dark:text-white/30 hover:text-slate-600 dark:hover:text-white/60'}`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setMyViewMode('table')}
+                    className={`p-2.5 rounded-xl transition-all duration-300 ${myViewMode === 'table' ? 'bg-white dark:bg-white/10 text-rose-500 dark:text-rose-400 shadow-sm' : 'text-slate-400 dark:text-white/30 hover:text-slate-600 dark:hover:text-white/60'}`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {myItems.length === 0 ? (
+                <div className="bg-white/80 dark:bg-rose-950/30 backdrop-blur-3xl rounded-[48px] border border-slate-200 dark:border-white/5 p-20 flex flex-col items-center text-center space-y-8 justify-center">
+                  <div className="w-32 h-32 bg-slate-100 dark:bg-white/5 rounded-[40px] flex items-center justify-center text-rose-400 shadow-xl transform -rotate-3 border border-slate-200 dark:border-white/5 hover:rotate-0 transition-transform">
+                    <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <div className="space-y-4">
-                     <h2 className="text-5xl font-black text-white uppercase tracking-tighter">Báo cáo OT</h2>
-                     <p className="text-lg text-white/30 max-w-lg italic font-medium">Theo dõi và đăng ký các giờ làm việc ngoài giờ để được ghi nhận vào bảng lương.</p>
+                    <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Báo cáo OT</h2>
+                    <p className="text-lg text-slate-500 dark:text-white/30 max-w-lg italic font-medium">Theo dõi và đăng ký các giờ làm việc ngoài giờ để được ghi nhận vào bảng lương.</p>
                   </div>
-                  <div className="flex gap-4 pt-4 w-full max-w-md">
-                     <div className="px-10 py-6 bg-white/5 rounded-[36px] border border-white/10 flex-1">
-                        <span className="block text-3xl font-black text-indigo-400">{myItems.length}</span>
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mt-1">Lượt đăng ký</span>
-                     </div>
-                     <div className="px-10 py-6 bg-white/5 rounded-[36px] border border-white/10 flex-1">
-                        <span className="block text-3xl font-black text-rose-400">
-                           {myItems.filter(i=>i.status==='APPROVED').reduce((acc,curr)=>acc+curr.hours, 0)}h
-                        </span>
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mt-1">Đã tích lũy</span>
-                     </div>
+                </div>
+              ) : myViewMode === 'card' ? (
+                /* Card view */
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {myItems.map(item => (
+                    <div key={item.id} className="bg-white/90 dark:bg-white/5 backdrop-blur-sm rounded-[28px] border border-slate-200 dark:border-white/5 p-6 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-500 group relative overflow-hidden shadow-sm dark:shadow-none">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 blur-2xl -mr-10 -mt-10 group-hover:bg-rose-500/10 transition-all duration-700" />
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">{formatDate(item.date)}</p>
+                          <p className="text-2xl font-black text-rose-500 dark:text-rose-400">{item.hours}<span className="text-sm ml-1">giờ</span></p>
+                        </div>
+                        <StatusBadge status={item.status} />
+                      </div>
+                      <p className="text-slate-500 dark:text-white/40 text-xs italic font-medium border-l-2 border-rose-400/50 pl-3 line-clamp-2">
+                        "{item.reason || '...'}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Table view */
+                <div className="bg-white/90 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-[32px] overflow-hidden shadow-sm dark:shadow-none">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/30 text-slate-500 dark:text-white/50 font-black border-b border-slate-200 dark:border-white/5">
+                        <tr>
+                          <th className="px-8 py-5 text-left whitespace-nowrap">Ngày</th>
+                          <th className="px-8 py-5 text-center whitespace-nowrap">Số giờ</th>
+                          <th className="px-8 py-5 text-left whitespace-nowrap">Lý do</th>
+                          <th className="px-8 py-5 text-center whitespace-nowrap">Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                        {myItems.map(item => (
+                          <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
+                            <td className="px-8 py-5">
+                              <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{formatDate(item.date)}</span>
+                            </td>
+                            <td className="px-8 py-5 text-center">
+                              <span className="text-rose-500 dark:text-rose-400 font-black text-sm">{item.hours}h</span>
+                            </td>
+                            <td className="px-8 py-5 max-w-[300px]">
+                              <p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium line-clamp-2">"{item.reason || '...'}"</p>
+                            </td>
+                            <td className="px-8 py-5 text-center">
+                              <StatusBadge status={item.status} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-               </div>
-            )}
-         </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
