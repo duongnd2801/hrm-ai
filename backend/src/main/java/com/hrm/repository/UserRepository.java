@@ -14,5 +14,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
     Page<User> findByEmailContainingIgnoreCase(String email, Pageable pageable);
-    long countByRole(com.hrm.entity.RoleType role);
+    long countByRole(com.hrm.entity.Role role);
+    long countByRole_Name(String roleName);
 }

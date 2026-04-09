@@ -1,361 +1,284 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
-import api from '@/lib/api';
+import React, { useState, useEffect } from 'react';
 import { useSession } from '@/components/AuthProvider';
-import type { LeaveRequest, LeaveType } from '@/types';
+import { LeaveRequestDTO, LeaveType, ApologyStatus } from '@/types';
+import { leaveApi } from '@/lib/leaveApi';
 import Toast, { ToastState } from '@/components/Toast';
-import { formatDate } from '@/lib/utils';
-
-const leaveTypeOptions: { value: LeaveType; label: string }[] = [
-  { value: 'ANNUAL', label: 'Nghỉ phép năm' },
-  { value: 'OT_LEAVE', label: 'Nghỉ bù OT' },
-  { value: 'SICK', label: 'Nghỉ ốm' },
-  { value: 'UNPAID', label: 'Nghỉ không lương' },
-  { value: 'HALF_DAY_AM', label: 'Nghỉ nửa ngày sáng' },
-  { value: 'HALF_DAY_PM', label: 'Nghỉ nửa ngày chiều' },
-];
-
-function StatusBadge({ status }: { status: LeaveRequest['status'] }) {
-  const map: Record<LeaveRequest['status'], string> = {
-    PENDING: 'bg-amber-500/20 text-amber-500 border-amber-500/10',
-    APPROVED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/10',
-    REJECTED: 'bg-rose-500/20 text-rose-400 border-rose-500/10',
-  };
-  const label: Record<LeaveRequest['status'], string> = {
-    PENDING: 'Đang xét duyệt',
-    APPROVED: 'Đã chấp thuận',
-    REJECTED: 'Bị từ chối',
-  };
-  return (
-    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${map[status]}`}>
-      {label[status]}
-    </span>
-  );
-}
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 export default function LeavePage() {
   const { session } = useSession();
-  const [type, setType] = useState<LeaveType>('ANNUAL');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [reason, setReason] = useState('');
-  const [myItems, setMyItems] = useState<LeaveRequest[]>([]);
-  const [pendingItems, setPendingItems] = useState<LeaveRequest[]>([]);
-  const [reviewedItems, setReviewedItems] = useState<LeaveRequest[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [leaves, setLeaves] = useState<LeaveRequestDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
-  const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
-
-  const role = session?.role ?? null;
-  const isAdminOrHR = role === 'HR' || role === 'ADMIN';
-  const canReview = role === 'MANAGER' || role === 'HR' || role === 'ADMIN';
+  
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
-  const getErrorMessage = (error: unknown, fallback: string) => {
-    if (axios.isAxiosError(error)) {
-      const data = error.response?.data;
-      if (typeof data === 'string') return data;
-      if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
-        return data.message;
-      }
-    }
-    fallback;
-  };
+  const [tab, setTab] = useState<'MY' | 'REVIEW'>(
+    session?.role === 'ADMIN' || session?.role === 'HR' || session?.role === 'MANAGER' ? 'REVIEW' : 'MY'
+  );
 
-  const loadData = useCallback(async () => {
-    try {
-      const tasks = [api.get<LeaveRequest[]>('/api/leave-requests/my')];
-      if (canReview) {
-        tasks.push(api.get<LeaveRequest[]>('/api/leave-requests/pending'));
-        tasks.push(api.get<LeaveRequest[]>('/api/leave-requests/reviewed'));
-      }
-      
-      const res = await Promise.all(tasks);
-      setMyItems(res[0].data ?? []);
-      if (canReview) {
-        setPendingItems(res[1]?.data ?? []);
-        setReviewedItems(res[2]?.data ?? []);
-      }
-    } catch {
-      pushToast('error', 'Không thể đồng bộ dữ liệu nghỉ phép.');
-    }
-  }, [canReview]);
+  // Form state
+  const [formData, setFormData] = useState({
+    type: 'ANNUAL' as LeaveType,
+    startDate: format(new Date(), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
+    reason: '',
+  });
 
   useEffect(() => {
-    if (session) {
-      void loadData();
-      const today = new Date().toISOString().split('T')[0];
-      setStartDate(today);
-      setEndDate(today);
-      setShowForm(!isAdminOrHR);
-    }
-  }, [session, loadData, isAdminOrHR]);
+    fetchData();
+  }, [tab]);
 
-  async function submit() {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      await api.post('/api/leave-requests', { type, startDate, endDate, reason });
-      setReason('');
-      pushToast('success', 'Đã nộp đơn nghỉ phép thành công.');
-      await loadData();
-      if (isAdminOrHR) setShowForm(false);
-    } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, 'Gửi đơn thất bại.'));
+      const data = tab === 'MY' ? await leaveApi.getMyLeaves() : await leaveApi.getAllLeaves();
+      setLeaves(data);
+    } catch (err) {
+      pushToast('error', 'Lỗi khi tải danh sách nghỉ phép');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function review(id: string, approved: boolean) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await api.patch(`/api/leave-requests/${id}/${approved ? 'approve' : 'reject'}`);
-      pushToast('success', approved ? 'Đã phê duyệt nghỉ phép.' : 'Đã bác bỏ đơn.');
-      await loadData();
-    } catch {
-      pushToast('error', 'Xử lý đơn thất bại.');
+      await leaveApi.createLeave(formData);
+      pushToast('success', 'Gửi đơn nghỉ phép thành công');
+      setIsDialogOpen(false);
+      fetchData();
+    } catch (err) {
+      pushToast('error', 'Lỗi khi gửi đơn');
     }
-  }
+  };
 
-  if (!session) return null;
+  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      if (action === 'approve') await leaveApi.approveLeave(id);
+      else await leaveApi.rejectLeave(id);
+      pushToast('success', `${action === 'approve' ? 'Duyệt' : 'Từ chối'} thành công`);
+      fetchData();
+    } catch (err) {
+      pushToast('error', 'Lỗi khi xử lý đơn');
+    }
+  };
 
-  const currentDisplayItems = activeTab === 'pending' ? pendingItems : reviewedItems;
+  const getStatusColor = (status: ApologyStatus) => {
+    switch (status) {
+      case 'APPROVED': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      case 'REJECTED': return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
+      default: return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+    }
+  };
+
+  const getLeaveTypeText = (type: LeaveType) => {
+    switch (type) {
+      case 'ANNUAL': return 'Nghỉ phép năm';
+      case 'SICK': return 'Nghỉ ốm';
+      case 'UNPAID': return 'Nghỉ không lương';
+      case 'HALF_DAY_AM': return 'Nghỉ nửa sáng';
+      case 'HALF_DAY_PM': return 'Nghỉ nửa chiều';
+      default: return 'Nghỉ bù';
+    }
+  };
 
   return (
-    <div className="space-y-12 pb-24">
+    <div className="flex flex-col gap-8 h-full max-w-[1400px] mx-auto pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
-
-      {/* Hero Header */}
-      <div className="pt-10 mb-2 flex flex-col md:flex-row md:items-end justify-between gap-6">
-         <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              Nghỉ phép<br/>& Công tác
-            </h1>
-            <div className="flex items-center gap-4 mt-6 ml-2">
-               <span className="w-8 h-1 bg-emerald-500 rounded-full" />
-               <p className="text-sm font-bold uppercase tracking-[0.4em] italic text-white/80" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Phê duyệt & Quản lý vắng mặt</p>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black text-white tracking-[0.05em] uppercase">
+            Quản lý <span className="text-indigo-400">Nghỉ phép</span>
+          </h1>
+          <p className="text-white/40 font-medium tracking-wide">Đăng ký và duyệt đơn nghỉ phép linh hoạt</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {(session?.role === 'ADMIN' || session?.role === 'HR' || session?.role === 'MANAGER') && (
+            <div className="glass-dark p-1 rounded-2xl flex gap-1 border border-white/5 shadow-2xl">
+              <button
+                onClick={() => setTab('MY')}
+                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${tab === 'MY' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+              >
+                Của tôi
+              </button>
+              <button
+                onClick={() => setTab('REVIEW')}
+                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${tab === 'REVIEW' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+              >
+                Cần duyệt
+              </button>
             </div>
-         </div>
-         
-         {isAdminOrHR && (
-            <button 
-              onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl"
-            >
-              {showForm ? 'Hủy' : 'Đăng ký nghỉ cá nhân'}
-            </button>
-         )}
+          )}
+          
+          <button
+            onClick={() => setIsDialogOpen(true)}
+            className="group flex items-center gap-3 bg-white text-slate-900 px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-indigo-600 hover:text-white transition-all duration-500 active:scale-95"
+          >
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            Đăng ký nghỉ
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-         {/* Left Side: Registration Form */}
-         {showForm && (
-            <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
-               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/10 shadow-xl">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-widest mb-8 flex items-center gap-3">
-                     <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                     Đăng ký nghỉ
-                  </h3>
-
-                  <div className="space-y-6">
-                     <div>
-                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Loại hình nghỉ</label>
-                       <select
-                         value={type}
-                         onChange={(e) => setType(e.target.value as LeaveType)}
-                         className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none shadow-inner"
-                       >
-                         {leaveTypeOptions.map((option) => (
-                           <option key={option.value} value={option.value} className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white uppercase">
-                             {option.label}
-                           </option>
-                         ))}
-                       </select>
+      {/* Main Content */}
+      <div className="grid grid-cols-1 gap-6">
+        {loading ? (
+          <div className="flex items-center justify-center p-20 glass-dark rounded-3xl border border-white/5">
+             <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+          </div>
+        ) : leaves.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-20 glass-dark rounded-3xl border border-white/5 text-center space-y-4">
+             <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
+                <svg className="w-10 h-10 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 15.536c-1.171-1.172-3.071-1.172-4.242 0L6 19.414V5a2 2 0 012-2h8a2 2 0 012 2v14.414l-3.879-3.878z" /></svg>
+             </div>
+             <p className="text-white/20 font-black uppercase tracking-widest">Chưa có đơn nghỉ phép nào</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {leaves.map((leave) => (
+              <div key={leave.id} className="glass-dark border border-white/5 rounded-3xl p-8 hover:border-indigo-500/30 transition-all duration-500 group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/10 transition-all duration-700" />
+                
+                <div className="flex justify-between items-start gap-4">
+                   <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                         <span className="text-white/30 text-[10px] font-bold uppercase tracking-widest">{format(new Date(leave.createdAt || new Date()), 'dd/MM/yyyy')}</span>
+                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border ${getStatusColor(leave.status)}`}>
+                            {leave.status === 'PENDING' ? 'Chờ duyệt' : leave.status === 'APPROVED' ? 'Đã duyệt' : 'Từ chối'}
+                         </span>
+                      </div>
+                      <h3 className="text-xl font-black text-white uppercase tracking-tight leading-tight group-hover:text-indigo-400 transition-colors duration-500">
+                         {getLeaveTypeText(leave.type)}
+                      </h3>
+                      <p className="text-white/40 text-xs font-bold uppercase tracking-widest">{leave.employeeName}</p>
+                   </div>
+                   
+                   {tab === 'REVIEW' && leave.status === 'PENDING' && (
+                     <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleAction(leave.id, 'reject')}
+                          className="p-3 rounded-2xl bg-rose-400/10 text-rose-400 hover:bg-rose-400 hover:text-white transition-all duration-500 active:scale-90 border border-rose-400/20"
+                        >
+                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        <button 
+                          onClick={() => handleAction(leave.id, 'approve')}
+                          className="p-3 rounded-2xl bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400 hover:text-white transition-all duration-500 active:scale-90 border border-emerald-400/20"
+                        >
+                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </button>
                      </div>
-                     
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       <div>
-                         <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Bắt đầu</label>
-                         <input
-                           type="date"
-                           value={startDate}
-                           onChange={(e) => setStartDate(e.target.value)}
-                           className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none shadow-inner"
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Kết thúc</label>
-                         <input
-                           type="date"
-                           value={endDate}
-                           onChange={(e) => setEndDate(e.target.value)}
-                           className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none shadow-inner"
-                         />
-                       </div>
-                     </div>
+                   )}
+                </div>
 
-                     <div>
-                       <label className="block text-slate-500 dark:text-white/30 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Lý do cụ thể</label>
-                       <textarea
-                         rows={4}
-                         value={reason}
-                         onChange={(e) => setReason(e.target.value)}
-                         className="w-full bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-4 px-4 text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none shadow-inner"
-                       />
-                     </div>
+                <div className="mt-8 grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                     <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Bắt đầu</span>
+                     <p className="text-white font-bold tracking-widest">{format(new Date(leave.startDate), 'dd MMMM, yyyy', { locale: vi })}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                     <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Kết thúc</span>
+                     <p className="text-white font-bold tracking-widest">{format(new Date(leave.endDate), 'dd MMMM, yyyy', { locale: vi })}</p>
+                  </div>
+                </div>
 
-                     <button
-                       onClick={() => void submit()}
-                       disabled={loading || !reason.trim()}
-                       className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-200 dark:disabled:bg-white/10 disabled:text-slate-400 dark:disabled:text-white/20 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[26px] transition-all shadow-xl"
-                     >
-                       {loading ? '...' : 'GỬI ĐƠN XÉT DUYỆT'}
-                     </button>
-                  </div>
-               </div>
+                <div className="mt-6">
+                   <p className="text-white/60 text-sm font-medium leading-relaxed italic border-l-2 border-indigo-500/50 pl-4">
+                      "{leave.reason || 'Không có lý do chi tiết'}"
+                   </p>
+                </div>
 
-               {/* My History Section */}
-               <div className="bg-white/80 dark:bg-slate-950/40 backdrop-blur-3xl rounded-[40px] p-8 border border-black/5 dark:border-white/5 shadow-xl max-h-[350px] flex flex-col">
-                  <h3 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-6 px-1">Lịch sử cá nhân</h3>
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10">
-                     {myItems.map(item => (
-                        <div key={item.id} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 flex justify-between items-center group hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all">
-                           <div className="text-left w-3/5">
-                              <p className="text-slate-900 dark:text-white font-bold text-[11px] truncate uppercase">{leaveTypeOptions.find(t=>t.value===item.type)?.label}</p>
-                           </div>
-                           <StatusBadge status={item.status} />
-                        </div>
-                     ))}
+                {leave.reviewNote && (
+                  <div className="mt-6 pt-6 border-t border-white/5">
+                     <span className="text-[10px] font-black text-white/20 uppercase tracking-widest block mb-2">Lời nhắn từ người duyệt ({leave.reviewedByName})</span>
+                     <p className="text-white/40 text-xs font-bold">{leave.reviewNote}</p>
                   </div>
-               </div>
-            </div>
-         )}
-
-         {/* Center/Right Side: Approval Console */}
-         <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
-            {canReview ? (
-               <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-black/5 dark:border-white/10 shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
-                  {/* Header & Tabs */}
-                  <div className="p-10 border-b border-black/5 dark:border-white/10 space-y-10">
-                     <div className="flex items-center justify-between">
-                        <div>
-                           <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">PHÊ DUYỆT VẮNG MẶT</h3>
-                           <p className="text-xs font-bold text-slate-500 dark:text-white/30 uppercase tracking-[0.3em] mt-1 italic">Hệ thống quản lý đơn từ tập trung</p>
-                        </div>
-                        <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-[24px] border border-black/5 dark:border-white/10">
-                           <button 
-                             onClick={() => setActiveTab('pending')}
-                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-emerald-500 text-slate-900 shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
-                           >
-                              Chờ duyệt ({pendingItems.length})
-                           </button>
-                           <button 
-                             onClick={() => setActiveTab('history')}
-                             className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-emerald-500 text-slate-900 shadow-lg' : 'text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white'}`}
-                           >
-                              Lịch sử ({reviewedItems.length})
-                           </button>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="flex-1 overflow-x-auto text-slate-900 dark:text-white">
-                     <table className="w-full border-collapse">
-                        <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
-                           <tr>
-                              <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">LOẠI HÌNH</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">THỜI GIAN</th>
-                              <th className="px-8 py-6 text-left whitespace-nowrap text-center">TRẠNG THÁI</th>
-                              {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">HÀNH ĐỘNG</th>}
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-black/5 dark:divide-white/5 bg-white/5">
-                           {!currentDisplayItems.length && (
-                              <tr>
-                                 <td colSpan={5} className="py-32 text-center opacity-30 italic font-bold">
-                                    Không có dữ liệu hiển thị.
-                                 </td>
-                              </tr>
-                           )}
-                           {currentDisplayItems.map(item => (
-                              <tr key={item.id} className="group hover:bg-white/10 transition-colors">
-                                 <td className="px-8 py-6">
-                                    <div className="flex items-center gap-4">
-                                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-800 flex items-center justify-center text-white font-black text-sm uppercase">
-                                          {item.employeeName?.charAt(0) || '?'}
-                                       </div>
-                                       <div>
-                                          <p className="font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                                       </div>
-                                    </div>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <span className="text-[10px] font-black bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/10 uppercase tracking-widest">
-                                       {leaveTypeOptions.find(t=>t.value===item.type)?.label}
-                                    </span>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <div className="space-y-1">
-                                       <p className="font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.startDate)}</p>
-                                       <p className="text-[9px] text-slate-400 dark:text-white/20 font-black uppercase tracking-[0.1em]">Đến {formatDate(item.endDate)}</p>
-                                    </div>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    {activeTab === 'pending' ? (
-                                       <p className="text-[10px] italic font-medium line-clamp-1 max-w-[150px] uppercase opacity-50">&quot;{item.reason || '...'}&quot;</p>
-                                    ) : (
-                                       <StatusBadge status={item.status} />
-                                    )}
-                                 </td>
-                                 {activeTab === 'pending' && (
-                                    <td className="px-8 py-6 text-right">
-                                       <div className="flex items-center justify-end gap-3 transition-all shrink-0">
-                                          <button 
-                                             onClick={() => void review(item.id, true)}
-                                             className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
-                                          >
-                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                                          </button>
-                                          <button 
-                                             onClick={() => void review(item.id, false)}
-                                             className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-500/20 active:scale-90 transition-all font-black text-xs"
-                                          >
-                                             ✕
-                                          </button>
-                                       </div>
-                                    </td>
-                                 )}
-                              </tr>
-                           ))}
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-            ) : (
-               <div className="bg-emerald-950/30 backdrop-blur-3xl rounded-[48px] border border-white/5 p-20 flex flex-col items-center text-center space-y-12 h-full justify-center">
-                  <div className="w-32 h-32 bg-emerald-500/10 rounded-[40px] flex items-center justify-center text-emerald-400 shadow-3xl shadow-emerald-500/5 transform rotate-3 active:rotate-0 transition-transform">
-                     <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                  </div>
-                  <div className="space-y-4">
-                     <h2 className="text-5xl font-black text-white uppercase tracking-tighter">Hồ sơ nghỉ phép</h2>
-                     <p className="text-lg text-white/30 max-w-lg italic font-medium">Lịch sử và các yêu cầu vắng mặt cá nhân của bạn sẽ được hiển thị và quản lý tại đây.</p>
-                  </div>
-                  <div className="flex gap-4 pt-4">
-                     <div className="px-10 py-6 bg-white/5 rounded-[36px] border border-white/10">
-                        <span className="block text-3xl font-black text-indigo-400">{myItems.length}</span>
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mt-1">Đã nộp</span>
-                     </div>
-                     <div className="px-10 py-6 bg-white/5 rounded-[36px] border border-white/10">
-                        <span className="block text-3xl font-black text-emerald-400">{myItems.filter(i=>i.status==='APPROVED').length}</span>
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mt-1">Hợp lệ</span>
-                     </div>
-                  </div>
-               </div>
-            )}
-         </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-   </div>
+
+      {/* Dialog */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-3xl" onClick={() => setIsDialogOpen(false)} />
+          <div className="relative w-full max-w-xl glass-dark border border-white/10 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="p-10">
+              <div className="flex justify-between items-center mb-10">
+                <h2 className="text-3xl font-black text-white tracking-widest uppercase">Đăng ký <span className="text-indigo-400">nghỉ phép</span></h2>
+                <button onClick={() => setIsDialogOpen(false)} className="text-white/20 hover:text-white transition-colors">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Loại hình nghỉ</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as LeaveType })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold tracking-widest uppercase text-sm"
+                  >
+                    <option value="ANNUAL">Nghỉ phép năm</option>
+                    <option value="SICK">Nghỉ ốm</option>
+                    <option value="UNPAID">Nghỉ không lương</option>
+                    <option value="OT_LEAVE">Nghỉ bù</option>
+                    <option value="HALF_DAY_AM">Nghỉ nửa sáng</option>
+                    <option value="HALF_DAY_PM">Nghỉ nửa chiều</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Từ ngày</label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold tracking-widest"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Đến ngày</label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold tracking-widest"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Lý do cụ thể</label>
+                  <textarea
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    placeholder="VD: Nghỉ phép về quê, đi khám sức khỏe..."
+                    rows={4}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-medium"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-indigo-500/40 hover:bg-indigo-500 hover:scale-[1.02] transition-all duration-500 active:scale-95 mt-4"
+                >
+                  Xác nhận gửi đơn
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

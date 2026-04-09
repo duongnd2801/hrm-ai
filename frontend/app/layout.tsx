@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import HealthcheckProbe from '@/components/HealthcheckProbe';
 import ThemeInitializer from '@/components/ThemeInitializer';
 import Script from 'next/script';
 import './globals.css';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'HRM System - Quản trị nhân sự',
@@ -32,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `}
         </Script>
       </head>
-      <body className={`${inter.variable} font-sans antialiased app-body relative overflow-x-hidden`}>
+      <body className="font-sans antialiased app-body relative overflow-x-hidden">
         {/* Background Decorative Orbs */}
         <div className="fixed -top-24 -right-24 w-[500px] h-[500px] bg-indigo-500/20 dark:bg-indigo-500/30 rounded-full blur-[120px] orb z-0 pointer-events-none" />
         <div className="fixed -bottom-24 -left-24 w-[500px] h-[500px] bg-violet-500/20 dark:bg-violet-500/30 rounded-full blur-[120px] orb-delay z-0 pointer-events-none" />

@@ -14,7 +14,14 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        // Cho phép localhost và mọi IP trong mạng LAN truy cập frontend port 3000
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:3000", 
+            "http://127.0.0.1:3000",
+            "http://192.168.*.*:3000",
+            "http://10.*.*.*:3000",
+            "http://172.*.*.*:3000"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

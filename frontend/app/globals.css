@@ -5,7 +5,7 @@
 @variant theme-light (&:where(.theme-light, .theme-light *));
 
 :root {
-  --font-inter: 'Inter', sans-serif;
+  --font-inter: "Segoe UI", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   --app-bg: #f8fafc;
   --app-fg: #0f172a;
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -45,6 +45,9 @@ body {
   background-color: var(--app-bg);
   color: var(--app-fg);
   transition: background-color 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .glass {

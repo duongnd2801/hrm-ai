@@ -1,17 +1,17 @@
-### 📋 Plan — [Phase Hardening: Xử lý Race Condition Chấm công & Tính lương]
+# Plan — Redesign Permission UI (Read-Only) + Giữ CRUD Role
 
-**Mục tiêu:** Bổ sung cơ chế Exception Handling dựa vào Unique Constraint đã có trong DB để bắt lỗi ghi đè dữ liệu khi có request đồng thời mà không cần dùng Pessimistic Lock.
+**Mục tiêu:** Đổi trang Permission từ CRUD sang read-only catalog; admin chỉ gán permission vào role qua ma trận phân quyền.
 
-**Các bước thực hiện:**
-| # | File sửa | Việc cần làm |
-|---|---|---|
-| 1 | `AttendanceService.java` | [x] Nâng cấp hàm `checkIn`: Bọc `attendanceRepository.save(attendance)` thành `saveAndFlush(attendance)` trong khối `try-catch(DataIntegrityViolationException)`. Nếu lỗi văng ra → ném `IllegalArgumentException("Bạn đã check-in hôm nay.")`. |
-| 2 | `PayrollService.java` | [x] Nâng cấp hàm `calculateMonthlyPayroll` và `calculateForEmployee`: Dùng `saveAndFlush` cho payroll. Thêm `try-catch(DataIntegrityViolationException)` để báo lỗi `IllegalArgumentException("Bảng lương tháng này đang được tính toán, vui lòng thử lại sau.")` nếu có 2 luồng cùng tính. |
+## Các bước thực hiện
 
-**Thứ tự:** BE trước — Chỉ tác động Backend.
+| # | File tạo/sửa | Việc cần làm | Status |
+|---|---|---|---|
+| 1 | `frontend/app/(dashboard)/settings/permissions/page.tsx` | Xóa nút "Thêm permission", menu context (sửa/xóa), dialog CRUD. Chuyển thành read-only catalog + light/dark theme | [x] |
+| 2 | `frontend/app/(dashboard)/settings/roles/page.tsx` | Giữ CRUD role + light/dark theme | [x] |
+| 3 | `frontend/app/(dashboard)/settings/roles/matrix/page.tsx` | Giữ tích chọn + light/dark theme | [x] |
+| 4 | `frontend/components/RbacConsoleNav.tsx` | Cập nhật label/description + light/dark theme | [x] |
+| 5 | `frontend/components/RoleDialog.tsx` | Light/dark theme | [x] |
+| 6 | Build verify | `next build` passed ✅ | [x] |
+| 7 | `.gemini/memory.md` + `GEMINI.md` | Cập nhật trạng thái | [x] |
 
-**Rủi ro / cần chú ý:** Bắt đúng `org.springframework.dao.DataIntegrityViolationException` để không vô tình bắt nhầm exception khác.
-
-**Verify bằng cách:** Gửi nhiều request check-in cùng lúc, chỉ 1 requet được lưu, còn lại ném lỗi an toàn (400) thay vì crash (500).
-
-⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận 'ok / làm đi' trước khi bắt đầu.
+**Verify:** Build passed — 0 errors.

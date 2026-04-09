@@ -21,7 +21,7 @@ public class UserManagementDTO {
         return new UserManagementDTO(
                 user.getId(),
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole().getName(),
                 user.getCreatedAt(),
                 null, // fullName is populated later by Service
                 true // isActive

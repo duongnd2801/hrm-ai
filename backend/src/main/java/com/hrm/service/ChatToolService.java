@@ -3,6 +3,7 @@ package com.hrm.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hrm.entity.*;
 import com.hrm.repository.*;
+import com.hrm.dto.LeaveRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -111,7 +112,7 @@ public class ChatToolService {
     }
 
     private Map<String, Object> getEmployeePayroll(JsonNode arguments, User currentUser, Integer fallbackMonth, Integer fallbackYear) {
-        if (currentUser.getRole() == RoleType.EMPLOYEE) {
+        if ("EMPLOYEE".equals(currentUser.getRole().getName())) {
             return Map.of("message", "Bạn chỉ có quyền xem lương của chính mình.");
         }
 
@@ -479,7 +480,7 @@ public class ChatToolService {
                 .toList();
 
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("scope", currentUser.getRole().name());
+        data.put("scope", currentUser.getRole().getName());
         data.put("pendingLeaveRequests", pendingLeaves);
         data.put("pendingApologyRequests", pendingApologies);
         data.put("pendingOtRequests", pendingOt);
@@ -509,7 +510,7 @@ public class ChatToolService {
 
         switch (type) {
             case "LEAVE" -> {
-                var dto = leaveRequestService.review(requestId, approved, authentication);
+                LeaveRequestDTO dto = leaveRequestService.review(requestId, approved, authentication);
                 resultMessage = "Đã " + (approved ? "duyệt" : "từ chối") + " đơn LEAVE của " + dto.getEmployeeName() + ".";
             }
             case "APOLOGY" -> {
@@ -537,7 +538,7 @@ public class ChatToolService {
     }
 
     private List<Employee> resolveScopedTeam(User currentUser) {
-        if (currentUser.getRole() == RoleType.MANAGER) {
+        if ("MANAGER".equals(currentUser.getRole().getName())) {
             Employee manager = findEmployeeByUser(currentUser);
             return employeeRepository.findByManagerId(manager.getId());
         }
@@ -546,18 +547,19 @@ public class ChatToolService {
 
     private Optional<Employee> findEmployeeByKeyword(String keyword, User currentUser) {
         String key = normalize(keyword);
-        Optional<RoleType> requestedRole = parseRequestedRole(key);
-        if (requestedRole.isPresent() && (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR)) {
-            List<Employee> byRole = employeeRepository.findByUserRole(requestedRole.get());
+        Optional<String> requestedRole = parseRequestedRole(key);
+        if (requestedRole.isPresent() && ("ADMIN".equals(currentUser.getRole().getName()) || "HR".equals(currentUser.getRole().getName()))) {
+            List<Employee> byRole = employeeRepository.findByUserRoleName(requestedRole.get());
             if (!byRole.isEmpty()) {
                 return Optional.of(byRole.get(0));
             }
         }
 
         List<Employee> scope;
-        if (currentUser.getRole() == RoleType.MANAGER) {
+        String userRole = currentUser.getRole().getName();
+        if ("MANAGER".equals(userRole)) {
             scope = resolveScopedTeam(currentUser);
-        } else if (currentUser.getRole() == RoleType.HR || currentUser.getRole() == RoleType.ADMIN) {
+        } else if ("HR".equals(userRole) || "ADMIN".equals(userRole)) {
             scope = employeeRepository.findAll();
         } else {
             return Optional.empty();
@@ -598,28 +600,28 @@ public class ChatToolService {
         return score;
     }
 
-    private Optional<RoleType> parseRequestedRole(String normalizedKeyword) {
+    private Optional<String> parseRequestedRole(String normalizedKeyword) {
         if (normalizedKeyword == null || normalizedKeyword.isBlank()) {
             return Optional.empty();
         }
         if (normalizedKeyword.equals("hr") || normalizedKeyword.equals("nhan su")) {
-            return Optional.of(RoleType.HR);
+            return Optional.of("HR");
         }
         if (normalizedKeyword.equals("admin") || normalizedKeyword.equals("quan tri")) {
-            return Optional.of(RoleType.ADMIN);
+            return Optional.of("ADMIN");
         }
         if (normalizedKeyword.equals("manager") || normalizedKeyword.equals("quan ly")) {
-            return Optional.of(RoleType.MANAGER);
+            return Optional.of("MANAGER");
         }
         if (normalizedKeyword.equals("nhan vien") || normalizedKeyword.equals("employee")) {
-            return Optional.of(RoleType.EMPLOYEE);
+            return Optional.of("EMPLOYEE");
         }
         return Optional.empty();
     }
 
     private void ensureManagerHrAdmin(User user) {
-        RoleType role = user.getRole();
-        if (role != RoleType.MANAGER && role != RoleType.HR && role != RoleType.ADMIN) {
+        String role = user.getRole().getName();
+        if (!"MANAGER".equals(role) && !"HR".equals(role) && !"ADMIN".equals(role)) {
             throw new AccessDeniedException("Bạn không có quyền sử dụng chức năng này.");
         }
     }
@@ -654,7 +656,8 @@ public class ChatToolService {
         boolean onlyMyProjects = arguments.path("onlyMyProjects").asBoolean(false);
         List<Project> projects;
 
-        if ((currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) && !onlyMyProjects) {
+        String userRole = currentUser.getRole().getName();
+        if (("ADMIN".equals(userRole) || "HR".equals(userRole)) && !onlyMyProjects) {
             if (!keyword.isEmpty()) {
                 // Use flexible keyword search
                 Optional<Project> singleProject = findProjectByKeywordFlexible(keyword, currentUser);
@@ -706,7 +709,8 @@ public class ChatToolService {
         if (projectKeyword.isEmpty()) {
             // Return summary of all projects with counts
             List<Project> allProjects;
-            if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) {
+            String userRole = currentUser.getRole().getName();
+            if ("ADMIN".equals(userRole) || "HR".equals(userRole)) {
                 allProjects = projectRepository.findAll();
             } else {
                 Employee emp = findEmployeeByUser(currentUser);
@@ -856,7 +860,8 @@ public class ChatToolService {
     }
 
     private List<Project> getAccessibleProjects(User currentUser) {
-        if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.HR) {
+        String userRole = currentUser.getRole().getName();
+        if ("ADMIN".equals(userRole) || "HR".equals(userRole)) {
             return projectRepository.findAll();
         } else {
             Employee emp = findEmployeeByUser(currentUser);

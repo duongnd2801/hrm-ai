@@ -131,6 +131,7 @@ Dự án này áp dụng mô hình "Lộ trình Agentic" kết hợp Workflow ch
 | Phase 9 | Phân quyền hoàn thiện: Menu FE động theo role + Spring Security endpoint guards | ✅ | |
 | Phase Hardening | Bảo mật chuyên sâu: HttpOnly Cookies, CSRF, Security Headers, RS256, @Valid | ✅ | Đã hoàn thành 03/04/2026 |
 | Phase Project | Quản lý dự án: CRUD Dự án + Gán nhân sự & Role trong dự án (PM, Dev, QA...) | ✅ | Đã hoàn thành 06/04/2026 |
+| Phase RBAC UI | RBAC UI Redesign: Permission read-only + CRUD Role + Matrix + Light/Dark theme | ✅ | Đã hoàn thành 09/04/2026 |
 
 **Rule:** Chỉ chuyển phase tiếp khi phase hiện tại chạy đúng local. AI không tự chuyển phase — human confirm.
 

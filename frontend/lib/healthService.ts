@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useSyncExternalStore } from 'react';
+import { resolveApiBaseUrl } from './runtimeApiBase';
 
 type BackendStatus = 'READY' | 'NOT_READY' | 'UNKNOWN';
 type DatabaseStatus = 'UP' | 'DOWN' | 'UNKNOWN';
@@ -37,7 +38,7 @@ let currentIntervalMs = BASE_INTERVAL_MS;
 let visibilityBound = false;
 
 function getHealthUrl() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
+  const baseUrl = resolveApiBaseUrl();
   return `${baseUrl}/api/health/ready`;
 }
 

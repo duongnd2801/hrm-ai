@@ -2,8 +2,7 @@ package com.hrm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -27,11 +26,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "role", nullable = false, columnDefinition = "role_type")
-    @Builder.Default
-    private RoleType role = RoleType.EMPLOYEE;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

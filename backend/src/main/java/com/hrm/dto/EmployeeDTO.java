@@ -3,7 +3,6 @@ package com.hrm.dto;
 import com.hrm.entity.ContractType;
 import com.hrm.entity.EmpStatus;
 import com.hrm.entity.GenderType;
-import com.hrm.entity.RoleType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -15,7 +14,7 @@ import java.util.UUID;
 public class EmployeeDTO {
     private UUID id;
     private UUID userId;
-    private RoleType role;
+    private String role;
 
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 255, message = "Họ tên không được vượt quá 255 ký tự")

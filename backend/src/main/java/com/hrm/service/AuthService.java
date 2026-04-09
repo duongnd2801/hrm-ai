@@ -90,18 +90,23 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(User user) {
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole().name());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getRole().name());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole().getName());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getRole().getName());
         Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
         boolean profileCompleted = employee == null || isProfileCompleted(employee);
+
+        java.util.List<String> permissions = user.getRole().getPermissions().stream()
+                .map(com.hrm.entity.Permission::getCode)
+                .collect(java.util.stream.Collectors.toList());
 
         return new AuthResponse(
                 accessToken,
                 refreshToken,
                 user.getEmail(),
-                user.getRole().name(),
+                user.getRole().getName(),
                 employee != null ? employee.getId() : null,
-                profileCompleted
+                profileCompleted,
+                permissions
         );
     }
 }

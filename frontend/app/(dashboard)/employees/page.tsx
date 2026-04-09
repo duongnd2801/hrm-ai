@@ -33,7 +33,8 @@ export default function EmployeesPage() {
   }, [refreshKey]);
 
   if (!session) return null;
-  const canManage = hasRole('ADMIN', 'HR');
+  const canView = session.permissions.includes('EMP_VIEW');
+  const canCreate = session.permissions.includes('EMP_CREATE');
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
@@ -72,7 +73,7 @@ export default function EmployeesPage() {
             <p className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Cơ sở dữ liệu nhân sự công ty</p>
          </div>
 
-         {canManage && (
+         {canCreate && (
             <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl mt-6 md:mt-0 px-4 py-3">
                <button
                   onClick={() => setShowCreate(true)}

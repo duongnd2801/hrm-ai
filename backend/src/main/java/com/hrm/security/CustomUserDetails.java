@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,21 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        
+        // Add Role (prefix ROLE_)
+        if (user.getRole() != null) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+            
+            // Add permission codes as-is so @PreAuthorize can use the DB code directly.
+            if (user.getRole().getPermissions() != null) {
+                user.getRole().getPermissions().forEach(perm -> 
+                    authorities.add(new SimpleGrantedAuthority(perm.getCode()))
+                );
+            }
+        }
+        
+        return authorities;
     }
 
     @Override public String getPassword()  { return user.getPassword(); }

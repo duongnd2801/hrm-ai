@@ -3,8 +3,9 @@ package com.hrm.service;
 import com.hrm.dto.PageResponse;
 import com.hrm.dto.UpdateUserRoleRequest;
 import com.hrm.dto.UserManagementDTO;
-import com.hrm.entity.RoleType;
+import com.hrm.repository.RoleRepository;
 import com.hrm.entity.User;
+import com.hrm.entity.Role;
 import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class UserManagementService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private static final String DEFAULT_PASSWORD = "Emp@123";
@@ -29,9 +31,9 @@ public class UserManagementService {
     public com.hrm.dto.UserStatsDTO getUserStats() {
         return com.hrm.dto.UserStatsDTO.builder()
                 .total(userRepository.count())
-                .admins(userRepository.countByRole(RoleType.ADMIN) + userRepository.countByRole(RoleType.HR))
-                .managers(userRepository.countByRole(RoleType.MANAGER))
-                .employees(userRepository.countByRole(RoleType.EMPLOYEE))
+                .admins(userRepository.countByRole_Name("ADMIN") + userRepository.countByRole_Name("HR"))
+                .managers(userRepository.countByRole_Name("MANAGER"))
+                .employees(userRepository.countByRole_Name("EMPLOYEE"))
                 .build();
     }
 
@@ -77,14 +79,12 @@ public class UserManagementService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        try {
-            RoleType newRole = RoleType.valueOf(request.getRole().toUpperCase());
-            user.setRole(newRole);
-            User updated = userRepository.save(user);
-            return mapToDTO(updated);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Quản trị viên không hợp lệ: " + request.getRole());
-        }
+        Role role = roleRepository.findByName(request.getRole().toUpperCase())
+                .orElseThrow(() -> new RuntimeException("Role không hợp lệ: " + request.getRole()));
+        
+        user.setRole(role);
+        User updated = userRepository.save(user);
+        return mapToDTO(updated);
     }
 
     /**
@@ -109,7 +109,7 @@ public class UserManagementService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Prevent deleting ADMIN users
-        if (user.getRole() == RoleType.ADMIN) {
+        if ("ADMIN".equals(user.getRole().getName())) {
             throw new RuntimeException("Không thể xóa tài khoản Admin hệ thống");
         }
 

@@ -8,7 +8,6 @@ import com.hrm.dto.ChatHistoryItemDto;
 import com.hrm.dto.ChatRequestDto;
 import com.hrm.dto.ChatResponseDto;
 import com.hrm.entity.ChatMessage;
-import com.hrm.entity.RoleType;
 import com.hrm.entity.User;
 import com.hrm.repository.ChatMessageRepository;
 import com.hrm.repository.UserRepository;
@@ -135,29 +134,29 @@ public class ChatService {
         }
 
         User user = resolveCurrentUser(authentication);
-        saveMessage(user, user.getRole(), userMessage, true, null);
+        saveMessage(user, user.getRole().getName(), userMessage, true, null);
 
         String sanityResponse = tryHandleSimpleSanity(userMessage);
         if (sanityResponse != null) {
-            saveMessage(user, user.getRole(), sanityResponse, false, null);
+            saveMessage(user, user.getRole().getName(), sanityResponse, false, null);
             return ChatResponseDto.builder().message(sanityResponse).timestamp(LocalDateTime.now()).build();
         }
 
         String dateTimeResponse = tryHandleDateTime(userMessage);
         if (dateTimeResponse != null) {
-            saveMessage(user, user.getRole(), dateTimeResponse, false, null);
+            saveMessage(user, user.getRole().getName(), dateTimeResponse, false, null);
             return ChatResponseDto.builder().message(dateTimeResponse).timestamp(LocalDateTime.now()).build();
         }
 
         String socialResponse = tryHandleLightweightSocial(userMessage);
         if (socialResponse != null) {
-            saveMessage(user, user.getRole(), socialResponse, false, null);
+            saveMessage(user, user.getRole().getName(), socialResponse, false, null);
             return ChatResponseDto.builder().message(socialResponse).timestamp(LocalDateTime.now()).build();
         }
 
         String ackResponse = tryHandleShortAck(userMessage, request.getHistory());
         if (ackResponse != null) {
-            saveMessage(user, user.getRole(), ackResponse, false, null);
+            saveMessage(user, user.getRole().getName(), ackResponse, false, null);
             return ChatResponseDto.builder().message(ackResponse).timestamp(LocalDateTime.now()).build();
         }
 
@@ -174,7 +173,7 @@ public class ChatService {
                         request.getYear()
                 );
                 String finalAnswer = summarizeWithGemini(user, request, userMessage, forced.toolName(), toolResult);
-                saveMessage(user, user.getRole(), finalAnswer, false, forced.toolName());
+                saveMessage(user, user.getRole().getName(), finalAnswer, false, forced.toolName());
                 return ChatResponseDto.builder()
                         .message(finalAnswer)
                         .toolName(forced.toolName())
@@ -184,7 +183,7 @@ public class ChatService {
             }
             
             if (shouldHardReject(userMessage, request.getHistory())) {
-                saveMessage(user, user.getRole(), NON_HRM_FALLBACK, false, null);
+                saveMessage(user, user.getRole().getName(), NON_HRM_FALLBACK, false, null);
                 return ChatResponseDto.builder().message(NON_HRM_FALLBACK).timestamp(LocalDateTime.now()).build();
             }
 
@@ -212,7 +211,7 @@ public class ChatService {
                 finalAnswer = "Mình đã nhận yêu cầu, nhưng chưa thể tạo phản hồi phù hợp. Bạn vui lòng hỏi lại rõ hơn.";
             }
 
-            saveMessage(user, user.getRole(), finalAnswer, false, toolName);
+            saveMessage(user, user.getRole().getName(), finalAnswer, false, toolName);
             return ChatResponseDto.builder()
                     .message(finalAnswer)
                     .toolName(toolName)
@@ -221,7 +220,7 @@ public class ChatService {
                     .build();
         } catch (Exception ex) {
             if (isTimeoutException(ex)) {
-                saveMessage(user, user.getRole(), FRIENDLY_BUSY_MESSAGE, false, null);
+                saveMessage(user, user.getRole().getName(), FRIENDLY_BUSY_MESSAGE, false, null);
                 return ChatResponseDto.builder().message(FRIENDLY_BUSY_MESSAGE).timestamp(LocalDateTime.now()).build();
             }
             throw ex;
@@ -355,7 +354,7 @@ public class ChatService {
 
     private PlanDecision decideWithGemini(User user, ChatRequestDto request, String userMessage) {
         if (geminiApiKey == null || geminiApiKey.isBlank()) {
-            return fallbackDecision(userMessage, request);
+            return fallbackDecision(user, userMessage, request);
         }
 
         try {
@@ -374,7 +373,7 @@ public class ChatService {
                     Câu hỏi user: %s
                     """.formatted(
                     TOOL_PLANNER_PROMPT,
-                    user.getRole().name(),
+                    user.getRole().getName(),
                     LocalDateTime.now(),
                     historyLines,
                     userMessage
@@ -396,12 +395,12 @@ public class ChatService {
             if (!directResponse.isBlank()) {
                 return new PlanDecision(false, "none", objectMapper.createObjectNode(), directResponse);
             }
-            return fallbackDecision(userMessage, request);
+            return fallbackDecision(user, userMessage, request);
         } catch (Exception ex) {
             if (isTimeoutException(ex)) {
                 return new PlanDecision(false, "none", objectMapper.createObjectNode(), FRIENDLY_BUSY_MESSAGE);
             }
-            return fallbackDecision(userMessage, request);
+            return fallbackDecision(user, userMessage, request);
         }
     }
 
@@ -435,7 +434,7 @@ public class ChatService {
                     - Nếu dữ liệu rỗng, hãy báo cáo trung thực và hỏi user có muốn cung cấp thêm thông tin không.
                     """.formatted(
                             SYSTEM_PROMPT, 
-                            user.getRole().name(), 
+                            user.getRole().getName(), 
                             java.time.LocalDateTime.now(),
                             userMessage, 
                             historyLines, 
@@ -553,7 +552,7 @@ public class ChatService {
             return String.valueOf(value);
         }
     }
-    private PlanDecision fallbackDecision(String userMessage, ChatRequestDto request) {
+    private PlanDecision fallbackDecision(User user, String userMessage, ChatRequestDto request) {
         PlanDecision forced = forcedToolDecision(userMessage, request);
         if (forced != null) {
             return forced;
@@ -607,7 +606,7 @@ public class ChatService {
         }
 
         // Help guide as a later resort in fallback
-        String guide = tryHandleSystemGuide(userMessage, request.getHistory() != null ? RoleType.EMPLOYEE : RoleType.EMPLOYEE); // Role derived roughly or just Employee for guide
+        String guide = tryHandleSystemGuide(userMessage, user.getRole().getName()); 
         if (guide != null) {
             return new PlanDecision(false, "none", args, guide);
         }
@@ -885,7 +884,7 @@ public class ChatService {
         return null;
     }
 
-    private String tryHandleSystemGuide(String message, RoleType role) {
+    private String tryHandleSystemGuide(String message, String role) {
         String text = normalizeText(message);
 
         if (containsAny(text, "he thong co gi", "co nhung chuc nang", "cac chuc nang", "module", "menu nao")) {
@@ -894,10 +893,11 @@ public class ChatService {
 
         if (containsAny(text, "phan quyen", "quyen", "role")) {
             return switch (role) {
-                case ADMIN -> "Bạn đang là ADMIN: được quản lý user, cấu hình, nhân viên và theo dõi toàn bộ dữ liệu.";
-                case HR -> "Bạn đang là HR: được quản lý nhân sự, tính lương, xuất báo cáo và xử lý nghiệp vụ HR.";
-                case MANAGER -> "Bạn đang là MANAGER: được duyệt đơn của team và xem thống kê team theo phạm vi được giao.";
-                case EMPLOYEE -> "Bạn đang là EMPLOYEE: xem dữ liệu cá nhân, gửi đơn nghỉ/giải trình/OT và theo dõi bảng lương của mình.";
+                case "ADMIN" -> "Bạn đang là ADMIN: được quản lý user, cấu hình, nhân viên và theo dõi toàn bộ dữ liệu.";
+                case "HR" -> "Bạn đang là HR: được quản lý nhân sự, tính lương, xuất báo cáo và xử lý nghiệp vụ HR.";
+                case "MANAGER" -> "Bạn đang là MANAGER: được duyệt đơn của team và xem thống kê team theo phạm vi được giao.";
+                case "EMPLOYEE" -> "Bạn đang là EMPLOYEE: xem dữ liệu cá nhân, gửi đơn nghỉ/giải trình/OT và theo dõi bảng lương của mình.";
+                default -> "Bạn đang đăng nhập với quyền " + role + ".";
             };
         }
 
@@ -971,7 +971,7 @@ public class ChatService {
         if (isHrmRelated(text) || isContextualFollowUp(text, history)) return false;
         if (tryHandleSimpleSanity(text) != null) return false;
         if (tryHandleLightweightSocial(text) != null) return false;
-        if (tryHandleSystemGuide(text, RoleType.EMPLOYEE) != null) return false;
+        if (tryHandleSystemGuide(text, "EMPLOYEE") != null) return false;
         return isClearlyOutOfScope(text);
     }
 
@@ -1205,7 +1205,7 @@ public class ChatService {
         return false;
     }
 
-    private void saveMessage(User user, RoleType role, String content, boolean isUserMessage, String toolName) {
+    private void saveMessage(User user, String role, String content, boolean isUserMessage, String toolName) {
         chatMessageRepository.save(ChatMessage.builder()
                 .user(user)
                 .role(role)

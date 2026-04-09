@@ -3,8 +3,8 @@ package com.hrm.dto;
 import com.hrm.entity.ApologyStatus;
 import com.hrm.entity.LeaveType;
 import lombok.Data;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -17,6 +17,7 @@ public class LeaveRequestDTO {
     private LocalDate endDate;
     private String reason;
     private ApologyStatus status;
-    private UUID reviewedBy;
-    private String reviewerEmail;
+    private String reviewNote;
+    private String reviewedByName;
+    private LocalDateTime createdAt;
 }

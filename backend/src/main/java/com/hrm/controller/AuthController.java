@@ -50,6 +50,7 @@ public class AuthController {
         body.put("role", authResponse.getRole());
         body.put("employeeId", authResponse.getEmployeeId());
         body.put("profileCompleted", authResponse.isProfileCompleted());
+        body.put("permissions", authResponse.getPermissions());
         body.put("message", "Đăng nhập thành công");
 
         return ResponseEntity.ok(body);
@@ -84,6 +85,7 @@ public class AuthController {
             body.put("role", authResponse.getRole());
             body.put("employeeId", authResponse.getEmployeeId());
             body.put("profileCompleted", authResponse.isProfileCompleted());
+            body.put("permissions", authResponse.getPermissions());
 
             return ResponseEntity.ok(body);
         } catch (Exception e) {
@@ -108,10 +110,24 @@ public class AuthController {
         }
 
         String email = auth.getName();
+        java.util.Set<String> roleAuthorities = java.util.Set.of(
+                "ROLE_ADMIN",
+                "ROLE_HR",
+                "ROLE_MANAGER",
+                "ROLE_EMPLOYEE"
+        );
+
         String role = auth.getAuthorities().stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .filter(roleAuthorities::contains)
                 .findFirst()
-                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .map(a -> a.replace("ROLE_", ""))
                 .orElse("EMPLOYEE");
+
+        java.util.List<String> permissionsList = auth.getAuthorities().stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .filter(a -> !roleAuthorities.contains(a))
+                .collect(java.util.stream.Collectors.toList());
 
         Employee employee = employeeRepository.findAll().stream()
                 .filter(e -> email.equals(e.getEmail()))
@@ -123,6 +139,7 @@ public class AuthController {
         body.put("role", role);
         body.put("employeeId", employee != null ? employee.getId() : null);
         body.put("profileCompleted", employee == null || isProfileCompleted(employee));
+        body.put("permissions", permissionsList);
 
         return ResponseEntity.ok(body);
     }

@@ -14,4 +14,5 @@ public class AuthResponse {
     private String role;
     private UUID employeeId;
     private boolean profileCompleted;
+    private java.util.List<String> permissions;
 }

@@ -1,129 +1,113 @@
 package com.hrm.service;
 
-import com.hrm.dto.LeaveCreateRequest;
 import com.hrm.dto.LeaveRequestDTO;
-import com.hrm.entity.*;
+import com.hrm.entity.ApologyStatus;
+import com.hrm.entity.Employee;
+import com.hrm.entity.LeaveRequest;
+import com.hrm.entity.User;
 import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.LeaveRequestRepository;
 import com.hrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LeaveRequestService {
-
     private final LeaveRequestRepository leaveRequestRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public LeaveRequestDTO createMyRequest(LeaveCreateRequest request, Authentication authentication) {
-        if (request.getType() == null || request.getStartDate() == null || request.getEndDate() == null) {
-            throw new IllegalArgumentException("Thông tin nghỉ phép/OT không hợp lệ.");
-        }
-        if (request.getEndDate().isBefore(request.getStartDate())) {
-            throw new IllegalArgumentException("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu.");
-        }
-
+    @Transactional(readOnly = true)
+    public List<LeaveRequestDTO> getMyLeaveRequests(Authentication authentication) {
         Employee employee = resolveCurrentEmployee(authentication);
-        
-        // Check for overlapping requests
-        List<LeaveRequest> overlapping = leaveRequestRepository.findOverlappingRequests(
-                employee, request.getStartDate(), request.getEndDate());
-        
-        if (!overlapping.isEmpty()) {
-            throw new IllegalArgumentException("Nhân viên đã có đơn nghỉ/OT chồng lấn với khoảng ngày này. " +
-                    "Vui lòng chọn khoảng ngày khác hoặc kiểm tra các đơn đang chờ duyệt.");
-        }
-        
-        LeaveRequest entity = LeaveRequest.builder()
-                .employee(employee)
-                .type(request.getType())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .reason(request.getReason())
-                .status(ApologyStatus.PENDING)
-                .build();
-
-        return toDto(leaveRequestRepository.save(entity));
+        return leaveRequestRepository.findByEmployeeIdOrderByStartDateDesc(employee.getId()).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<LeaveRequestDTO> getMyRequests(Authentication authentication) {
-        Employee employee = resolveCurrentEmployee(authentication);
-        return leaveRequestRepository.findByEmployeeOrderByCreatedAtDesc(employee).stream().map(this::toDto).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<LeaveRequestDTO> getPendingRequests(Authentication authentication) {
-        ensureReviewer(authentication);
-        return leaveRequestRepository.findByStatusOrderByCreatedAtAsc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<LeaveRequestDTO> getReviewedRequests(Authentication authentication) {
-        ensureReviewer(authentication);
-        return leaveRequestRepository.findByStatusNotOrderByCreatedAtDesc(ApologyStatus.PENDING).stream().map(this::toDto).toList();
+    public List<LeaveRequestDTO> getAllLeaveRequests() {
+        return leaveRequestRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public LeaveRequestDTO review(UUID requestId, boolean approved, Authentication authentication) {
-        ensureReviewer(authentication);
-        User reviewer = resolveCurrentUser(authentication);
-        LeaveRequest request = leaveRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn nghỉ phép/OT."));
+    public LeaveRequestDTO createLeaveRequest(LeaveRequestDTO dto, Authentication authentication) {
+        Employee employee = resolveCurrentEmployee(authentication);
+        LeaveRequest leaveRequest = new LeaveRequest();
+        leaveRequest.setEmployee(employee);
+        leaveRequest.setType(dto.getType());
+        leaveRequest.setStartDate(dto.getStartDate());
+        leaveRequest.setEndDate(dto.getEndDate());
+        leaveRequest.setReason(dto.getReason());
+        leaveRequest.setStatus(ApologyStatus.PENDING);
+        return toDTO(leaveRequestRepository.save(leaveRequest));
+    }
 
-        if (request.getStatus() != ApologyStatus.PENDING) {
-            throw new IllegalArgumentException("Đơn đã được xử lý trước đó.");
+    @Transactional
+    public LeaveRequestDTO approveLeaveRequest(UUID id, Authentication authentication) {
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("LeaveRequest not found"));
+        User user = resolveCurrentUser(authentication);
+        leaveRequest.setStatus(ApologyStatus.APPROVED);
+        leaveRequest.setReviewedBy(user);
+        return toDTO(leaveRequestRepository.save(leaveRequest));
+    }
+
+    @Transactional
+    public LeaveRequestDTO rejectLeaveRequest(UUID id, Authentication authentication) {
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("LeaveRequest not found"));
+        User user = resolveCurrentUser(authentication);
+        leaveRequest.setStatus(ApologyStatus.REJECTED);
+        leaveRequest.setReviewedBy(user);
+        return toDTO(leaveRequestRepository.save(leaveRequest));
+    }
+
+    @Transactional
+    public LeaveRequestDTO review(UUID id, boolean approved, Authentication authentication) {
+        if (approved) {
+            return approveLeaveRequest(id, authentication);
+        } else {
+            return rejectLeaveRequest(id, authentication);
         }
-
-        request.setStatus(approved ? ApologyStatus.APPROVED : ApologyStatus.REJECTED);
-        request.setReviewedBy(reviewer);
-        return toDto(leaveRequestRepository.save(request));
     }
 
     private Employee resolveCurrentEmployee(Authentication authentication) {
-        User user = resolveCurrentUser(authentication);
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         return employeeRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Tài khoản chưa được gán hồ sơ nhân viên."));
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
     }
 
     private User resolveCurrentUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản đăng nhập."));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    private void ensureReviewer(Authentication authentication) {
-        boolean allowed = authentication.getAuthorities().stream().anyMatch(a ->
-                a.getAuthority().equals("ROLE_MANAGER")
-                        || a.getAuthority().equals("ROLE_HR")
-                        || a.getAuthority().equals("ROLE_ADMIN"));
-        if (!allowed) {
-            throw new AccessDeniedException("Bạn không có quyền duyệt đơn.");
-        }
-    }
-
-    private LeaveRequestDTO toDto(LeaveRequest entity) {
+    private LeaveRequestDTO toDTO(LeaveRequest leaveRequest) {
         LeaveRequestDTO dto = new LeaveRequestDTO();
-        dto.setId(entity.getId());
-        dto.setEmployeeId(entity.getEmployee().getId());
-        dto.setEmployeeName(entity.getEmployee().getFullName());
-        dto.setType(entity.getType());
-        dto.setStartDate(entity.getStartDate());
-        dto.setEndDate(entity.getEndDate());
-        dto.setReason(entity.getReason());
-        dto.setStatus(entity.getStatus());
-        if (entity.getReviewedBy() != null) {
-            dto.setReviewedBy(entity.getReviewedBy().getId());
-            dto.setReviewerEmail(entity.getReviewedBy().getEmail());
+        dto.setId(leaveRequest.getId());
+        dto.setEmployeeId(leaveRequest.getEmployee().getId());
+        dto.setEmployeeName(leaveRequest.getEmployee().getFullName());
+        dto.setType(leaveRequest.getType());
+        dto.setStartDate(leaveRequest.getStartDate());
+        dto.setEndDate(leaveRequest.getEndDate());
+        dto.setReason(leaveRequest.getReason());
+        dto.setStatus(leaveRequest.getStatus());
+        if (leaveRequest.getReviewedBy() != null) {
+            dto.setReviewedByName(leaveRequest.getReviewedBy().getEmail());
         }
+        dto.setCreatedAt(leaveRequest.getCreatedAt());
         return dto;
     }
 }

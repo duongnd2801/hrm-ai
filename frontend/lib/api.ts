@@ -2,9 +2,9 @@ import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { clearSession, saveSession } from './auth';
 import type { ChatHistoryItem, ChatMessageRequest, ChatMessageResponse, UserSession } from '@/types';
+import { resolveApiBaseUrl } from './runtimeApiBase';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
+const API_BASE_URL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

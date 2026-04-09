@@ -205,3 +205,11 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - Cập nhật GlobalExceptionHandler.java thêm handler cho IllegalArgumentException trả về 400 Bad Request giúp UX tốt hơn.
   - Thực hiện simulation 10 requests đồng thời: Kết quả 1 SUCCESS, 9 FAILED (400) đúng kỳ vọng.
   - Dọn dẹp test_race.js, sẵn sàng cho D14.
+- [2026-04-09T09:17:00+07:00] **RBAC UI Redesign & Light/Dark Theme Sync**:
+  - **Permission page:** Chuyển từ CRUD sang **read-only catalog**. Xóa toàn bộ nút Thêm/Sửa/Xóa, PermissionDialog import, context menu. Admin chỉ xem danh mục quyền và thấy role nào đang dùng quyền đó.
+  - **Roles page:** Giữ nguyên CRUD (tạo/sửa/xóa role) đầy đủ.
+  - **Matrix page:** Giữ nguyên tính năng tích chọn gán permission cho role.
+  - **Light/Dark theme:** Đồng bộ toàn bộ 5 file (permissions/page, roles/page, matrix/page, RbacConsoleNav, RoleDialog) hỗ trợ cả 2 chủ đề sáng/tối theo pattern `dark:` prefix giống các trang Employee, Dashboard.
+  - **RbacConsoleNav:** Đổi label "Quản lý permission" → "Danh mục quyền (chỉ đọc)", cập nhật mô tả phù hợp.
+  - **Build:** `next build` passed ✅ — 0 errors, 0 warnings.
+  - **BE:** Không thay đổi — giữ nguyên API CRUD Permission phía backend cho dev/migration.

@@ -2,8 +2,7 @@ package com.hrm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,10 +23,8 @@ public class ChatMessage {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(nullable = false, columnDefinition = "role_type")
-    private RoleType role;
+    @Column(nullable = false)
+    private String role; // Lưu Role Name hiện tại (ADMIN, HR, ...)
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

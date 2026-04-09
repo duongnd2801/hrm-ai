@@ -7,6 +7,7 @@ export interface AuthResponse {
   role: RoleType;
   employeeId?: string;
   profileCompleted?: boolean;
+  permissions: string[];
 }
 
 export interface UserSession {
@@ -14,6 +15,7 @@ export interface UserSession {
   role: RoleType;
   employeeId?: string;
   profileCompleted?: boolean;
+  permissions: string[];
 }
 
 export type AttendanceStatus = 'PENDING' | 'ON_TIME' | 'LATE' | 'INSUFFICIENT' | 'ABSENT' | 'APPROVED' | 'DAY_OFF';
@@ -134,7 +136,7 @@ export interface Apology {
   reviewNote?: string;
 }
 
-export interface LeaveRequest {
+export interface LeaveRequestDTO {
   id: string;
   employeeId: string;
   employeeName?: string;
@@ -143,8 +145,9 @@ export interface LeaveRequest {
   endDate: string;
   reason?: string;
   status: ApologyStatus;
-  reviewedBy?: string;
-  reviewerEmail?: string;
+  reviewNote?: string;
+  reviewedByName?: string;
+  createdAt?: string;
 }
 
 export interface OTRequest {
@@ -221,4 +224,20 @@ export interface ProjectMember {
   role: ProjectRole;
   joinedAt?: string;
   leftAt?: string;
+}
+
+
+export interface RoleDTO {
+  id?: string;
+  name: string;
+  description?: string;
+  permissions: string[]; // List of codes
+  createdAt?: string;
+}
+
+export interface PermissionDTO {
+  id?: string;
+  name: string;
+  code: string;
+  module: string;
 }

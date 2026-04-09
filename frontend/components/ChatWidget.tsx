@@ -50,6 +50,17 @@ function isoNow() {
   return new Date().toISOString();
 }
 
+function generateId() {
+  if (typeof globalThis !== 'undefined') {
+    const cryptoObj = globalThis.crypto as Crypto | undefined;
+    if (cryptoObj && typeof cryptoObj.randomUUID === 'function') {
+      return cryptoObj.randomUUID();
+    }
+  }
+
+  return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
 function makeSessionTitle(firstUserMessage: string) {
   const text = firstUserMessage.trim();
   if (!text) return 'Cuộc trò chuyện mới';
@@ -58,7 +69,7 @@ function makeSessionTitle(firstUserMessage: string) {
 
 function createEmptySession(): ChatSession {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     title: 'Cuộc trò chuyện mới',
     updatedAt: isoNow(),
     messages: [],
@@ -141,7 +152,7 @@ export default function ChatWidget() {
         const history = await chatApi.getHistory();
         if (mounted && history.length > 0) {
           const mapped: UiMessage[] = history.map((h) => ({
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: h.role === 'assistant' ? 'assistant' : 'user',
             content: h.content,
             timestamp: h.timestamp
@@ -150,7 +161,7 @@ export default function ChatWidget() {
           }));
           const firstUser = mapped.find((m) => m.role === 'user')?.content || '';
           const session: ChatSession = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             title: makeSessionTitle(firstUser || 'Hỏi đáp HRM'),
             updatedAt: isoNow(),
             messages: mapped.slice(-120),
@@ -170,7 +181,7 @@ export default function ChatWidget() {
           if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
             const firstUser = parsedLegacy.find((m) => m.role === 'user')?.content || '';
             const session: ChatSession = {
-              id: crypto.randomUUID(),
+              id: generateId(),
               title: makeSessionTitle(firstUser || 'Hỏi đáp HRM'),
               updatedAt: isoNow(),
               messages: parsedLegacy.slice(-120),
@@ -272,7 +283,7 @@ export default function ChatWidget() {
 
     const content = text.trim();
     const userMsg: UiMessage = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: 'user',
       content,
       timestamp: nowLabel(),
@@ -301,7 +312,7 @@ export default function ChatWidget() {
       });
 
       const botMsg: UiMessage = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: 'assistant',
         content: data.message || 'Mình chưa có phản hồi phù hợp.',
         timestamp: nowLabel(),
@@ -317,7 +328,7 @@ export default function ChatWidget() {
     } catch (error: unknown) {
       const err = error as ApiErrorShape;
       const botErr: UiMessage = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: 'assistant',
         content: err?.response?.data?.message || err?.message || 'Không thể kết nối chatbot lúc này.',
         timestamp: nowLabel(),

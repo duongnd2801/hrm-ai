@@ -8,16 +8,19 @@ import Avatar from './Avatar';
 
 export const NAV_ITEMS = [
   { href: '/dashboard', label: 'Tổng quan', icon: 'grid', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/employees', label: 'Nhân viên', icon: 'users', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/projects', label: 'Dự án', icon: 'project', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/attendance', label: 'Chấm công', icon: 'calendar', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
+  { href: '/employees', label: 'Nhân viên', icon: 'users', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'EMP_VIEW' },
+  { href: '/projects', label: 'Dự án', icon: 'project', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'PROJ_VIEW' },
+  { href: '/attendance', label: 'Chấm công', icon: 'calendar', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'ATT_VIEW' },
   { href: '/apologies', label: 'Giải trình', icon: 'file-text', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/leave', label: 'Nghỉ phép', icon: 'umbrella', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/ot', label: 'Tăng ca', icon: 'clock', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/payroll', label: 'Bảng lương', icon: 'banknote', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
+  { href: '/payroll', label: 'Bảng lương', icon: 'banknote', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'PAY_VIEW' },
   { href: '/holidays', label: 'Ngày lễ', icon: 'holiday', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/company', label: 'Cấu hình', icon: 'settings', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/users', label: 'Quản lý TK', icon: 'users-admin', roles: ['ADMIN'] },
+  { href: '/settings/roles/matrix', label: 'Phân quyền', icon: 'shield', roles: ['ADMIN'], permission: 'ROLE_UPDATE' },
+  { href: '/settings/roles', label: 'Role', icon: 'shield', roles: ['ADMIN'], permission: 'ROLE_VIEW' },
+  { href: '/settings/permissions', label: 'Permission', icon: 'key', roles: ['ADMIN'], permission: 'PERM_VIEW' },
 ];
 
 function Icon({ name }: { name: string }) {
@@ -47,6 +50,10 @@ function Icon({ name }: { name: string }) {
       return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.118v0H5.622c-1.085-.082-1.872-1.024-1.872-2.118v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg>;
     case 'sparkles':
       return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.456-2.454L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>;
+    case 'shield':
+      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21a3.745 3.745 0 01-3.141-1.593 3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" /></svg>;
+    case 'key':
+      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3.75 3.75 0 11-5.303 5.303L3.75 17.25v3h3v-3h3l1.697-1.697a3.75 3.75 0 014.553-5.803z" /></svg>;
     default:
       return null;
   }
@@ -60,7 +67,18 @@ interface SidebarProps {
 
 export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const visibleItems = NAV_ITEMS.filter((item) => hasRole(...item.roles));
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    // 1. Check Role first
+    const hasRequiredRole = item.roles.includes(session.role);
+    if (!hasRequiredRole) return false;
+
+    // 2. Check Permission if defined
+    if (item.permission) {
+      return session.permissions?.includes(item.permission) ?? false;
+    }
+
+    return true;
+  });
 
   return (
       <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-50 md:z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl fixed inset-y-0 left-0 md:relative ${collapsed ? '-translate-x-full md:translate-x-0 w-[280px] md:w-[88px]' : 'translate-x-0 w-[280px]'}`}>

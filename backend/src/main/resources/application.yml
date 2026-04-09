@@ -24,6 +24,16 @@ spring:
     default-schema: hrm
     create-schemas: true
 
+server:
+  address: 0.0.0.0
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
 jwt:
   secret: hrm-jwt-secret-key-for-local-development-2024-min32chars
   expiration: 86400000   # 24h in ms
@@ -31,16 +41,8 @@ jwt:
 
 gemini:
   api:
-  key: ${GEMINI_API_KEY:AIzaSyAzu5F2ICze9ii7CsZxCBeMuOhOwSbCRfo}
-  model: ${GEMINI_MODEL:gemini-3-flash}
-
-server:
-  port: 8080
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
+    key: ${GEMINI_API_KEY:AIzaSyAzu5F2ICze9ii7CsZxCBeMuOhOwSbCRfo}
+    model: ${GEMINI_MODEL:gemini-3-flash}
 
 springdoc:
   swagger-ui:

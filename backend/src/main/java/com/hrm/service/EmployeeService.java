@@ -6,8 +6,8 @@ import com.hrm.dto.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.hrm.dto.EmployeeDTO;
-import com.hrm.entity.*;
 import com.hrm.repository.*;
+import com.hrm.entity.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,6 +27,7 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final AttendanceRepository attendanceRepository;
@@ -102,7 +103,10 @@ public class EmployeeService {
             User user = new User();
             user.setEmail(normalizedEmail);
             user.setPassword(passwordEncoder.encode("Emp@123")); // Default password
-            user.setRole(RoleType.EMPLOYEE);
+            
+            Role employeeRole = roleRepository.findByName("EMPLOYEE")
+                    .orElseThrow(() -> new RuntimeException("Default Role EMPLOYEE not found"));
+            user.setRole(employeeRole);
             user = userRepository.save(user);
 
             Employee emp = new Employee();
@@ -131,8 +135,10 @@ public class EmployeeService {
                 user.setEmail(dto.getEmail());
                 userChanged = true;
             }
-            if (dto.getRole() != null && !user.getRole().equals(dto.getRole())) {
-                user.setRole(dto.getRole());
+            if (dto.getRole() != null && !user.getRole().getName().equals(dto.getRole())) {
+                Role newRole = roleRepository.findByName(dto.getRole().toUpperCase())
+                        .orElseThrow(() -> new RuntimeException("Role không hợp lệ: " + dto.getRole()));
+                user.setRole(newRole);
                 userChanged = true;
             }
             if (userChanged) {
@@ -171,7 +177,9 @@ public class EmployeeService {
         BeanUtils.copyProperties(emp, dto);
         if (emp.getUser() != null) {
             dto.setUserId(emp.getUser().getId());
-            dto.setRole(emp.getUser().getRole());
+            if (emp.getUser().getRole() != null) {
+                dto.setRole(emp.getUser().getRole().getName());
+            }
         }
         if (emp.getDepartment() != null) {
             dto.setDepartmentId(emp.getDepartment().getId());

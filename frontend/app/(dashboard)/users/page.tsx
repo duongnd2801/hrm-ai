@@ -3,6 +3,8 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { roleApi } from '@/lib/roleApi';
+import type { RoleDTO } from '@/types';
 import DraggableModal from '@/components/DraggableModal';
 import Toast, { ToastState } from '@/components/Toast';
 import { Key, ShieldCheck, User as UserIcon, RefreshCcw, Trash2, Search, MoreHorizontal, UserCog, ChevronLeft, ChevronRight, Eye, Calendar, Mail, Tag } from 'lucide-react';
@@ -33,11 +35,22 @@ export default function UserManagementPage() {
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
   const [globalStats, setGlobalStats] = useState({ total: 0, admins: 0, managers: 0, employees: 0 });
+  const [allRoles, setAllRoles] = useState<RoleDTO[]>([]);
 
   useEffect(() => {
     void fetchUsers();
     void fetchStats();
+    void fetchRoles();
   }, [page]);
+
+  const fetchRoles = async () => {
+    try {
+      const data = await roleApi.getAllRoles();
+      setAllRoles(data);
+    } catch (err) {
+      console.error('Failed to fetch roles');
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -350,29 +363,32 @@ export default function UserManagementPage() {
             {/* Premium Role Selector */}
             <div className="space-y-6">
                <div className="grid grid-cols-2 gap-3">
-                  {(['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'] as const).map((role) => (
+                  {allRoles.map((role) => (
                     <button
-                      key={role}
-                      onClick={() => setNewRole(role)}
+                      key={role.id || role.name}
+                      onClick={() => setNewRole(role.name)}
                       className={`relative p-5 rounded-3xl border transition-all duration-300 text-left group overflow-hidden ${
-                        newRole === role 
+                        newRole === role.name 
                         ? 'bg-indigo-600 border-indigo-600 shadow-[0_15px_35px_rgba(79,70,229,0.3)]' 
                         : 'bg-slate-900/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:border-indigo-500/30'
                       }`}
                     >
-                      <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${newRole === role ? 'text-white/70' : 'text-slate-400 dark:text-white/30'}`}>
+                      <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${newRole === role.name ? 'text-white/70' : 'text-slate-400 dark:text-white/30'}`}>
                         VAI TRÒ
                       </div>
-                      <div className={`text-xs font-black uppercase tracking-widest ${newRole === role ? 'text-white' : 'text-slate-700 dark:text-white/70'}`}>
-                        {role}
+                      <div className={`text-xs font-black uppercase tracking-widest ${newRole === role.name ? 'text-white' : 'text-slate-700 dark:text-white/70'}`}>
+                        {role.name}
                       </div>
-                      {newRole === role && (
+                      {newRole === role.name && (
                         <div className="absolute right-4 top-1/2 -translate-y-1/2">
                           <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
                         </div>
                       )}
                     </button>
                   ))}
+                  {allRoles.length === 0 && (
+                     <p className="col-span-2 text-center py-4 text-[10px] font-black text-rose-500 uppercase tracking-widest italic animate-pulse">Đang nạp danh sách vai trò...</p>
+                  )}
                </div>
 
                <button 

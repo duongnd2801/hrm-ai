@@ -27,7 +27,7 @@ export default function Toast({
 
   if (!toast.show) return null;
 
-  const toàne =
+  const toastClass =
     toast.kind === 'success'
       ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-200'
       : toast.kind === 'error'
@@ -36,7 +36,7 @@ export default function Toast({
 
   return (
     <div className="fixed right-5 top-20 z-[9999]">
-      <div className={`max-w-sm rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-md ${toàne}`}>
+      <div className={`max-w-sm rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-md ${toastClass}`}>
         <div className="flex items-start gap-3">
           <div className="text-sm font-medium leading-6">{toast.message}</div>
           <button onClick={onClose} className="ml-auto text-xs opacity-80 hover:opacity-100">

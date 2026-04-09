@@ -65,7 +65,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
                 "style-src 'self' 'unsafe-inline'; " +
                 "img-src 'self' data: https:; " +
                 "font-src 'self' data:; " +
-                "connect-src 'self' http://localhost:* https://api.open-meteo.com https://*.googleapis.com; " +
+                "connect-src 'self' http://localhost:* http://127.0.0.1:* http://192.168.*.*:* http://10.*.*.*:* http://172.*.*.*:* https://api.open-meteo.com https://*.googleapis.com; " +
                 "frame-ancestors 'none'");
 
         filterChain.doFilter(request, response);
