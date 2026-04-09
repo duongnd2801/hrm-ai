@@ -6,6 +6,7 @@ import com.hrm.dto.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.hrm.dto.EmployeeDTO;
+import com.hrm.dto.EmployeePersonalInfoDTO;
 import com.hrm.repository.*;
 import com.hrm.entity.*;
 import lombok.RequiredArgsConstructor;
@@ -152,7 +153,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EmployeeDTO updatePersonalInfo(UUID id, EmployeeDTO dto, Authentication authentication) {
+    public EmployeeDTO updatePersonalInfo(UUID id, EmployeePersonalInfoDTO dto, Authentication authentication) {
         Employee emp = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         User currentUser = userRepository.findByEmail(authentication.getName())

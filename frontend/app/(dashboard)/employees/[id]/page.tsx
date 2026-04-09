@@ -101,6 +101,10 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
         if (isHRAdmin) tasks.push(fetchMeta(id));
         const [res] = await Promise.all(tasks);
         setEmp((res as AxiosResponse<Employee>).data);
+        
+        if (forceCompleteProfile) {
+          pushToast('error', 'Vui lòng bổ sung đầy đủ: Số điện thoại, Ngày sinh và Địa chỉ để hoàn tất hồ sơ!');
+        }
       } catch (err: unknown) {
         setError(getErrorMessage(err, 'Không thể truy cập hồ sơ nhân viên này.'));
       } finally {
@@ -109,7 +113,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
     };
 
     void run();
-  }, [mounted, id, isHRAdmin, fetchMeta]);
+  }, [mounted, id, isHRAdmin, fetchMeta, forceCompleteProfile]);
 
   const departmentSelectOptions = useMemo<SelectOption[]>(
     () => departments.map((d) => ({ id: d.id, label: d.name })),
@@ -281,6 +285,21 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                       className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
+                  <div>
+                    <SearchableSelect
+                      label="⚧ Giới tính"
+                      value={emp.gender}
+                      options={[
+                        { id: 'MALE', label: 'Nam' },
+                        { id: 'FEMALE', label: 'Nữ' },
+                        { id: 'OTHER', label: 'Khác' },
+                      ]}
+                      placeholder="Chọn giới tính..."
+                      allowClear
+                      disabled={!canEditPersonal}
+                      onSelect={(nextId) => setEmp({ ...emp, gender: (nextId || undefined) as Employee['gender'] })}
+                    />
+                  </div>
                   <div className="md:col-span-2">
                     <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🏠 Địa chỉ thường trú</label>
                     <input
@@ -414,6 +433,12 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
                            <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👔 Chức danh / Vị trí</p>
                            <p className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{emp.positionName || 'Nhân viên'}</p>
+                        </div>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">⚧ Giới tính</p>
+                           <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">
+                             {emp.gender === 'MALE' ? 'Nam' : emp.gender === 'FEMALE' ? 'Nữ' : emp.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
+                           </p>
                         </div>
                         <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300">
                            <p className="text-[10px] font-black text-slate-400 dark:text-emerald-300/60 uppercase tracking-widest mb-2">💰 Mức lương hiện tại</p>

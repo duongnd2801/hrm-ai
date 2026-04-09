@@ -17,29 +17,31 @@ public class LeaveRequestController {
     private final LeaveRequestService leaveRequestService;
 
     @GetMapping("/my")
+    @PreAuthorize("hasAuthority('LEAVE_VIEW')")
     public List<LeaveRequestDTO> getMyLeaves(Authentication authentication) {
         return leaveRequestService.getMyLeaveRequests(authentication);
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('HR') or hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_VIEW') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
     public List<LeaveRequestDTO> getAllLeaves() {
         return leaveRequestService.getAllLeaveRequests();
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('LEAVE_CREATE')")
     public LeaveRequestDTO createLeave(@RequestBody LeaveRequestDTO dto, Authentication authentication) {
         return leaveRequestService.createLeaveRequest(dto, authentication);
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('HR') or hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_APPROVE') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
     public LeaveRequestDTO approveLeave(@PathVariable UUID id, Authentication authentication) {
         return leaveRequestService.approveLeaveRequest(id, authentication);
     }
 
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('HR') or hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_APPROVE') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
     public LeaveRequestDTO rejectLeave(@PathVariable UUID id, Authentication authentication) {
         return leaveRequestService.rejectLeaveRequest(id, authentication);
     }

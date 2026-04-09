@@ -19,9 +19,11 @@ export default function LeavePage() {
   const [activeSubTab, setActiveSubTab] = useState<'pending' | 'history'>('pending');
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
-  const [tab, setTab] = useState<'MY' | 'REVIEW'>(
-    session?.role === 'ADMIN' || session?.role === 'HR' || session?.role === 'MANAGER' ? 'REVIEW' : 'MY'
-  );
+  const permissions = session?.permissions ?? [];
+  const canView = permissions.includes('LEAVE_VIEW');
+  const canCreate = permissions.includes('LEAVE_CREATE');
+  const canApprove = permissions.includes('LEAVE_APPROVE');
+  const [tab, setTab] = useState<'MY' | 'REVIEW'>(canApprove ? 'REVIEW' : 'MY');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -32,10 +34,22 @@ export default function LeavePage() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, [tab]);
+    if (!canView) {
+      setLeaves([]);
+      setLoading(false);
+      return;
+    }
+    void fetchData();
+  }, [tab, canView]);
+
+  useEffect(() => {
+    if (!canApprove && tab === 'REVIEW') {
+      setTab('MY');
+    }
+  }, [canApprove, tab]);
 
   const fetchData = async () => {
+    if (!canView) return;
     setLoading(true);
     try {
       const data = tab === 'MY' ? await leaveApi.getMyLeaves() : await leaveApi.getAllLeaves();
@@ -57,6 +71,10 @@ export default function LeavePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canCreate) {
+      pushToast('error', 'Báº¡n khÃ´ng cÃ³ quyá»n táº¡o Ä‘Æ¡n nghá»‰ phÃ©p');
+      return;
+    }
     try {
       await leaveApi.createLeave(formData);
       pushToast('success', 'Gửi đơn nghỉ phép thành công');
@@ -68,6 +86,10 @@ export default function LeavePage() {
   };
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    if (!canApprove) {
+      pushToast('error', 'Báº¡n khÃ´ng cÃ³ quyá»n duyá»‡t Ä‘Æ¡n nghá»‰ phÃ©p');
+      return;
+    }
     try {
       if (action === 'approve') await leaveApi.approveLeave(id);
       else await leaveApi.rejectLeave(id);
@@ -105,6 +127,19 @@ export default function LeavePage() {
     }
   };
 
+  if (!session) return null;
+
+  if (!canView) {
+    return (
+      <div className="flex items-center justify-center min-h-[420px]">
+        <div className="max-w-lg w-full bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[32px] p-10 text-center shadow-sm">
+          <h1 className="text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-white">Không có quyền truy cập</h1>
+          <p className="mt-4 text-sm font-medium text-slate-500 dark:text-white/50">Tài khoản hiện tại chưa được gán quyền xem module nghỉ phép.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8 h-full max-w-[1400px] mx-auto pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
@@ -119,7 +154,7 @@ export default function LeavePage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          {(session?.role === 'ADMIN' || session?.role === 'HR' || session?.role === 'MANAGER') && (
+          {canApprove && (
             <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl flex gap-1 border border-slate-200 dark:border-white/5 shadow-sm">
               <button
                 onClick={() => setTab('MY')}
@@ -136,13 +171,15 @@ export default function LeavePage() {
             </div>
           )}
 
-          <button
-            onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
-          >
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-            Đăng ký nghỉ
-          </button>
+          {canCreate && (
+            <button
+              onClick={() => setIsDialogOpen(true)}
+              className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+            >
+              <svg fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Đăng ký nghỉ
+            </button>
+          )}
         </div>
       </div>
 
@@ -193,7 +230,7 @@ export default function LeavePage() {
                     <th className="px-8 py-6 text-left whitespace-nowrap">Đến ngày</th>
                     <th className="px-8 py-6 text-left whitespace-nowrap">Lý do</th>
                     <th className="px-8 py-6 text-center whitespace-nowrap">Trạng thái</th>
-                    {tab === 'REVIEW' && activeSubTab === 'pending' && <th className="px-10 py-6 text-right whitespace-nowrap">Tác vụ</th>}
+                    {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && <th className="px-10 py-6 text-right whitespace-nowrap">Tác vụ</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -218,7 +255,7 @@ export default function LeavePage() {
                           {getStatusText(leave.status)}
                         </span>
                       </td>
-                      {tab === 'REVIEW' && activeSubTab === 'pending' && (
+                      {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && (
                         <td className="px-10 py-5 text-right">
                           <div className="flex items-center justify-end gap-2">
                              <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all">✕</button>
@@ -241,7 +278,7 @@ export default function LeavePage() {
                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(leave.status)}`}>{getStatusText(leave.status)}</span>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white mt-2 uppercase">{getLeaveTypeText(leave.type)}</h3>
                   </div>
-                  {tab === 'REVIEW' && activeSubTab === 'pending' && (
+                  {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && (
                     <div className="flex gap-2">
                        <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl">✕</button>
                        <button onClick={() => handleAction(leave.id, 'approve')} className="w-10 h-10 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20">✓</button>
@@ -266,7 +303,7 @@ export default function LeavePage() {
       </div>
 
       {/* Dialog */}
-      {isDialogOpen && (
+      {isDialogOpen && canCreate && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 bg-slate-950/70 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[40px] border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl">
             <div className="p-10 space-y-8">

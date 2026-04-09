@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import com.hrm.dto.EmployeeDTO;
+import com.hrm.dto.EmployeePersonalInfoDTO;
 import com.hrm.service.EmployeeService;
 import com.hrm.service.ImportExportService;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,7 @@ public class EmployeeController {
     }
 
     @PatchMapping("/{id}/personal")
-    public ResponseEntity<EmployeeDTO> updatePersonalInfo(@PathVariable UUID id, @Valid @RequestBody EmployeeDTO dto, Authentication authentication) {
+    public ResponseEntity<EmployeeDTO> updatePersonalInfo(@PathVariable UUID id, @RequestBody EmployeePersonalInfoDTO dto, Authentication authentication) {
         return ResponseEntity.ok(employeeService.updatePersonalInfo(id, dto, authentication));
     }
 

@@ -48,8 +48,12 @@ export default function ApologiesPage() {
   const [myViewMode, setMyViewMode] = useState<'card' | 'table'>('card');
 
   const role = session?.role ?? null;
+  const permissions = session?.permissions ?? [];
+  const canView = permissions.includes('APOLOGY_VIEW');
+  const canCreate = permissions.includes('APOLOGY_CREATE');
+  const canApproveByPermission = permissions.includes('APOLOGY_APPROVE');
   const isAdminOrHR = role === 'HR' || role === 'ADMIN';
-  const canReview = role === 'MANAGER' || role === 'HR' || role === 'ADMIN';
+  const canReview = canApproveByPermission && (role === 'MANAGER' || role === 'HR' || role === 'ADMIN');
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (axios.isAxiosError(error)) {
@@ -63,6 +67,7 @@ export default function ApologiesPage() {
   };
 
   const loadData = useCallback(async () => {
+    if (!canView) return;
     try {
       const tasks = [api.get<Apology[]>('/api/apologies/my')];
       if (canReview) {
@@ -79,17 +84,23 @@ export default function ApologiesPage() {
     } catch {
       pushToast('error', 'Không thể tải danh sách đơn giải trình.');
     }
-  }, [canReview]);
+  }, [canReview, canView]);
 
   useEffect(() => {
     if (session) {
-      void loadData();
+      if (canView) {
+        void loadData();
+      }
       setAttendanceDate(new Date().toISOString().split('T')[0]);
-      setShowForm(!isAdminOrHR);
+      setShowForm(canCreate && !isAdminOrHR);
     }
-  }, [session, loadData, isAdminOrHR]);
+  }, [session, loadData, isAdminOrHR, canCreate, canView]);
 
   async function submit() {
+    if (!canCreate) {
+      pushToast('error', 'Bạn không có quyền tạo đơn giải trình');
+      return;
+    }
     if (!attendanceDate || !type || !reason.trim()) {
       pushToast('error', 'Vui lòng điền đầy đủ thông tin (ngày, loại, nội dung)');
       return;
@@ -109,6 +120,10 @@ export default function ApologiesPage() {
   }
 
   async function review(id: string, approved: boolean) {
+    if (!canReview) {
+      pushToast('error', 'Bạn không có quyền duyệt đơn giải trình');
+      return;
+    }
     try {
       await api.patch(`/api/apologies/${id}/${approved ? 'approve' : 'reject'}`, { note: '' });
       pushToast('success', approved ? 'Đã phê duyệt.' : 'Đã từ chối.');
@@ -119,6 +134,16 @@ export default function ApologiesPage() {
   }
 
   if (!session) return null;
+  if (!canView) {
+    return (
+      <div className="flex items-center justify-center min-h-[420px]">
+        <div className="max-w-lg w-full bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[32px] p-10 text-center shadow-sm">
+          <h1 className="text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-white">Không có quyền truy cập</h1>
+          <p className="mt-4 text-sm font-medium text-slate-500 dark:text-white/50">Tài khoản hiện tại chưa được gán quyền xem module giải trình.</p>
+        </div>
+      </div>
+    );
+  }
 
   const currentDisplayItems = activeTab === 'pending' ? pendingItems : reviewedItems;
 
@@ -138,7 +163,7 @@ export default function ApologiesPage() {
           </div>
         </div>
 
-        {isAdminOrHR && (
+        {canCreate && isAdminOrHR && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-8 py-4 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
@@ -150,7 +175,7 @@ export default function ApologiesPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
         {/* Left Side: Creation Form */}
-        {showForm && (
+        {showForm && canCreate && (
           <div className="xl:col-span-4 space-y-8 animate-in fade-in slide-in-from-left-4">
             <div className="bg-white/90 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-8 border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-none">
               <h3 className="text-lg font-black text-slate-900 dark:text-white/90 uppercase tracking-widest mb-8 flex items-center gap-2">
