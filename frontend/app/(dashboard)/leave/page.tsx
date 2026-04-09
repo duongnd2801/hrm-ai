@@ -208,7 +208,7 @@ export default function LeavePage() {
 
       {/* Dialog */}
       {isDialogOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-500">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-500">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-3xl" onClick={() => setIsDialogOpen(false)} />
           <div className="relative w-full max-w-xl glass-dark border border-white/10 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
             <div className="p-10">

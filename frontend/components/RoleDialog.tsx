@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { roleApi } from '@/lib/roleApi';
 import type { RoleDTO, PermissionDTO } from '@/types';
-import { X, Shield, Check, Search } from 'lucide-react';
+import { AlertCircle, X, Shield, Check, Search } from 'lucide-react';
 
 interface RoleDialogProps {
   open: boolean;
@@ -19,6 +19,7 @@ export default function RoleDialog({ open, onOpenChange, role, onSuccess }: Role
   const [allPermissions, setAllPermissions] = useState<PermissionDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -32,6 +33,7 @@ export default function RoleDialog({ open, onOpenChange, role, onSuccess }: Role
         setSelectedPermissions([]);
       }
       fetchPermissions();
+      setErrorMsg('');
     }
   }, [open, role]);
 
@@ -63,7 +65,7 @@ export default function RoleDialog({ open, onOpenChange, role, onSuccess }: Role
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      setErrorMsg(error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export default function RoleDialog({ open, onOpenChange, role, onSuccess }: Role
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 dark:bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/30 dark:bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-white/10 w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -193,15 +195,23 @@ export default function RoleDialog({ open, onOpenChange, role, onSuccess }: Role
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-end gap-4">
-          <button onClick={() => onOpenChange(false)} className="px-6 py-3 rounded-2xl text-[10px] font-black text-slate-500 dark:text-white/50 uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/5 transition-all">Hủy bỏ</button>
-          <button 
-            onClick={handleSave} 
-            disabled={loading}
-            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
-          >
-            {loading ? 'Đang lưu...' : 'Xác nhận lưu'}
-          </button>
+        <div className="p-8 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50 space-y-4">
+          {errorMsg && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span className="text-[11px] font-bold">{errorMsg}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-end gap-4">
+            <button onClick={() => onOpenChange(false)} className="px-6 py-3 rounded-2xl text-[10px] font-black text-slate-500 dark:text-white/50 uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/5 transition-all">Hủy bỏ</button>
+            <button 
+              onClick={handleSave} 
+              disabled={loading}
+              className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? 'Đang lưu...' : 'Xác nhận lưu'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

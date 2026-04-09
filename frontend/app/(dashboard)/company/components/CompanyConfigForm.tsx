@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import Toast, { ToastState } from "@/components/Toast";
 import { CompanyConfig } from "@/types";
 
 export default function CompanyConfigForm() {
   const [config, setConfig] = useState<CompanyConfig | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
+
+  const pushToast = (kind: ToastState['kind'], message: string) =>
+    setToast({ show: true, kind, message });
 
   useEffect(() => {
     void fetchConfig();
@@ -40,9 +45,9 @@ export default function CompanyConfigForm() {
     setSaving(true);
     try {
       await api.put("/api/company/config", config);
-      alert("Lưu cấu hình thành công!");
+      pushToast('success', 'Lưu cấu hình thành công!');
     } catch (error) {
-      alert("Lỗi khi lưu cấu hình!");
+      pushToast('error', 'Lỗi khi lưu cấu hình! Vui lòng thử lại.');
       console.error(error);
     } finally {
       setSaving(false);
@@ -57,7 +62,9 @@ export default function CompanyConfigForm() {
   const headerClass = "text-xl font-black border-b border-black/5 dark:border-white/10 pb-4 mb-8 text-slate-900 dark:text-white uppercase tracking-tighter italic";
 
   return (
-    <form onSubmit={handleSave} className="space-y-12">
+    <>
+      <Toast toast={toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
+      <form onSubmit={handleSave} className="space-y-12">
       <div>
         <h2 className={headerClass}>Giờ làm việc mặc định</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -138,5 +145,6 @@ export default function CompanyConfigForm() {
         </button>
       </div>
     </form>
+    </>
   );
 }

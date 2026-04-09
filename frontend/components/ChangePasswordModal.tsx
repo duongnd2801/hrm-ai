@@ -80,7 +80,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="glass-dark w-full max-w-md rounded-[32px] p-8 shadow-3xl relative animate-in zoom-in duration-500 border border-white/5">
         <button 
           onClick={onClose} 

@@ -117,7 +117,7 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
   const hasErrors = previewData.some(row => row.errors && row.errors.length > 0);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className={`glass-dark rounded-[40px] shadow-3xl relative animate-in zoom-in duration-500 border border-white/5 flex flex-col transition-all duration-700 ${step === 'upload' ? 'w-full max-w-lg p-10' : 'w-full max-w-[90vw] h-[85vh] p-8'}`}>
         
         <button 

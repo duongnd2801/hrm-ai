@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import api from "@/lib/api";
 import DraggableModal from "@/components/DraggableModal";
+import Toast, { ToastState } from "@/components/Toast";
 import { Position } from "@/types";
-
 import { Pencil, Trash2 } from "lucide-react";
 
 type PositionForm = {
@@ -32,6 +32,10 @@ const EMPTY_FORM: PositionForm = {
 export default function PositionTable() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
+
+  const pushToast = (kind: ToastState['kind'], message: string) =>
+    setToast({ show: true, kind, message });
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,7 +51,7 @@ export default function PositionTable() {
       const res = await api.get("/api/company/positions");
       setPositions(res.data as Position[]);
     } catch (err: unknown) {
-      alert(getErrorMessage(err, "Không thể tải danh sách chức vụ."));
+      pushToast('error', getErrorMessage(err, "Không thể tải danh sách chức vụ."));
     } finally {
       setLoading(false);
     }
@@ -66,7 +70,7 @@ export default function PositionTable() {
 
   function openEditModal(position: Position) {
     if (position.isLocked) {
-      alert("Vị trí này đã bị khóa, không thể chỉnh sửa.");
+      pushToast('error', "Vị trí này đã bị khóa, không thể chỉnh sửa.");
       return;
     }
     setEditingPosition(position);
@@ -114,7 +118,7 @@ export default function PositionTable() {
 
   function openDeleteModal(position: Position) {
     if (position.isLocked) {
-      alert("Vị trí này đã bị khóa, không thể xóa.");
+      pushToast('error', "Vị trí này đã bị khóa, không thể xóa.");
       return;
     }
     setTargetDelete(position);
@@ -130,7 +134,7 @@ export default function PositionTable() {
       setTargetDelete(null);
       await fetchPositions();
     } catch (err: unknown) {
-      alert(getErrorMessage(err, "Không thể xóa chức vụ."));
+      pushToast('error', getErrorMessage(err, "Không thể xóa chức vụ."));
     } finally {
       setSubmitting(false);
     }
@@ -141,12 +145,13 @@ export default function PositionTable() {
       await api.patch(`/api/company/positions/${id}/lock?locked=${!currentLock}`);
       await fetchPositions();
     } catch (err: unknown) {
-      alert(getErrorMessage(err, "Không thể cập nhật trạng thái khóa."));
+      pushToast('error', getErrorMessage(err, "Không thể cập nhật trạng thái khóa."));
     }
   }
 
   return (
     <div className="space-y-8">
+      <Toast toast={toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
       <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
         <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none italic">Danh mục vị trí</h3>
         <button

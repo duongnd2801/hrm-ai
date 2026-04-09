@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import api from "@/lib/api";
 import DraggableModal from "@/components/DraggableModal";
+import Toast, { ToastState } from "@/components/Toast";
 import { Department } from "@/types";
-
 import { Pencil, Trash2 } from "lucide-react";
 
 function getErrorMessage(err: unknown, fallback: string): string {
@@ -18,6 +18,10 @@ function getErrorMessage(err: unknown, fallback: string): string {
 export default function DepartmentTable() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
+
+  const pushToast = (kind: ToastState['kind'], message: string) =>
+    setToast({ show: true, kind, message });
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -33,7 +37,7 @@ export default function DepartmentTable() {
       const res = await api.get("/api/company/departments");
       setDepartments(res.data as Department[]);
     } catch (err: unknown) {
-      alert(getErrorMessage(err, "Không thể tải danh sách phòng ban."));
+      pushToast('error', getErrorMessage(err, "Không thể tải danh sách phòng ban."));
     } finally {
       setLoading(false);
     }
@@ -95,7 +99,7 @@ export default function DepartmentTable() {
       setTargetDelete(null);
       await fetchDepartments();
     } catch (err: unknown) {
-      alert(getErrorMessage(err, "Không thể xóa phòng ban."));
+      pushToast('error', getErrorMessage(err, "Không thể xóa phòng ban."));
     } finally {
       setSubmitting(false);
     }
@@ -103,6 +107,7 @@ export default function DepartmentTable() {
 
   return (
     <div className="space-y-8">
+      <Toast toast={toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
       <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
         <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Cấu trúc phòng ban</h3>
         <button
