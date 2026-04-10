@@ -55,16 +55,34 @@ export default function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-left text-slate-900 dark:text-white font-bold hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className={`w-full relative overflow-hidden bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl py-3.5 px-6 text-left transition-all duration-300 group flex items-center justify-between shadow-sm hover:shadow-xl hover:border-indigo-500/50 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
+        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        
         {selected ? (
-          <span className="text-slate-900 dark:text-white">
-            {selected.label}
-            {selected.subLabel ? <span className="text-slate-500 dark:text-white/40 text-[11px] font-bold ml-2 tracking-widest">({selected.subLabel})</span> : null}
-          </span>
+          <div className="flex flex-col relative z-10 overflow-hidden">
+            <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight truncate">
+              {selected.label}
+            </span>
+            {selected.subLabel && (
+              <span className="text-indigo-600 dark:text-indigo-400 text-[9px] font-bold tracking-widest truncate uppercase opacity-60">
+                {selected.subLabel}
+              </span>
+            )}
+          </div>
         ) : (
-          <span className="text-slate-400 dark:text-white/20 font-normal italic">{placeholder}</span>
+          <span className="text-slate-400 dark:text-white/20 font-bold italic text-xs tracking-widest relative z-10">{placeholder}</span>
         )}
+
+        <svg 
+          className={`w-4 h-4 text-slate-400 dark:text-white/20 transition-transform duration-500 ease-elastic relative z-10 ${open ? 'rotate-180 text-indigo-500' : 'group-hover:text-indigo-500'}`} 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor" 
+          strokeWidth={3}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
       </button>
 
       {open && !disabled && (

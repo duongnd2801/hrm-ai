@@ -105,9 +105,11 @@ public class EmployeeService {
             user.setEmail(normalizedEmail);
             user.setPassword(passwordEncoder.encode("Emp@123")); // Default password
             
-            Role employeeRole = roleRepository.findByName("EMPLOYEE")
-                    .orElseThrow(() -> new RuntimeException("Default Role EMPLOYEE not found"));
-            user.setRole(employeeRole);
+            String roleName = (dto.getRole() != null && !dto.getRole().isEmpty()) ? dto.getRole().toUpperCase() : "EMPLOYEE";
+            Role targetRole = roleRepository.findByName(roleName)
+                    .orElseThrow(() -> new RuntimeException("Role '" + roleName + "' not found"));
+            
+            user.setRole(targetRole);
             user = userRepository.save(user);
 
             Employee emp = new Employee();

@@ -60,6 +60,10 @@ public class JwtTokenProvider {
         return claims(token).get("type", String.class);
     }
 
+    public Date getExpirationDate(String token) {
+        return claims(token).getExpiration();
+    }
+
     public boolean isValid(String token) {
         try {
             claims(token);

@@ -115,6 +115,7 @@ export default function RolesPage() {
         open={open}
         onOpenChange={setOpen}
         role={selectedRole}
+        roles={roles}
         onSuccess={() => {
           void fetchCurrentSession();
           void fetchRoles();

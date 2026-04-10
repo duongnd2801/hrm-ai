@@ -27,8 +27,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.hrm.service.JwtSessionService jwtSessionService;
 
-    public AuthResponse login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request, String deviceId, String userAgent, String ipAddress) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -36,20 +37,44 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return buildAuthResponse(user);
+        return buildAuthResponseAndSession(user, deviceId, userAgent, ipAddress);
     }
 
-    public AuthResponse refresh(RefreshTokenRequest request) {
+    public AuthResponse refresh(RefreshTokenRequest request, String deviceId) {
         String refreshToken = request.getRefreshToken();
         if (!jwtTokenProvider.isValidRefreshToken(refreshToken)) {
-            throw new RuntimeException("Refresh token không hợp lệ hoặc đã hết hạn");
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
         String email = jwtTokenProvider.getEmail(refreshToken);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return buildAuthResponse(user);
+        // Validate session device ID mapping in Redis
+        if (deviceId != null && !jwtSessionService.validateRefreshToken(user.getId(), deviceId, refreshToken)) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token không tồn tại cho thiết bị này hoặc đã bị thu hồi");
+        }
+
+        // Generate new tokens (rotating refresh token is a best practice)
+        return buildAuthResponseAndSession(user, deviceId, "Unknown/Rotated", "Unknown/Rotated");
+    }
+
+    public void removeDeviceSession(String email, String deviceId) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            jwtSessionService.revokeSession(user.getId(), deviceId);
+        });
+    }
+
+    public java.util.List<com.hrm.dto.DeviceSession> getActiveSessions(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> jwtSessionService.getActiveSessions(user.getId()))
+                .orElse(java.util.Collections.emptyList());
+    }
+
+    public void removeSession(String email, String targetDeviceId) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            jwtSessionService.revokeSession(user.getId(), targetDeviceId);
+        });
     }
 
     private boolean isProfileCompleted(Employee employee) {
@@ -59,39 +84,41 @@ public class AuthService {
     }
 
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
-        // Get current authenticated user email
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-
-        // Find user
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Verify current password
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu hiện tại không chính xác");
         }
-
-        // Check if new password and confirm password match
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp");
         }
-
-        // Check if new password is the same as current password
         if (request.getCurrentPassword().equals(request.getNewPassword())) {
             throw new RuntimeException("Mật khẩu mới phải khác mật khẩu hiện tại");
         }
-
-        // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-
         return new ChangePasswordResponse("Password changed successfully", true);
     }
 
-    private AuthResponse buildAuthResponse(User user) {
+    private AuthResponse buildAuthResponseAndSession(User user, String deviceId, String userAgent, String ipAddress) {
         String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole().getName());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getRole().getName());
+        
+        if (deviceId != null) {
+            com.hrm.dto.DeviceSession session = com.hrm.dto.DeviceSession.builder()
+                .deviceId(deviceId)
+                .userAgent(userAgent)
+                .ipAddress(ipAddress)
+                .refreshToken(refreshToken)
+                .loginAt(java.time.LocalDateTime.now())
+                .build();
+            
+            // Assuming refresh expiration is 7 days (defined in JwtTokenProvider but we can get it from application.yml)
+            java.time.Duration ttl = java.time.Duration.ofDays(7); 
+            jwtSessionService.createSession(user.getId(), session, ttl);
+        }
+
         Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
         boolean profileCompleted = employee == null || isProfileCompleted(employee);
 

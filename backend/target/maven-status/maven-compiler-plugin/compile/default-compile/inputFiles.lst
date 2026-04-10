@@ -13,6 +13,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ReviewR
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\PayrollPdfService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Role.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ImportResultResponse.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\JwtBlacklistService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\PermissionController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ChatService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\PayrollController.java
@@ -23,6 +24,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Proj
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\LeaveType.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\PayrollService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\AuthRequest.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\DeviceSession.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ResetPasswordRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\DepartmentRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\EmployeeController.java
@@ -57,6 +59,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Apol
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ApologyDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\AuthService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ProjectService.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\RedisService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\HealthController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\SecurityConfig.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\EmployeeStatsDTO.java
@@ -113,6 +116,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\EmpS
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\CompanyConfig.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\RoleDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ProjectMemberRequest.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\JwtSessionService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\ChatController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\User.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\PositionController.java

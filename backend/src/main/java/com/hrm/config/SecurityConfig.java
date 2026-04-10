@@ -67,19 +67,6 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            CookieUtil.clearAuthCookies(response);
-                            response.setStatus(HttpStatus.OK.value());
-                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"message\":\"Đăng xuất thành công\"}");
-                        })
-                        .deleteCookies("hrm_access", "hrm_refresh", "XSRF-TOKEN")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                )
                 .build();
     }
 

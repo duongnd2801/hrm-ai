@@ -217,3 +217,13 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Encoding Fix:** Thực hiện audit và sửa lỗi mã hóa tiếng Việt (mojibake) trên toàn bộ codebase frontend (Users, Payroll, Leave, Attendance, Dashboard, Company Config). Đã khôi phục hiển thị tiếng Việt có dấu chuẩn xác 100%.
   - **Syntax Fix:** Sửa lỗi cú pháp tại `Sidebar.tsx` (dư thừa code sau khi fix encoding) gây lỗi build "Expected ';', '}' or <eof>".
   - **Verification:** Toàn bộ UI hiển thị tiếng Việt rõ nét, hệ thống build thành công và hoạt động ổn định.
+- [2026-04-10T11:35:00+07:00] **Role Management Enhancement**:
+  - **Feature:** Thêm chức năng "Kế thừa quyền" (Copy permissions) khi tạo Role mới trong `RoleDialog`.
+  - **UI/UX:** Sử dụng `SearchableSelect` để cho phép người dùng chọn một role có sẵn để sao chép danh sách quyền hạn nhanh chóng, giúp giảm bớt thao tác tích chọn thủ công cho các role tương tự nhau.
+  - **Consistency:** Đồng bộ hóa giao diện "Glass & Glow" với icon `Copy` và box thông tin indigo tinh tế.
+- [2026-04-10T13:50:00+07:00] **Multi-Device Login & Session Management**:
+  - **Backend (Redis):** Tích hợp thư viện `spring-boot-starter-data-redis` và cấu hình Redis standalone thông qua Docker Compose (bao gồm `redis` và `redisinsight`).
+  - **Session Control:** Xây dựng `JwtSessionService` và `DeviceSession` DTO lưu trữ session theo định dạng `refresh:{userId}:{deviceId}` để quản lý vòng đời token (cho phép user login trên nhiều thiết bị song song).
+  - **Device Mapping:** Cấp phát một chuỗi UUID riêng biệt thông qua Cookie `hrm_device_id` (Max-Age: 1 năm) đồng bộ với JWT. Trích xuất IP và `User-Agent` tại `AuthController.login`.
+  - **Security Filter:** Validate blacklist thời gian thực thông qua `JwtBlacklistService` gắn trực tiếp vào `JwtAuthFilter`.
+  - **API:** Thêm `GET /api/auth/sessions` (xem danh sách thiết bị) và `DELETE /api/auth/sessions/{deviceId}` (thu hồi quyền truy cập của một thiết bị cụ thể từ xa).
