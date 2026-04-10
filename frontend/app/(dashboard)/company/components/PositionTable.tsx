@@ -29,7 +29,12 @@ const EMPTY_FORM: PositionForm = {
   standalone: true,
 };
 
-export default function PositionTable() {
+interface PositionTableProps {
+  canManage?: boolean;
+  canToggleLock?: boolean;
+}
+
+export default function PositionTable({ canManage = false, canToggleLock = false }: PositionTableProps) {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
@@ -62,6 +67,7 @@ export default function PositionTable() {
   }, []);
 
   function openCreateModal() {
+    if (!canManage) return;
     setEditingPosition(null);
     setFormData(EMPTY_FORM);
     setError("");
@@ -69,6 +75,7 @@ export default function PositionTable() {
   }
 
   function openEditModal(position: Position) {
+    if (!canManage) return;
     if (position.isLocked) {
       pushToast('error', "Vị trí này đã bị khóa, không thể chỉnh sửa.");
       return;
@@ -86,6 +93,7 @@ export default function PositionTable() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canManage) return;
     if (!formData.name.trim()) {
       setError("Tên chức vụ không được để trống.");
       return;
@@ -117,6 +125,7 @@ export default function PositionTable() {
   }
 
   function openDeleteModal(position: Position) {
+    if (!canManage) return;
     if (position.isLocked) {
       pushToast('error', "Vị trí này đã bị khóa, không thể xóa.");
       return;
@@ -126,7 +135,7 @@ export default function PositionTable() {
   }
 
   async function confirmDelete() {
-    if (!targetDelete) return;
+    if (!targetDelete || !canManage) return;
     setSubmitting(true);
     try {
       await api.delete(`/api/company/positions/${targetDelete.id}`);
@@ -141,6 +150,7 @@ export default function PositionTable() {
   }
 
   async function toggleLock(id: string, currentLock: boolean) {
+    if (!canToggleLock) return;
     try {
       await api.patch(`/api/company/positions/${id}/lock?locked=${!currentLock}`);
       await fetchPositions();
@@ -154,12 +164,14 @@ export default function PositionTable() {
       <Toast toast={toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
       <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
         <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none italic">Danh mục vị trí</h3>
-        <button
-          onClick={openCreateModal}
-          className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
-        >
-          + Thêm chức vụ mới
-        </button>
+        {canManage && (
+          <button
+            onClick={openCreateModal}
+            className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
+          >
+            + Thêm chức vụ mới
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -186,19 +198,25 @@ export default function PositionTable() {
                        <span className={`text-[12px] font-black uppercase tracking-tight ${position.isLocked ? "text-slate-400 dark:text-white/30" : "text-slate-900 dark:text-white"}`}>{position.name}</span>
                     </td>
                     <td className="px-8 py-3 text-center">
-                      <button
-                        onClick={() => void toggleLock(position.id, position.isLocked)}
-                        className={`px-5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
-                          position.isLocked 
-                            ? "bg-rose-700 text-white shadow-xl shadow-rose-700/40" 
-                            : "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
-                        }`}
-                      >
-                        {position.isLocked ? "Bị khóa" : "Sẵn dụng"}
-                      </button>
+                      {canToggleLock ? (
+                        <button
+                          onClick={() => void toggleLock(position.id, position.isLocked)}
+                          className={`px-5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                            position.isLocked 
+                              ? "bg-rose-700 text-white shadow-xl shadow-rose-700/40" 
+                              : "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
+                          }`}
+                        >
+                          {position.isLocked ? "Bị khóa" : "Sẵn dụng"}
+                        </button>
+                      ) : (
+                        <span className={`px-5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${position.isLocked ? "bg-rose-700 text-white" : "bg-emerald-500 text-white"}`}>
+                          {position.isLocked ? "Bị khóa" : "Sẵn dụng"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-8 py-3 text-right space-x-2">
-                      {!position.isLocked ? (
+                      {canManage && !position.isLocked ? (
                         <>
                           <button onClick={() => openEditModal(position)} className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-lg transition-all active:scale-95" title="Sửa vị trí">
                              <Pencil className="w-5 h-5" />
@@ -207,8 +225,10 @@ export default function PositionTable() {
                              <Trash2 className="w-5 h-5" />
                           </button>
                         </>
-                      ) : (
+                      ) : position.isLocked ? (
                          <span className="text-[10px] font-black text-rose-700 uppercase tracking-widest underline decoration-wavy decoration-rose-700/30">Hệ thống khóa</span>
+                      ) : (
+                         <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Read only</span>
                       )}
                     </td>
                   </tr>
@@ -219,7 +239,7 @@ export default function PositionTable() {
         </div>
       )}
 
-      {showFormModal && (
+      {canManage && showFormModal && (
         <DraggableModal
           title={editingPosition ? "Sửa chức vụ" : "Thêm chức vụ"}
           onClose={() => setShowFormModal(false)}
@@ -295,7 +315,7 @@ export default function PositionTable() {
         </DraggableModal>
       )}
 
-      {showDeleteModal && targetDelete && (
+      {canManage && showDeleteModal && targetDelete && (
         <DraggableModal title="Loại bỏ vị trí" onClose={() => setShowDeleteModal(false)}>
            <div className="text-center py-4">
               <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-8 animate-bounce">
@@ -320,7 +340,7 @@ export default function PositionTable() {
                   disabled={submitting}
                   className="px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-rose-600 hover:bg-rose-500 text-white shadow-2xl shadow-rose-500/30 transition-all active:scale-95 duration-300"
                 >
-                  {submitting ? "Đang xóa..." : "Xác nhận xóa"}
+                  {submitting ? "Äang xÃ³a..." : "XÃ¡c nháº­n xÃ³a"}
                 </button>
               </div>
            </div>

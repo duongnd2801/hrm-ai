@@ -20,31 +20,31 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()") // Any valid user can view their projects or all depending on rules
+    @PreAuthorize("hasAuthority('PRJ_VIEW')")
     public ResponseEntity<List<ProjectResponse>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('PRJ_VIEW')")
     public ResponseEntity<ProjectResponse> getProjectById(@PathVariable UUID id) {
         return ResponseEntity.ok(projectService.getProjectById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('PRJ_CREATE')")
     public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('PRJ_UPDATE')")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable UUID id, @Valid @RequestBody ProjectUpdateRequest request) {
         return ResponseEntity.ok(projectService.updateProject(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    @PreAuthorize("hasAuthority('PRJ_DELETE')")
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
@@ -53,13 +53,13 @@ public class ProjectController {
     // --- Members ---
 
     @GetMapping("/{id}/members")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('PRJ_VIEW')")
     public ResponseEntity<List<ProjectMemberResponse>> getProjectMembers(@PathVariable UUID id) {
         return ResponseEntity.ok(projectService.getProjectMembers(id));
     }
 
     @PostMapping("/{id}/members")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('PRJ_UPDATE')")
     public ResponseEntity<ProjectMemberResponse> addOrUpdateMember(
             @PathVariable UUID id,
             @Valid @RequestBody ProjectMemberRequest request) {
@@ -67,7 +67,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id}/members/{employeeId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('PRJ_UPDATE')")
     public ResponseEntity<Void> removeMember(@PathVariable UUID id, @PathVariable UUID employeeId) {
         projectService.removeMember(id, employeeId);
         return ResponseEntity.noContent().build();

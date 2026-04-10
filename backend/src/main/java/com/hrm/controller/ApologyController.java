@@ -34,25 +34,25 @@ public class ApologyController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAuthority('APOLOGY_APPROVE') and hasAnyRole('MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('APOLOGY_APPROVE')")
     public ResponseEntity<List<ApologyDTO>> pending(Authentication authentication) {
         return ResponseEntity.ok(apologyService.getPendingApologies(authentication));
     }
 
     @GetMapping("/reviewed")
-    @PreAuthorize("hasAuthority('APOLOGY_APPROVE') and hasAnyRole('MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('APOLOGY_APPROVE')")
     public ResponseEntity<List<ApologyDTO>> reviewed(Authentication authentication) {
         return ResponseEntity.ok(apologyService.getReviewedApologies(authentication));
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('APOLOGY_APPROVE') and hasAnyRole('MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('APOLOGY_APPROVE')")
     public ResponseEntity<ApologyDTO> approve(@PathVariable UUID id, @RequestBody(required = false) ReviewRequest request, Authentication authentication) {
         return ResponseEntity.ok(apologyService.review(id, true, request != null ? request.getNote() : null, authentication));
     }
 
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasAuthority('APOLOGY_APPROVE') and hasAnyRole('MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('APOLOGY_APPROVE')")
     public ResponseEntity<ApologyDTO> reject(@PathVariable UUID id, @RequestBody(required = false) ReviewRequest request, Authentication authentication) {
         return ResponseEntity.ok(apologyService.review(id, false, request != null ? request.getNote() : null, authentication));
     }

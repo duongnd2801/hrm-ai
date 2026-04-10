@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { roleApi } from '@/lib/roleApi';
+import { useSession } from '@/components/AuthProvider';
 import type { RoleDTO } from '@/types';
 import DraggableModal from '@/components/DraggableModal';
 import Toast, { ToastState } from '@/components/Toast';
@@ -21,6 +22,11 @@ interface User {
 type ActionType = 'reset' | 'delete' | null;
 
 export default function UserManagementPage() {
+  const { session } = useSession();
+  const permissions = session?.permissions ?? [];
+  const canViewUsers = permissions.includes('USER_VIEW');
+  const canUpdateUsers = permissions.includes('USER_UPDATE');
+  const canDeleteUsers = permissions.includes('USER_DELETE');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -38,10 +44,13 @@ export default function UserManagementPage() {
   const [allRoles, setAllRoles] = useState<RoleDTO[]>([]);
 
   useEffect(() => {
+    if (!canViewUsers) return;
     void fetchUsers();
     void fetchStats();
-    void fetchRoles();
-  }, [page]);
+    if (canUpdateUsers) {
+      void fetchRoles();
+    }
+  }, [page, canViewUsers, canUpdateUsers]);
 
   const fetchRoles = async () => {
     try {
@@ -109,6 +118,7 @@ export default function UserManagementPage() {
   };
 
   const openRoleModal = (user: User) => {
+    if (!canUpdateUsers) return;
     setSelectedUser(user);
     setNewRole(user.role);
     setShowRoleModal(true);
@@ -120,7 +130,7 @@ export default function UserManagementPage() {
   };
 
   const handleUpdateRole = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !canUpdateUsers) return;
     setSubmitting(true);
     try {
       await api.put(`/api/users/${selectedUser.id}/role`, { role: newRole });
@@ -147,6 +157,8 @@ export default function UserManagementPage() {
 
   const handleConfirmAction = async () => {
     if (!actionType || !targetUser) return;
+    if (actionType === 'reset' && !canUpdateUsers) return;
+    if (actionType === 'delete' && !canDeleteUsers) return;
     setSubmitting(true);
     try {
       if (actionType === 'reset') {
@@ -189,6 +201,15 @@ export default function UserManagementPage() {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 3);
   };
+
+  if (!session) return null;
+  if (!canViewUsers) {
+    return (
+      <div className="py-20 text-center text-slate-500 dark:text-white/40 font-black uppercase tracking-widest">
+        Bạn không có quyền truy cập quản lý tài khoản.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12 pb-20">
@@ -346,7 +367,7 @@ export default function UserManagementPage() {
 
       {/* Modals - Standard consistency */}
       {/* Minimalist User Detail Modal */}
-      {showDetailModal && selectedUser && (
+      {canUpdateUsers && showDetailModal && selectedUser && (
         <DraggableModal title="Phân quyền tài khoản" onClose={() => setShowDetailModal(false)} widthClassName="max-w-md">
           <div className="p-10 space-y-10">
             {/* Minimal Header */}

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from '@/components/AuthProvider';
-import { hasRole } from '@/lib/auth';
 import api from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import { Employee } from '@/types';
@@ -68,7 +67,7 @@ export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?
      setCurrentPage(1);
   }, [search]);
 
-  const canManageGlobal = hasRole('ADMIN', 'HR');
+  const canManageGlobal = session?.permissions.includes('EMP_UPDATE') ?? false;
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (

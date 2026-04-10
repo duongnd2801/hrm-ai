@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { hasRole } from '@/lib/auth';
 import api, { logout } from '@/lib/api';
 import type { UserSession } from '@/types';
 import { NAV_ITEMS } from './Sidebar';
@@ -80,7 +79,7 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   const isRainy = weatherCode >= 51;
 
   const pillItems = NAV_ITEMS.filter((item) => {
-     const isAllowed = hasRole(...item.roles);
+     const isAllowed = item.roles.includes(session.role) && (!item.permission || session.permissions.includes(item.permission));
      const isPill = ['/dashboard', '/employees', '/attendance', '/payroll'].includes(item.href);
      return isAllowed && isPill;
   });

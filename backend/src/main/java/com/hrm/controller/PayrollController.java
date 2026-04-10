@@ -28,13 +28,13 @@ public class PayrollController {
     private final ImportExportService importExportService;
 
     @PostMapping("/calculate")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('PAY_CALC')")
     public List<PayrollDTO> calculate(@RequestParam Integer month, @RequestParam Integer year, Authentication authentication) {
         return payrollService.calculateMonthlyPayroll(month, year, authentication);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<PageResponse<PayrollDTO>> getAll(
             @RequestParam Integer month, 
             @RequestParam Integer year, 
@@ -44,12 +44,13 @@ public class PayrollController {
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public List<PayrollDTO> getMy(Authentication authentication) {
         return payrollService.getMyPayrolls(authentication);
     }
 
     @GetMapping("/export")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<byte[]> export(@RequestParam Integer month, @RequestParam Integer year, Authentication authentication) throws Exception {
         byte[] data = payrollService.exportPayroll(month, year, authentication);
         return ResponseEntity.ok()
@@ -59,6 +60,7 @@ public class PayrollController {
     }
 
     @GetMapping("/statement/pdf/{month}/{year}")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<byte[]> downloadPayrollStatementPdf(@PathVariable Integer month, @PathVariable Integer year, Authentication authentication) throws Exception {
         PayrollDTO payroll = payrollService.getMyPayroll(month, year, authentication);
         byte[] pdfData = payrollPdfService.generatePayrollStatement(payroll);
@@ -69,6 +71,7 @@ public class PayrollController {
     }
 
     @GetMapping("/statement/excel/{month}/{year}")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<byte[]> downloadPayrollStatementExcel(@PathVariable Integer month, @PathVariable Integer year, Authentication authentication) throws Exception {
         PayrollDTO payroll = payrollService.getMyPayroll(month, year, authentication);
         byte[] excelData = importExportService.exportPayrollToExcel(List.of(payroll), month, year);
@@ -79,7 +82,7 @@ public class PayrollController {
     }
 
     @GetMapping("/statement/pdf/by-id/{payrollId}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<byte[]> downloadPayrollStatementPdfById(@PathVariable UUID payrollId, Authentication authentication) throws Exception {
         PayrollDTO payroll = payrollService.getPayrollById(payrollId, authentication);
         byte[] pdfData = payrollPdfService.generatePayrollStatement(payroll);
@@ -90,7 +93,7 @@ public class PayrollController {
     }
 
     @GetMapping("/statement/excel/by-id/{payrollId}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<byte[]> downloadPayrollStatementExcelById(@PathVariable UUID payrollId, Authentication authentication) throws Exception {
         PayrollDTO payroll = payrollService.getPayrollById(payrollId, authentication);
         byte[] excelData = importExportService.exportPayrollToExcel(List.of(payroll), payroll.getMonth(), payroll.getYear());
@@ -101,6 +104,7 @@ public class PayrollController {
     }
 
     @GetMapping("/{month}/{year}")
+    @PreAuthorize("hasAuthority('PAY_VIEW')")
     public ResponseEntity<PayrollDTO> getMyPayroll(@PathVariable Integer month, @PathVariable Integer year, Authentication authentication) throws Exception {
         PayrollDTO payroll = payrollService.getMyPayroll(month, year, authentication);
         return ResponseEntity.ok(payroll);

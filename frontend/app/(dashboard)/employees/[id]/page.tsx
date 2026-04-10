@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios, { type AxiosResponse } from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import Toast, { ToastState } from '@/components/Toast';
 import { Department, Employee, Position } from '@/types';
-import { getSession, hasRole, saveSession } from '@/lib/auth';
 import { formatVND } from '@/lib/utils';
 import { useSession } from '@/components/AuthProvider';
 import SearchableSelect from '@/components/SearchableSelect';
@@ -61,10 +60,11 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
 
-  const isHRAdmin = hasRole('ADMIN', 'HR');
+  const permissions = session?.permissions ?? [];
   const isSelf = session?.employeeId === id;
-  const canEditPersonal = isHRAdmin || isSelf;
-  const canEditStructure = isHRAdmin;
+  const canView = permissions.includes('EMP_VIEW');
+  const canEditPersonal = isSelf || permissions.includes('EMP_UPDATE');
+  const canEditStructure = permissions.includes('EMP_UPDATE');
   const forceCompleteProfile = searchParams.get('completeProfile') === '1';
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
@@ -98,7 +98,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
       setError(null);
       try {
         const tasks: Promise<unknown>[] = [api.get(`/api/employees/${id}`)];
-        if (isHRAdmin) tasks.push(fetchMeta(id));
+        if (canEditStructure) tasks.push(fetchMeta(id));
         const [res] = await Promise.all(tasks);
         setEmp((res as AxiosResponse<Employee>).data);
         
@@ -113,7 +113,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
     };
 
     void run();
-  }, [mounted, id, isHRAdmin, fetchMeta, forceCompleteProfile]);
+  }, [mounted, id, canEditStructure, fetchMeta, forceCompleteProfile]);
 
   const departmentSelectOptions = useMemo<SelectOption[]>(
     () => departments.map((d) => ({ id: d.id, label: d.name })),
@@ -172,6 +172,8 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   }
 
   if (!mounted) return null;
+  if (!session) return null;
+  if (!canView) return <div className="text-rose-400 p-20 text-center font-black uppercase tracking-widest">Bạn không có quyền xem hồ sơ nhân viên.</div>;
   if (loading) return <div className="text-white/20 p-20 text-center font-black uppercase tracking-[0.2em]">Đang đồng bộ hồ sơ...</div>;
   if (error) return <div className="text-rose-400 p-20 text-center font-black uppercase tracking-widest">{error}</div>;
   if (!emp) return null;

@@ -21,10 +21,11 @@ export default function ProjectsPage() {
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
   
-  const isEmployee = session?.role === 'EMPLOYEE';
-  const isAdminOrHR = session?.role === 'ADMIN' || session?.role === 'HR';
-  const canManage = session?.role && session.role !== 'EMPLOYEE'; // ADMIN, HR, MANAGER
-  const canDelete = isAdminOrHR; // Only ADMIN, HR
+  const permissions = session?.permissions ?? [];
+  const canView = permissions.includes('PRJ_VIEW');
+  const canCreate = permissions.includes('PRJ_CREATE');
+  const canUpdate = permissions.includes('PRJ_UPDATE');
+  const canDelete = permissions.includes('PRJ_DELETE');
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
@@ -41,8 +42,13 @@ export default function ProjectsPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (canView) {
+      void fetchProjects();
+    } else {
+      setLoading(false);
+      setProjects([]);
+    }
+  }, [canView]);
 
   const handleSave = async (data: Partial<Project>) => {
     try {
@@ -90,6 +96,9 @@ export default function ProjectsPage() {
   };
 
   if (!session) return null;
+  if (!canView) {
+    return <div className="p-12 text-center text-rose-500 font-black uppercase tracking-[0.2em] bg-rose-500/5 rounded-[32px] mx-6">Bạn không có quyền xem dự án.</div>;
+  }
 
   return (
     <div className="space-y-12 pb-20">
@@ -109,7 +118,7 @@ export default function ProjectsPage() {
             <p className="text-lg font-bold uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Điều phối nhân sự & tiến độ tập trung</p>
          </div>
 
-         {canManage && (
+         {canCreate && (
             <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-6 md:mt-0 px-4 py-3">
                <button
                   onClick={() => setShowCreate(true)}
@@ -195,7 +204,7 @@ export default function ProjectsPage() {
                             <Eye className="w-5 h-5" strokeWidth={2.5} />
                           </Link>
                           
-                          {canManage && (
+                          {canUpdate && (
                             <button 
                               onClick={() => setSelectedProject(p)} 
                               className="w-10 h-10 flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg active:scale-90"
@@ -224,8 +233,8 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {showCreate && <ProjectDialog project={null} onClose={() => setShowCreate(false)} onSave={handleSave} />}
-      {selectedProject && <ProjectDialog project={selectedProject} onClose={() => setSelectedProject(null)} onSave={handleSave} />}
+      {showCreate && canCreate && <ProjectDialog project={null} onClose={() => setShowCreate(false)} onSave={handleSave} />}
+      {selectedProject && canUpdate && <ProjectDialog project={selectedProject} onClose={() => setSelectedProject(null)} onSave={handleSave} />}
     </div>
   );
 }

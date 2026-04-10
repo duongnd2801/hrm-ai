@@ -23,14 +23,14 @@ public class UserManagementController {
     private final UserManagementService userManagementService;
 
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     @Operation(summary = "Lấy thống kê tài khoản hệ thống")
     public ResponseEntity<com.hrm.dto.UserStatsDTO> getUserStats() {
         return ResponseEntity.ok(userManagementService.getUserStats());
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     @Operation(summary = "Lấy danh sách tất cả người dùng", description = "Paginated list of all users")
     public ResponseEntity<PageResponse<UserManagementDTO>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
@@ -39,14 +39,14 @@ public class UserManagementController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     @Operation(summary = "Lấy thông tin người dùng", description = "Get user details by ID")
     public ResponseEntity<UserManagementDTO> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userManagementService.getUserById(id));
     }
 
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
     @Operation(summary = "Cập nhật vai trò người dùng", description = "Update user role")
     public ResponseEntity<UserManagementDTO> updateUserRole(
             @PathVariable UUID id,
@@ -55,14 +55,14 @@ public class UserManagementController {
     }
 
     @PostMapping("/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
     @Operation(summary = "Đặt lại mật khẩu người dùng", description = "Reset user password to default (Emp@123)")
     public ResponseEntity<UserManagementDTO> resetPassword(@PathVariable UUID id) {
         return ResponseEntity.ok(userManagementService.resetPassword(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
     @Operation(summary = "Xóa người dùng", description = "Delete user account")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userManagementService.deleteUser(id);
@@ -70,7 +70,7 @@ public class UserManagementController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     @Operation(summary = "Tìm kiếm người dùng theo email", description = "Search users by email")
     public ResponseEntity<PageResponse<UserManagementDTO>> searchUsersByEmail(
             @RequestParam String email,

@@ -72,7 +72,7 @@ export default function LeavePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreate) {
-      pushToast('error', 'Báº¡n khÃ´ng cÃ³ quyá»n táº¡o Ä‘Æ¡n nghá»‰ phÃ©p');
+      pushToast('error', 'Bạn không có quyền tạo đơn nghỉ phép');
       return;
     }
     try {
@@ -87,7 +87,7 @@ export default function LeavePage() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     if (!canApprove) {
-      pushToast('error', 'Báº¡n khÃ´ng cÃ³ quyá»n duyá»‡t Ä‘Æ¡n nghá»‰ phÃ©p');
+      pushToast('error', 'Bạn không có quyền duyệt đơn nghỉ phép');
       return;
     }
     try {

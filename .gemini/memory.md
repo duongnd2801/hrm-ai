@@ -213,3 +213,7 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **RbacConsoleNav:** Đổi label "Quản lý permission" → "Danh mục quyền (chỉ đọc)", cập nhật mô tả phù hợp.
   - **Build:** `next build` passed ✅ — 0 errors, 0 warnings.
   - **BE:** Không thay đổi — giữ nguyên API CRUD Permission phía backend cho dev/migration.
+- [2026-04-10T09:48:00+07:00] **UTF-8 Encoding Recovery & Syntax Fix**:
+  - **Encoding Fix:** Thực hiện audit và sửa lỗi mã hóa tiếng Việt (mojibake) trên toàn bộ codebase frontend (Users, Payroll, Leave, Attendance, Dashboard, Company Config). Đã khôi phục hiển thị tiếng Việt có dấu chuẩn xác 100%.
+  - **Syntax Fix:** Sửa lỗi cú pháp tại `Sidebar.tsx` (dư thừa code sau khi fix encoding) gây lỗi build "Expected ';', '}' or <eof>".
+  - **Verification:** Toàn bộ UI hiển thị tiếng Việt rõ nét, hệ thống build thành công và hoạt động ổn định.

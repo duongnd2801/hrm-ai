@@ -34,26 +34,26 @@ public class OTRequestController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAuthority('OT_APPROVE') and hasAnyRole('ADMIN', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAuthority('OT_APPROVE')")
     public List<OTRequestDTO> getPendingRequests() {
         return otRequestService.getPendingRequests();
     }
 
     @GetMapping("/reviewed")
-    @PreAuthorize("hasAuthority('OT_APPROVE') and hasAnyRole('ADMIN', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAuthority('OT_APPROVE')")
     public List<OTRequestDTO> getReviewedRequests() {
         return otRequestService.getReviewedRequests();
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('OT_APPROVE') and hasAnyRole('ADMIN', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAuthority('OT_APPROVE')")
     public ResponseEntity<Void> approve(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails user) {
         otRequestService.review(id, user.getId(), true);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasAuthority('OT_APPROVE') and hasAnyRole('ADMIN', 'MANAGER', 'HR')")
+    @PreAuthorize("hasAuthority('OT_APPROVE')")
     public ResponseEntity<Void> reject(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails user) {
         otRequestService.review(id, user.getId(), false);
         return ResponseEntity.ok().build();

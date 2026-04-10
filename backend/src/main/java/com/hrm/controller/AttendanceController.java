@@ -21,19 +21,19 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @PostMapping("/checkin")
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('ATT_CHECKIN')")
     public ResponseEntity<AttendanceDTO> checkIn(Authentication authentication) {
         return ResponseEntity.ok(attendanceService.checkIn(authentication));
     }
 
     @PostMapping("/checkout")
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('ATT_CHECKIN')")
     public ResponseEntity<AttendanceDTO> checkOut(Authentication authentication) {
         return ResponseEntity.ok(attendanceService.checkOut(authentication));
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('ATT_VIEW')")
     public ResponseEntity<List<AttendanceDTO>> getMyAttendance(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
@@ -43,7 +43,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/{employeeId}")
-    @PreAuthorize("hasAnyRole('MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('ATT_TEAM_VIEW')")
     public ResponseEntity<List<AttendanceDTO>> getEmployeeAttendance(
             @PathVariable UUID employeeId,
             @RequestParam(required = false) Integer month,

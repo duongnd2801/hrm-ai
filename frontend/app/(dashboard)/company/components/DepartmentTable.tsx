@@ -15,7 +15,11 @@ function getErrorMessage(err: unknown, fallback: string): string {
   return (data as { message?: string } | undefined)?.message || fallback;
 }
 
-export default function DepartmentTable() {
+interface DepartmentTableProps {
+  canManage?: boolean;
+}
+
+export default function DepartmentTable({ canManage = false }: DepartmentTableProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
@@ -37,7 +41,7 @@ export default function DepartmentTable() {
       const res = await api.get("/api/company/departments");
       setDepartments(res.data as Department[]);
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, "Không thể tải danh sách phòng ban."));
+      pushToast('error', getErrorMessage(err, 'Không thể tải danh sách phòng ban.'));
     } finally {
       setLoading(false);
     }
@@ -48,6 +52,7 @@ export default function DepartmentTable() {
   }, []);
 
   function openCreateModal() {
+    if (!canManage) return;
     setEditingDepartment(null);
     setName("");
     setError("");
@@ -55,6 +60,7 @@ export default function DepartmentTable() {
   }
 
   function openEditModal(department: Department) {
+    if (!canManage) return;
     setEditingDepartment(department);
     setName(department.name);
     setError("");
@@ -63,8 +69,9 @@ export default function DepartmentTable() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canManage) return;
     if (!name.trim()) {
-      setError("Tên phòng ban không được để trống.");
+      setError('Tên phòng ban không được để trống.');
       return;
     }
 
@@ -79,19 +86,20 @@ export default function DepartmentTable() {
       setShowFormModal(false);
       await fetchDepartments();
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Không thể lưu phòng ban."));
+      setError(getErrorMessage(err, 'Không thể lưu phòng ban.'));
     } finally {
       setSubmitting(false);
     }
   }
 
   function openDeleteModal(department: Department) {
+    if (!canManage) return;
     setTargetDelete(department);
     setShowDeleteModal(true);
   }
 
   async function confirmDelete() {
-    if (!targetDelete) return;
+    if (!targetDelete || !canManage) return;
     setSubmitting(true);
     try {
       await api.delete(`/api/company/departments/${targetDelete.id}`);
@@ -99,7 +107,7 @@ export default function DepartmentTable() {
       setTargetDelete(null);
       await fetchDepartments();
     } catch (err: unknown) {
-      pushToast('error', getErrorMessage(err, "Không thể xóa phòng ban."));
+      pushToast('error', getErrorMessage(err, 'Không thể xóa phòng ban.'));
     } finally {
       setSubmitting(false);
     }
@@ -110,12 +118,14 @@ export default function DepartmentTable() {
       <Toast toast={toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
       <div className="flex items-center justify-between px-2 lg:px-6 pt-4">
         <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Cấu trúc phòng ban</h3>
-        <button
-          onClick={openCreateModal}
-          className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
-        >
-          + Thêm phòng ban
-        </button>
+        {canManage && (
+          <button
+            onClick={openCreateModal}
+            className="px-8 py-3.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 hover:scale-105 active:scale-95 text-white text-xs font-black uppercase tracking-widest shadow-2xl shadow-indigo-500/30 transition-all duration-300"
+          >
+            + Thêm phòng ban
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -146,20 +156,26 @@ export default function DepartmentTable() {
                        </div>
                     </td>
                     <td className="px-8 py-3.5 text-right space-x-2">
-                       <button 
-                         onClick={() => openEditModal(department)} 
-                         className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-lg transition-all active:scale-95"
-                         title="Sửa phòng ban"
-                       >
-                         <Pencil className="w-5 h-5" />
-                       </button>
-                       <button 
-                         onClick={() => openDeleteModal(department)} 
-                         className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 shadow-lg transition-all active:scale-95"
-                         title="Xóa phòng ban"
-                       >
-                         <Trash2 className="w-5 h-5" />
-                       </button>
+                      {canManage ? (
+                        <>
+                          <button 
+                            onClick={() => openEditModal(department)} 
+                            className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 shadow-lg transition-all active:scale-95"
+                            title="Sửa phòng ban"
+                          >
+                            <Pencil className="w-5 h-5" />
+                          </button>
+                          <button 
+                            onClick={() => openDeleteModal(department)} 
+                            className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500 text-white hover:bg-rose-600 shadow-lg transition-all active:scale-95"
+                            title="Xóa phòng ban"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Read only</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -169,7 +185,7 @@ export default function DepartmentTable() {
         </div>
       )}
 
-      {showFormModal && (
+      {canManage && showFormModal && (
         <DraggableModal
           title={editingDepartment ? "Sửa phòng ban" : "Thêm phòng ban"}
           onClose={() => setShowFormModal(false)}
@@ -209,7 +225,7 @@ export default function DepartmentTable() {
         </DraggableModal>
       )}
 
-      {showDeleteModal && targetDelete && (
+      {canManage && showDeleteModal && targetDelete && (
         <DraggableModal title="Xác nhận gỡ bỏ" onClose={() => setShowDeleteModal(false)}>
            <div className="text-center py-4">
               <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-8 animate-bounce">

@@ -19,31 +19,31 @@ public class PositionController {
     private final CompanyService companyService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('POS_VIEW')")
     public ResponseEntity<List<PositionDTO>> getAll() {
         return ResponseEntity.ok(companyService.getAllPositions());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('POS_CREATE')")
     public ResponseEntity<PositionDTO> create(@Valid @RequestBody PositionDTO dto) {
         return ResponseEntity.ok(companyService.createPosition(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('POS_UPDATE')")
     public ResponseEntity<PositionDTO> update(@PathVariable UUID id, @Valid @RequestBody PositionDTO dto) {
         return ResponseEntity.ok(companyService.updatePosition(id, dto));
     }
 
     @PatchMapping("/{id}/lock")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('POS_UPDATE')")
     public ResponseEntity<PositionDTO> toggleLock(@PathVariable UUID id, @RequestParam boolean locked) {
         return ResponseEntity.ok(companyService.togglePositionLock(id, locked));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('POS_DELETE')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         companyService.deletePosition(id);
         return ResponseEntity.noContent().build();

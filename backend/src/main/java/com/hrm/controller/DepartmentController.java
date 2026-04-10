@@ -19,25 +19,25 @@ public class DepartmentController {
     private final CompanyService companyService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('DEPT_VIEW')")
     public ResponseEntity<List<DepartmentDTO>> getAll() {
         return ResponseEntity.ok(companyService.getAllDepartments());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('DEPT_CREATE')")
     public ResponseEntity<DepartmentDTO> create(@Valid @RequestBody DepartmentDTO dto) {
         return ResponseEntity.ok(companyService.createDepartment(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('DEPT_UPDATE')")
     public ResponseEntity<DepartmentDTO> update(@PathVariable UUID id, @Valid @RequestBody DepartmentDTO dto) {
         return ResponseEntity.ok(companyService.updateDepartment(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('DEPT_DELETE')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         companyService.deleteDepartment(id);
         return ResponseEntity.noContent().build();

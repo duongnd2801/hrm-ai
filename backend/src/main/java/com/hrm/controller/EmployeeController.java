@@ -33,13 +33,13 @@ public class EmployeeController {
     private final ImportExportService importExportService;
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_VIEW')")
     public ResponseEntity<EmployeeStatsDTO> getStats() {
         return ResponseEntity.ok(employeeService.getStats());
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_VIEW')")
     public ResponseEntity<PageResponse<EmployeeDTO>> getAllEmployees(
             @RequestParam(required = false) String search,
             @PageableDefault(size = 10, sort = "fullName", direction = Sort.Direction.ASC) Pageable pageable,
@@ -48,18 +48,19 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('EMP_VIEW')")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable UUID id, Authentication authentication) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id, authentication));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_CREATE')")
     public ResponseEntity<EmployeeDTO> createEmployee(@Valid @RequestBody EmployeeDTO dto) {
         return ResponseEntity.ok(employeeService.createEmployee(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_UPDATE')")
     public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable UUID id, @Valid @RequestBody EmployeeDTO dto) {
         return ResponseEntity.ok(employeeService.updateEmployee(id, dto));
     }
@@ -70,7 +71,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/export")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_EXPORT')")
     public ResponseEntity<byte[]> exportEmployees(
             @RequestParam(required = false) String search,
             Authentication authentication) throws Exception {
@@ -84,7 +85,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/template")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_IMPORT')")
     public ResponseEntity<byte[]> downloadTemplate() throws Exception {
         byte[] templateData = importExportService.generateTemplate();
         return ResponseEntity.ok()
@@ -94,7 +95,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/import")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMP_IMPORT')")
     public ResponseEntity<?> importEmployees(@RequestParam("file") MultipartFile file) {
         try {
             if (file.isEmpty()) {

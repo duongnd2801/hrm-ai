@@ -47,6 +47,19 @@ public class RoleService {
     public RoleDTO updateRole(UUID id, RoleDTO dto) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        if ("ADMIN".equals(role.getName())) {
+            Set<String> currentPermissions = role.getPermissions().stream()
+                    .map(Permission::getCode)
+                    .collect(Collectors.toSet());
+            Set<String> requestedPermissions = dto.getPermissions() == null
+                    ? Set.of()
+                    : new HashSet<>(dto.getPermissions());
+
+            if (!currentPermissions.equals(requestedPermissions)) {
+                throw new RuntimeException("Không cho phép chỉnh sửa permission của role ADMIN");
+            }
+        }
         
         // Don't allow renaming system roles if needed, but let's keep it simple
         role.setName(dto.getName());

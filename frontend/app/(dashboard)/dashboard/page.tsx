@@ -158,6 +158,7 @@ function formatStatus(status: string) {
 
 export default function DashboardPage() {
   const { session } = useSession();
+  const canUseAttendance = session?.permissions.includes('ATT_CHECKIN') ?? false;
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [weather, setWeather] = useState<WeatherData>({});
   const [clock, setClock] = useState(new Date());
@@ -225,6 +226,10 @@ export default function DashboardPage() {
   const nextAction = summary?.todayCheckIn && !summary?.todayCheckOut ? 'checkout' : 'checkin';
 
   async function handleAttendanceAction() {
+    if (!canUseAttendance) {
+      pushToast('error', 'Bạn không có quyền thao tác chấm công.');
+      return;
+    }
     setLoadingAction(true);
     try {
       await api.post(nextAction === 'checkin' ? '/api/attendance/checkin' : '/api/attendance/checkout');
@@ -392,7 +397,7 @@ export default function DashboardPage() {
             <div className="relative z-10 mt-12 space-y-6">
                <button 
                   onClick={() => void handleAttendanceAction()}
-                  disabled={loadingAction}
+                  disabled={loadingAction || !canUseAttendance}
                   className="w-full py-8 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 dark:hover:from-indigo-400 dark:hover:via-purple-400 dark:hover:to-pink-400 text-white rounded-[32px] font-black text-2xl tracking-[0.2em] transition-all shadow-2xl shadow-indigo-600/40 hover:shadow-2xl hover:shadow-purple-600/50 active:scale-95 group/btn border border-indigo-400/20 dark:border-indigo-300/30 disabled:bg-gradient-to-r disabled:from-slate-100 dark:disabled:from-white/5 disabled:via-slate-100 dark:disabled:via-white/5 disabled:to-slate-100 dark:disabled:to-white/5 disabled:text-slate-400 dark:disabled:text-white/10"
                >
                   <span className="group-hover/btn:scale-110 block transition-transform">

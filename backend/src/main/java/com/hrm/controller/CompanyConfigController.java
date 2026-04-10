@@ -16,13 +16,13 @@ public class CompanyConfigController {
     private final CompanyService companyService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','HR','ADMIN')")
+    @PreAuthorize("hasAuthority('COMP_VIEW')")
     public ResponseEntity<CompanyConfigDTO> getConfig() {
         return ResponseEntity.ok(companyService.getConfig());
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('COMP_UPDATE')")
     public ResponseEntity<CompanyConfigDTO> updateConfig(@Valid @RequestBody CompanyConfigDTO dto) {
         return ResponseEntity.ok(companyService.updateConfig(dto));
     }

@@ -100,7 +100,7 @@ public class AttendanceService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên."));
 
         boolean sameUser = current.getId().equals(target.getId());
-        boolean elevated = hasAnyRole(authentication, "MANAGER", "HR", "ADMIN");
+        boolean elevated = hasAuthority(authentication, "ATT_TEAM_VIEW");
         if (!sameUser && !elevated) {
             throw new AccessDeniedException("Bạn không có quyền xem chấm công của nhân viên khác.");
         }
@@ -228,15 +228,9 @@ public class AttendanceService {
                 .orElseThrow(() -> new IllegalArgumentException("Tài khoản chưa được gán hồ sơ nhân viên."));
     }
 
-    private boolean hasAnyRole(Authentication authentication, String... roles) {
-        for (String role : roles) {
-            String roleName = "ROLE_" + role;
-            if (authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals(roleName))) {
-                return true;
-            }
-        }
-        return false;
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(authority));
     }
 
     private AttendanceDTO toDto(Attendance attendance) {

@@ -23,7 +23,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('LEAVE_VIEW') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_VIEW')")
     public List<LeaveRequestDTO> getAllLeaves() {
         return leaveRequestService.getAllLeaveRequests();
     }
@@ -35,13 +35,13 @@ public class LeaveRequestController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('LEAVE_APPROVE') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_APPROVE')")
     public LeaveRequestDTO approveLeave(@PathVariable UUID id, Authentication authentication) {
         return leaveRequestService.approveLeaveRequest(id, authentication);
     }
 
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasAuthority('LEAVE_APPROVE') and hasAnyRole('ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('LEAVE_APPROVE')")
     public LeaveRequestDTO rejectLeave(@PathVariable UUID id, Authentication authentication) {
         return leaveRequestService.rejectLeaveRequest(id, authentication);
     }

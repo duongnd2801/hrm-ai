@@ -2,7 +2,6 @@
 
 import { useEffect, useEffectEvent, useState } from 'react';
 import { useSession } from '@/components/AuthProvider';
-import { hasRole } from '@/lib/auth';
 import EmployeeTable from './components/EmployeeTable';
 import ImportExcelModal from './components/ImportExcelModal';
 import CreateEmployeeModal from './components/CreateEmployeeModal';
@@ -35,6 +34,8 @@ export default function EmployeesPage() {
   if (!session) return null;
   const canView = session.permissions.includes('EMP_VIEW');
   const canCreate = session.permissions.includes('EMP_CREATE');
+  const canImport = session.permissions.includes('EMP_IMPORT');
+  const canExport = session.permissions.includes('EMP_EXPORT');
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
@@ -43,6 +44,10 @@ export default function EmployeesPage() {
   };
 
   async function handleExport() {
+    if (!canExport) {
+      pushToast('error', 'Bạn không có quyền xuất dữ liệu nhân viên.');
+      return;
+    }
     try {
       const res = await api.get('/api/employees/export', { responseType: 'blob' });
       // D24: Validate blob response before download
@@ -66,6 +71,11 @@ export default function EmployeesPage() {
     <div className="space-y-12">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
+      {!canView ? (
+        <div className="text-rose-400 p-20 text-center font-black uppercase tracking-widest">Bạn không có quyền xem danh sách nhân viên.</div>
+      ) : (
+        <>
+
       {/* Main Title Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
          <div>
@@ -73,28 +83,34 @@ export default function EmployeesPage() {
             <p className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Cơ sở dữ liệu nhân sự công ty</p>
          </div>
 
-         {canCreate && (
+         {(canCreate || canImport || canExport) && (
             <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl mt-6 md:mt-0 px-4 py-3">
-               <button
-                  onClick={() => setShowCreate(true)}
-                  className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs font-black tracking-widest transition-all shadow-lg active:scale-95"
-               >
-                  THÊM MỚI
-               </button>
-               <button
-                  onClick={() => setShowImport(true)}
-                  className="px-6 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-black tracking-widest transition-all active:scale-95"
-               >
-                  NHẬP EXCEL
-               </button>
-               <button
-                  onClick={handleExport}
-                  className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
-               >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-               </button>
+               {canCreate && (
+                 <button
+                    onClick={() => setShowCreate(true)}
+                    className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs font-black tracking-widest transition-all shadow-lg active:scale-95"
+                 >
+                    THÊM MỚI
+                 </button>
+               )}
+               {canImport && (
+                 <button
+                    onClick={() => setShowImport(true)}
+                    className="px-6 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-black tracking-widest transition-all active:scale-95"
+                 >
+                    NHẬP EXCEL
+                 </button>
+               )}
+               {canExport && (
+                 <button
+                    onClick={handleExport}
+                    className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
+                 >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                 </button>
+               )}
             </div>
          )}
       </div>
@@ -193,8 +209,10 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {showImport && <ImportExcelModal onClose={() => setShowImport(false)} onSuccess={triggerRefresh} />}
-      {showCreate && <CreateEmployeeModal onClose={() => setShowCreate(false)} onSuccess={triggerRefresh} />}
+      {showImport && canImport && <ImportExcelModal onClose={() => setShowImport(false)} onSuccess={triggerRefresh} />}
+      {showCreate && canCreate && <CreateEmployeeModal onClose={() => setShowCreate(false)} onSuccess={triggerRefresh} />}
+        </>
+      )}
     </div>
   );
 }

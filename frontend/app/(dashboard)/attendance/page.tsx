@@ -31,6 +31,7 @@ const statusLabelMap: Record<AttendanceStatus, string> = {
 
 export default function AttendancePage() {
   const { session } = useSession();
+  const canView = session?.permissions.includes('ATT_VIEW') ?? false;
   const now = useMemo(() => new Date(), []);
   const [year] = useState(now.getFullYear());
   const [records, setRecords] = useState<Attendance[]>([]);
@@ -57,7 +58,7 @@ export default function AttendancePage() {
   }, [year]);
 
   useEffect(() => {
-    if (session) void fetchData();
+    if (session && canView) void fetchData();
   }, [session, fetchData]);
 
   const byDate = useMemo(() => {
@@ -67,6 +68,13 @@ export default function AttendancePage() {
   }, [records]);
 
   if (!session) return null;
+  if (!canView) {
+    return (
+      <div className="py-20 text-center text-slate-500 dark:text-white/40 font-black uppercase tracking-widest">
+        Bạn không có quyền truy cập chấm công.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12 pb-20 px-2 lg:px-6">

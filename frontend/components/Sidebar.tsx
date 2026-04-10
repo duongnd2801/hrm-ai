@@ -2,22 +2,21 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { hasRole } from '@/lib/auth';
 import type { UserSession } from '@/types';
 import Avatar from './Avatar';
 
 export const NAV_ITEMS = [
   { href: '/dashboard', label: 'Tổng quan', icon: 'grid', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
   { href: '/employees', label: 'Nhân viên', icon: 'users', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'EMP_VIEW' },
-  { href: '/projects', label: 'Dự án', icon: 'project', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'PROJ_VIEW' },
+  { href: '/projects', label: 'Dự án', icon: 'project', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'PRJ_VIEW' },
   { href: '/attendance', label: 'Chấm công', icon: 'calendar', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'ATT_VIEW' },
   { href: '/apologies', label: 'Giải trình', icon: 'file-text', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'APOLOGY_VIEW' },
   { href: '/leave', label: 'Nghỉ phép', icon: 'umbrella', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'LEAVE_VIEW' },
   { href: '/ot', label: 'Tăng ca', icon: 'clock', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'OT_VIEW' },
   { href: '/payroll', label: 'Bảng lương', icon: 'banknote', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'PAY_VIEW' },
   { href: '/holidays', label: 'Ngày lễ', icon: 'holiday', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/company', label: 'Cấu hình', icon: 'settings', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] },
-  { href: '/users', label: 'Quản lý TK', icon: 'users-admin', roles: ['ADMIN'] },
+  { href: '/company', label: 'Cấu hình', icon: 'settings', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'COMP_VIEW' },
+  { href: '/users', label: 'Quản lý TK', icon: 'users-admin', roles: ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'], permission: 'USER_VIEW' },
   { href: '/settings/roles/matrix', label: 'Phân quyền', icon: 'shield', roles: ['ADMIN'], permission: 'ROLE_UPDATE' },
   { href: '/settings/roles', label: 'Role', icon: 'shield', roles: ['ADMIN'], permission: 'ROLE_VIEW' },
   { href: '/settings/permissions', label: 'Permission', icon: 'key', roles: ['ADMIN'], permission: 'PERM_VIEW' },
@@ -68,11 +67,9 @@ interface SidebarProps {
 export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const visibleItems = NAV_ITEMS.filter((item) => {
-    // 1. Check Role first
     const hasRequiredRole = item.roles.includes(session.role);
     if (!hasRequiredRole) return false;
 
-    // 2. Check Permission if defined
     if (item.permission) {
       return session.permissions?.includes(item.permission) ?? false;
     }
@@ -83,12 +80,10 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
   return (
       <aside className={`h-screen glass-dark flex flex-col border-r border-black/5 dark:border-white/10 z-50 md:z-30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl fixed inset-y-0 left-0 md:relative ${collapsed ? '-translate-x-full md:translate-x-0 w-[280px] md:w-[88px]' : 'translate-x-0 w-[280px]'}`}>
       
-      {/* Glow Effect */}
       {!collapsed && (
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
       )}
 
-      {/* Top Logo Section */}
       <div className={`h-32 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'px-8'}`}>
          <div className="flex items-center gap-5 group cursor-pointer">
             <div className="w-14 h-14 rounded-[22px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
@@ -104,7 +99,6 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
          </div>
       </div>
 
-      {/* Navigation Items */}
       <div className={`flex-1 py-4 flex flex-col gap-2.5 overflow-y-auto scrollbar-none scroll-smooth ${collapsed ? 'items-center px-4' : 'px-6'}`}>
          {visibleItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
@@ -142,7 +136,6 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
          })}
       </div>
 
-      {/* Footer Profile Section */}
       <div className={`shrink-0 pb-10 transition-all duration-500 border-t border-black/5 dark:border-white/5 pt-8 ${collapsed ? 'flex flex-col items-center gap-6' : 'px-8'}`}>
           {!collapsed ? (
             <div className="flex items-center gap-4 bg-black/[0.03] dark:bg-white/[0.03] p-4 rounded-[28px] border border-black/5 dark:border-white/5 group cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">

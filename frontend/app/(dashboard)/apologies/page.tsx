@@ -47,13 +47,12 @@ export default function ApologiesPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
   const [myViewMode, setMyViewMode] = useState<'card' | 'table'>('card');
 
-  const role = session?.role ?? null;
   const permissions = session?.permissions ?? [];
   const canView = permissions.includes('APOLOGY_VIEW');
   const canCreate = permissions.includes('APOLOGY_CREATE');
   const canApproveByPermission = permissions.includes('APOLOGY_APPROVE');
-  const isAdminOrHR = role === 'HR' || role === 'ADMIN';
-  const canReview = canApproveByPermission && (role === 'MANAGER' || role === 'HR' || role === 'ADMIN');
+  const isReviewer = canApproveByPermission;
+  const canReview = canApproveByPermission;
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (axios.isAxiosError(error)) {
@@ -92,9 +91,9 @@ export default function ApologiesPage() {
         void loadData();
       }
       setAttendanceDate(new Date().toISOString().split('T')[0]);
-      setShowForm(canCreate && !isAdminOrHR);
+      setShowForm(canCreate && !isReviewer);
     }
-  }, [session, loadData, isAdminOrHR, canCreate, canView]);
+  }, [session, loadData, isReviewer, canCreate, canView]);
 
   async function submit() {
     if (!canCreate) {
@@ -111,7 +110,7 @@ export default function ApologiesPage() {
       setReason('');
       pushToast('success', 'Đã lưu đơn giải trình thành công.');
       await loadData();
-      if (isAdminOrHR) setShowForm(false);
+      if (isReviewer) setShowForm(false);
     } catch (err: unknown) {
       pushToast('error', getErrorMessage(err, 'Gửi đơn thất bại.'));
     } finally {
@@ -163,7 +162,7 @@ export default function ApologiesPage() {
           </div>
         </div>
 
-        {canCreate && isAdminOrHR && (
+        {canCreate && isReviewer && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-8 py-4 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"

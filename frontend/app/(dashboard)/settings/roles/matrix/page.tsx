@@ -44,6 +44,11 @@ export default function PermissionMatrixPage() {
   };
 
   const handleToggle = async (role: RoleDTO, permissionCode: string) => {
+    if (role.name === 'ADMIN') {
+      pushToast('info', 'Role ADMIN được khóa toàn bộ permission để tránh lệch quyền hệ thống');
+      return;
+    }
+
     const exists = role.permissions.includes(permissionCode);
     const nextPermissions = exists
       ? role.permissions.filter((code) => code !== permissionCode)
@@ -201,7 +206,7 @@ export default function PermissionMatrixPage() {
 
                         {roles.map((role) => {
                           const isSelected = role.permissions.includes(permission.code);
-                          const isLocked = role.name === 'ADMIN' && permission.code.startsWith('ROLE_');
+                          const isLocked = role.name === 'ADMIN';
 
                           return (
                             <td key={`${role.id}-${permission.code}`} className="p-6 text-center border-b border-slate-200 dark:border-white/5">
@@ -237,7 +242,7 @@ export default function PermissionMatrixPage() {
           </div>
           <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-widest">Bảo vệ hệ thống</h3>
           <p className="text-[11px] font-bold text-slate-500 dark:text-white/40 leading-relaxed uppercase tracking-widest">
-            Một số quyền lõi của ADMIN được khóa để tránh tự cắt quyền quản trị.
+            ADMIN được xem là super-role, nên toàn bộ permission trong ma trận đều bị khóa để tránh trạng thái hiển thị sai với quyền thực tế.
           </p>
         </div>
 

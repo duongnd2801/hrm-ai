@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, UserPlus, Trash2, Calendar, LayoutTemplate } from 'lucide-react';
 import { projectApi } from '@/lib/projectApi';
-import { hasRole } from '@/lib/auth';
+import { useSession } from '@/components/AuthProvider';
 import type { Project, ProjectMember, ProjectRole } from '@/types';
 import ProjectMemberDialog from '@/components/projects/ProjectMemberDialog';
 import Toast, { ToastState } from '@/components/Toast';
@@ -14,11 +14,11 @@ export default function ProjectDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
+  const { session } = useSession();
 
   const [project, setProject] = useState<Project | null>(null);
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const [canManage, setCanManage] = useState(false);
   
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
@@ -29,12 +29,17 @@ export default function ProjectDetailsPage() {
   const showToast = (kind: ToastState['kind'], message: string) => 
     setToast({ show: true, kind, message });
 
+  const permissions = session?.permissions ?? [];
+  const canView = permissions.includes('PRJ_VIEW');
+  const canManage = permissions.includes('PRJ_UPDATE');
+
   useEffect(() => {
-    setCanManage(hasRole('ADMIN', 'HR', 'MANAGER'));
-    if (projectId) {
-      loadData();
+    if (projectId && canView) {
+      void loadData();
+    } else if (!canView) {
+      setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, canView]);
 
   const loadData = async () => {
     try {
@@ -91,6 +96,8 @@ export default function ProjectDetailsPage() {
     }
   };
 
+  if (!session) return null;
+  if (!canView) return <div className="p-12 text-center text-rose-500 font-black uppercase tracking-[0.2em] bg-rose-500/5 rounded-[32px] mx-6">Bạn không có quyền xem dự án này.</div>;
   if (loading && !project) return <div className="p-12 text-center uppercase tracking-[0.3em] font-black text-slate-400 animate-pulse">Đang nạp chi tiết dự án...</div>;
   if (!project) return <div className="p-12 text-center text-rose-500 font-black uppercase tracking-[0.2em] bg-rose-500/5 rounded-[32px] mx-6">Dự án không tồn tại hoặc đã bị xóa!</div>;
 

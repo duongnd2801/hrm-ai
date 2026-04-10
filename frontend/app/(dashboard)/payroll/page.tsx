@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from '@/components/AuthProvider';
-import { hasRole } from '@/lib/auth';
 import api from '@/lib/api';
 import { Payroll } from '@/types';
 import { formatVND, formatMonth } from '@/lib/utils';
@@ -27,7 +26,8 @@ export default function PayrollPage() {
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 
-  const canManage = session ? hasRole('ADMIN', 'HR') : false;
+  const canView = session?.permissions.includes('PAY_VIEW') ?? false;
+  const canManage = session?.permissions.includes('PAY_CALC') ?? false;
 
   async function fetchPayrolls() {
     if (!session) return;
@@ -64,6 +64,13 @@ export default function PayrollPage() {
   }, [month, year]);
 
   if (!session) return null;
+  if (!canView) {
+    return (
+      <div className="py-20 text-center text-slate-500 dark:text-white/40 font-black uppercase tracking-widest">
+        Bạn không có quyền truy cập bảng lương.
+      </div>
+    );
+  }
 
   async function handleCalculate() {
     setCalculating(true);
