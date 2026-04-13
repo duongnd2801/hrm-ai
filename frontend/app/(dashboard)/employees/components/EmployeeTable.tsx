@@ -110,29 +110,66 @@ export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?
                                         <div className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.2em] mt-1 opacity-60">ID: {emp.id.substring(0, 8).toUpperCase()}</div>
                                         
                                         {/* Hover Info Card - Right Side Fixed */}
-                                        <div className="fixed z-[9999] p-8 w-80 bg-white dark:bg-slate-950 rounded-[40px] shadow-[0_30px_80px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/15 opacity-0 invisible group-hover/name:opacity-100 group-hover/name:visible transition-all duration-500 pointer-events-none transform translate-x-12 -translate-y-1/3 mt-0 ml-12">
-                                          <div className="space-y-5">
+                                        <div className="fixed z-[9999] p-8 w-80 bg-white dark:bg-slate-950 rounded-[40px] shadow-[0_30px_80px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/15 opacity-0 invisible group-hover/name:opacity-100 group-hover/name:visible transition-all duration-500 pointer-events-none transform translate-x-12 -translate-y-1/3 mt-0 ml-12 overflow-hidden">
+                                          {/* Decorative background element */}
+                                          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
+                                          
+                                          <div className="relative z-10 space-y-5">
                                              <div className="flex items-center gap-5 p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5">
-                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg bg-indigo-500 shadow-lg`}>
+                                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/30">
                                                    {emp.fullName?.charAt(0)}
                                                 </div>
-                                                <div className="flex-1">
+                                                <div className="flex-1 min-w-0">
                                                    <p className="text-[13px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{emp.fullName}</p>
                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{emp.positionName || 'Nhân sự'}</p>
                                                 </div>
                                              </div>
+                                             
                                              <div className="space-y-4 px-2">
-                                                <div className="flex items-center justify-between text-[13px] font-black uppercase tracking-widest text-slate-400 dark:text-white/50">
-                                                   <span>Phòng ban:</span>
+                                                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-white/50">
+                                                   <span>🏢 Phòng ban:</span>
                                                    <span className="text-indigo-500">{emp.departmentName || 'Chung'}</span>
                                                 </div>
-                                                <div className="pt-3 border-t border-black/5 dark:border-white/5 space-y-2">
-                                                   <div className="flex items-center gap-2">
-                                                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/50">Địa chỉ:</span>
+                                                
+                                                <div className="pt-3 border-t border-black/5 dark:border-white/5 space-y-3">
+                                                   <div className="flex flex-col gap-1">
+                                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">👨‍💼 Quản lý trực tiếp:</span>
+                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
+                                                         {emp.managerName || 'Không có'}
+                                                      </p>
+                                                      {emp.manager2Name && (
+                                                         <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 truncate italic">
+                                                            Cấp trên: {emp.manager2Name}
+                                                         </p>
+                                                      )}
                                                    </div>
-                                                   <p className="text-[12px] font-bold text-slate-900 dark:text-white leading-relaxed italic line-clamp-3">
-                                                      {emp.address || 'Chưa cập nhật địa điểm...'}
-                                                   </p>
+
+                                                   <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5">
+                                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">⏳ Thâm niên:</span>
+                                                      <span className="text-[11px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-tighter">
+                                                         {(() => {
+                                                            const ref = emp.joinDate || emp.startDate;
+                                                            if (!ref) return 'N/A';
+                                                            const start = new Date(ref);
+                                                            const now = new Date();
+                                                            const years = now.getFullYear() - start.getFullYear();
+                                                            const months = now.getMonth() - start.getMonth();
+                                                            const totalMonths = years * 12 + months;
+                                                            if (totalMonths < 1) return 'Mới vào';
+                                                            if (totalMonths < 12) return `${totalMonths} tháng`;
+                                                            const y = Math.floor(totalMonths / 12);
+                                                            const m = totalMonths % 12;
+                                                            return m > 0 ? `${y}n ${m}t` : `${y} năm`;
+                                                         })()}
+                                                      </span>
+                                                   </div>
+
+                                                   <div className="pt-2 border-t border-black/5 dark:border-white/5">
+                                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-1 block">🏠 Địa chỉ:</span>
+                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight italic line-clamp-2">
+                                                         {emp.address || 'Chưa cập nhật...'}
+                                                      </p>
+                                                   </div>
                                                 </div>
                                              </div>
                                           </div>
@@ -156,10 +193,25 @@ export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5 text-center">
                                <StatusBadge status={emp.status} />
                             </td>
-                            <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5 text-center">
-                                <div className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{formatDate(emp.startDate)}</div>
-                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">CHÍNH THỨC</div>
-                            </td>
+                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5 text-center">
+                                <div className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                   {formatDate(emp.joinDate || emp.startDate)}
+                                </div>
+                                <div className="text-[9px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mt-1 opacity-80">
+                                   {(() => {
+                                      const ref = emp.joinDate || emp.startDate;
+                                      if (!ref) return 'CHƯA CÓ';
+                                      const start = new Date(ref);
+                                      const now = new Date();
+                                      const totalMonths = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+                                      if (totalMonths < 1) return 'MỚI VÀO';
+                                      if (totalMonths < 12) return `${totalMonths} THÁNG`;
+                                      const y = Math.floor(totalMonths / 12);
+                                      const m = totalMonths % 12;
+                                      return m > 0 ? `${y}N ${m}T` : `${y} NĂM`;
+                                   })()}
+                                </div>
+                             </td>
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5 text-right">
                                 <div className="text-emerald-600 dark:text-emerald-400 font-black tracking-widest text-[13px]">{formatVND(emp.baseSalary)}</div>
                             </td>

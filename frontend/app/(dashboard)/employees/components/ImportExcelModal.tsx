@@ -54,8 +54,7 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
       setHeaders(headerRow);
       setFile(selectedFile);
 
-      // Simple validation for preview based on Backend requirements
-      // Col 0: Full Name, Col 1: Email
+      // Validation for preview based on Backend mapping (V24 Extended)
       const rowsWithErrors: ExcelRow[] = dataRows.map((rowArr, idx) => {
         const errors: string[] = [];
         const rowData: ExcelRow = {
@@ -64,15 +63,30 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
         };
         
         headerRow.forEach((h, i) => {
-          rowData[h] = rowArr[i];
+           // Ensure header is string to avoid issues
+          rowData[String(h || `Cột ${i}`)] = rowArr[i];
         });
 
-        const name = rowArr[0];
-        const email = rowArr[1];
+        const name = rowArr[0];  // Họ tên
+        const email = rowArr[1]; // Email login
+        const phone = rowArr[2]; // Số điện thoại
+        const cccd  = rowArr[17]; // CCCD
 
         if (!name || String(name).trim() === '') errors.push('Thiếu Tên');
-        if (!email || String(email).trim() === '') errors.push('Thiếu Email');
-        else if (!String(email).includes('@')) errors.push('Email sai định dạng');
+        
+        if (!email || String(email).trim() === '') {
+          errors.push('Thiếu Email');
+        } else if (!String(email).includes('@')) {
+          errors.push('Email sai định dạng');
+        }
+        
+        if (!phone || String(phone).trim() === '') {
+          errors.push('Thiếu SĐT');
+        }
+
+        if (!cccd || String(cccd).trim() === '') {
+          errors.push('Thiếu CCCD');
+        }
         
         return rowData;
       });

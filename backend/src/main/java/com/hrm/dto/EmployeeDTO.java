@@ -49,6 +49,36 @@ public class EmployeeDTO {
     
     private Long baseSalary;
     private Integer taxDependents;
+
+    // --- Nhóm HỢP ĐỒNG mở rộng ---
+    private UUID manager2Id;
+    private String manager2Name;
+    private LocalDate joinDate;
+    private LocalDate contractSigningDate;
+
+    // --- Nhóm CÁ NHÂN mở rộng ---
+    @Email(message = "Email cá nhân không hợp lệ")
+    private String personalEmail;
+
+    @Size(max = 20, message = "Số CCCD không được vượt quá 20 ký tự")
+    private String citizenId;
+    private LocalDate citizenIdDate;
+    private String citizenIdPlace;
+
+    // --- Nhóm NGƯỜI THÂN LIÊN HỆ ---
+    private String emergencyContactName;
+    private String emergencyContactRelationship;
+    @Size(max = 20, message = "SĐT người thân không được vượt quá 20 ký tự")
+    private String emergencyContactPhone;
+
+    // --- Nhóm TRÌNH ĐỘ ---
+    private String programmingLanguages;
+    private String major;
+    private String university;
+    private String educationLevel;
+    private Integer graduationYear;
+    private String itCertificate;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

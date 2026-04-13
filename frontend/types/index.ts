@@ -62,6 +62,31 @@ export interface Employee {
   role?: RoleType;
   baseSalary?: number | null;
   taxDependents?: number | null;
+
+  // Nhóm HĐ mở rộng
+  manager2Id?: string;
+  manager2Name?: string;
+  joinDate?: string;
+  contractSigningDate?: string;
+
+  // Nhóm Cá nhân mở rộng
+  personalEmail?: string;
+  citizenId?: string;
+  citizenIdDate?: string;
+  citizenIdPlace?: string;
+
+  // Nhóm Người thân liên hệ
+  emergencyContactName?: string;
+  emergencyContactRelationship?: string;
+  emergencyContactPhone?: string;
+
+  // Nhóm Trình độ
+  programmingLanguages?: string;
+  major?: string;
+  university?: string;
+  educationLevel?: string;
+  graduationYear?: number;
+  itCertificate?: string;
 }
 
 export interface Attendance {

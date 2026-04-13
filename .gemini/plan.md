@@ -1,17 +1,18 @@
-# Plan — Redesign Permission UI (Read-Only) + Giữ CRUD Role
+### 📋 Plan — [Phase Hardening: Cập nhật Seed Data khu vực Hà Nội]
 
-**Mục tiêu:** Đổi trang Permission từ CRUD sang read-only catalog; admin chỉ gán permission vào role qua ma trận phân quyền.
+**Mục tiêu:** Cập nhật thông tin CCCD (mã tỉnh, nơi cấp) và các thông tin liên quan (trường đại học) trong dữ liệu mẫu để đồng bộ với khu vực Hà Nội.
 
-## Các bước thực hiện
-
+**Các bước thực hiện:**
 | # | File tạo/sửa | Việc cần làm | Status |
 |---|---|---|---|
-| 1 | `frontend/app/(dashboard)/settings/permissions/page.tsx` | Xóa nút "Thêm permission", menu context (sửa/xóa), dialog CRUD. Chuyển thành read-only catalog + light/dark theme | [x] |
-| 2 | `frontend/app/(dashboard)/settings/roles/page.tsx` | Giữ CRUD role + light/dark theme | [x] |
-| 3 | `frontend/app/(dashboard)/settings/roles/matrix/page.tsx` | Giữ tích chọn + light/dark theme | [x] |
-| 4 | `frontend/components/RbacConsoleNav.tsx` | Cập nhật label/description + light/dark theme | [x] |
-| 5 | `frontend/components/RoleDialog.tsx` | Light/dark theme | [x] |
-| 6 | Build verify | `next build` passed ✅ | [x] |
-| 7 | `.gemini/memory.md` + `GEMINI.md` | Cập nhật trạng thái | [x] |
+| 1 | `backend/src/main/resources/db/migration/V27__update_cccd_hanoi_context.sql` | Tạo migration mới cập nhật `citizen_id` (001), `citizen_id_place` (Cục CS QLHC/HN) và `university` (HN). | [x] |
 
-**Verify:** Build passed — 0 errors.
+**Thứ tự:** BE trước — Đây là thay đổi tầng dữ liệu.
+
+**Rủi ro / cần chú ý:** Đã tuân thủ quy tắc không sửa migration cũ.
+
+**Verify bằng cách:**
+- DB: `SELECT citizen_id, citizen_id_place, university FROM employees;`
+- UI: Kiểm tra cột "Số CCCD" và "Nơi cấp" trong bảng Nhân sự hoặc file Export.
+
+✅ Đã hoàn thành.

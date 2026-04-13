@@ -170,6 +170,14 @@ public class EmployeeService {
         emp.setBio(dto.getBio());
         emp.setGender(dto.getGender());
         emp.setBirthDate(dto.getBirthDate());
+
+        // Thông tin cá nhân mở rộng (NV tự cập nhật)
+        emp.setPersonalEmail(dto.getPersonalEmail());
+
+        // Người thân liên hệ (NV tự cập nhật)
+        emp.setEmergencyContactName(dto.getEmergencyContactName());
+        emp.setEmergencyContactRelationship(dto.getEmergencyContactRelationship());
+        emp.setEmergencyContactPhone(dto.getEmergencyContactPhone());
         
         emp = employeeRepository.save(emp);
         return mapToDTO(emp);
@@ -196,6 +204,10 @@ public class EmployeeService {
             dto.setManagerId(emp.getManager().getId());
             dto.setManagerName(emp.getManager().getFullName());
         }
+        if (emp.getManager2() != null) {
+            dto.setManager2Id(emp.getManager2().getId());
+            dto.setManager2Name(emp.getManager2().getFullName());
+        }
         return dto;
     }
 
@@ -214,6 +226,14 @@ public class EmployeeService {
             dto.setTaxDependents(null);
             dto.setPhone("********");
             dto.setAddress("********");
+            // Ẩn thông tin nhạy cảm mở rộng
+            dto.setCitizenId("********");
+            dto.setCitizenIdDate(null);
+            dto.setCitizenIdPlace(null);
+            dto.setPersonalEmail("********");
+            dto.setEmergencyContactName(null);
+            dto.setEmergencyContactRelationship(null);
+            dto.setEmergencyContactPhone(null);
         }
         return dto;
     }
@@ -237,6 +257,12 @@ public class EmployeeService {
             emp.setManager(employeeRepository.findById(dto.getManagerId()).orElse(null));
         } else {
             emp.setManager(null);
+        }
+
+        if (dto.getManager2Id() != null) {
+            emp.setManager2(employeeRepository.findById(dto.getManager2Id()).orElse(null));
+        } else {
+            emp.setManager2(null);
         }
     }
 }

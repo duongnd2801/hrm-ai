@@ -80,6 +80,59 @@ public class Employee {
     @Column(name = "tax_dependents")
     private Integer taxDependents;
 
+    // --- Nhóm HỢP ĐỒNG mở rộng ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager2_id")
+    private Employee manager2;
+
+    @Column(name = "join_date")
+    private LocalDate joinDate;
+
+    @Column(name = "contract_signing_date")
+    private LocalDate contractSigningDate;
+
+    // --- Nhóm CÁ NHÂN mở rộng ---
+    @Column(name = "personal_email")
+    private String personalEmail;
+
+    @Column(name = "citizen_id", length = 20)
+    private String citizenId;
+
+    @Column(name = "citizen_id_date")
+    private LocalDate citizenIdDate;
+
+    @Column(name = "citizen_id_place")
+    private String citizenIdPlace;
+
+    // --- Nhóm NGƯỜI THÂN LIÊN HỆ ---
+    @Column(name = "emergency_contact_name")
+    private String emergencyContactName;
+
+    @Column(name = "emergency_contact_relationship", length = 50)
+    private String emergencyContactRelationship;
+
+    @Column(name = "emergency_contact_phone", length = 20)
+    private String emergencyContactPhone;
+
+    // --- Nhóm TRÌNH ĐỘ ---
+    @Column(name = "programming_languages", length = 500)
+    private String programmingLanguages;
+
+    @Column(name = "major")
+    private String major;
+
+    @Column(name = "university")
+    private String university;
+
+    @Column(name = "education_level", length = 50)
+    private String educationLevel;
+
+    @Column(name = "graduation_year")
+    private Integer graduationYear;
+
+    @Column(name = "it_certificate", columnDefinition = "TEXT")
+    private String itCertificate;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

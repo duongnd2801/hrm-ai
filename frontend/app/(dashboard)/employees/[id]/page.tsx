@@ -158,6 +158,10 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
           bio: emp.bio,
           gender: emp.gender,
           birthDate: emp.birthDate,
+          personalEmail: emp.personalEmail,
+          emergencyContactName: emp.emergencyContactName,
+          emergencyContactRelationship: emp.emergencyContactRelationship,
+          emergencyContactPhone: emp.emergencyContactPhone,
         });
       }
       pushToast('success', 'Đã lưu thay đổi hồ sơ thành công.');
@@ -326,6 +330,130 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                   </div>
                </div>
             </div>
+
+            {/* CCCD / Căn cước Card */}
+            <div className="relative group glass-dark rounded-[40px] p-10 shadow-lg dark:shadow-2xl hover:shadow-xl dark:hover:shadow-3xl transition-all duration-300 overflow-hidden">
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-[40px] transition-all duration-300" />
+               <div className="relative z-10 flex items-center gap-3 mb-10">
+                  <div className="w-2 h-8 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full" />
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">🪪 Căn cước công dân</h3>
+               </div>
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📧 Email cá nhân</label>
+                    <input type="email" value={emp.personalEmail || ''} placeholder="email.canhan@gmail.com"
+                      onChange={(e) => setEmp({ ...emp, personalEmail: e.target.value })}
+                      disabled={!canEditPersonal}
+                      className="w-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-amber-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🆔 Số CCCD/CMND</label>
+                    <input type="text" value={emp.citizenId || ''} placeholder="079095xxxxxx"
+                      onChange={(e) => setEmp({ ...emp, citizenId: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-amber-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📅 Ngày cấp</label>
+                    <input type="date" value={emp.citizenIdDate || ''}
+                      onChange={(e) => setEmp({ ...emp, citizenIdDate: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-amber-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📍 Nơi cấp</label>
+                    <input type="text" value={emp.citizenIdPlace || ''} placeholder="CA TP. Hồ Chí Minh"
+                      onChange={(e) => setEmp({ ...emp, citizenIdPlace: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-amber-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+               </div>
+            </div>
+
+            {/* Người thân liên hệ Card */}
+            <div className="relative group glass-dark rounded-[40px] p-10 shadow-lg dark:shadow-2xl hover:shadow-xl dark:hover:shadow-3xl transition-all duration-300 overflow-hidden">
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 rounded-[40px] transition-all duration-300" />
+               <div className="relative z-10 flex items-center gap-3 mb-10">
+                  <div className="w-2 h-8 bg-gradient-to-b from-rose-500 to-pink-500 rounded-full" />
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">👨‍👩‍👧 Người thân liên hệ</h3>
+               </div>
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">👤 Họ tên</label>
+                    <input type="text" value={emp.emergencyContactName || ''} placeholder="Nguyễn Thị B"
+                      onChange={(e) => setEmp({ ...emp, emergencyContactName: e.target.value })}
+                      disabled={!canEditPersonal}
+                      className="w-full bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-transparent border border-rose-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-rose-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">💞 Mối quan hệ</label>
+                    <input type="text" value={emp.emergencyContactRelationship || ''} placeholder="Mẹ / Vợ / Chồng..."
+                      onChange={(e) => setEmp({ ...emp, emergencyContactRelationship: e.target.value })}
+                      disabled={!canEditPersonal}
+                      className="w-full bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-transparent border border-rose-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-rose-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📱 Điện thoại</label>
+                    <input type="text" value={emp.emergencyContactPhone || ''} placeholder="0987654321"
+                      onChange={(e) => setEmp({ ...emp, emergencyContactPhone: e.target.value })}
+                      disabled={!canEditPersonal}
+                      className="w-full bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-transparent border border-rose-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-rose-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+               </div>
+            </div>
+
+            {/* Trình độ Card */}
+            <div className="relative group glass-dark rounded-[40px] p-10 shadow-lg dark:shadow-2xl hover:shadow-xl dark:hover:shadow-3xl transition-all duration-300 overflow-hidden">
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-[40px] transition-all duration-300" />
+               <div className="relative z-10 flex items-center gap-3 mb-10">
+                  <div className="w-2 h-8 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">🎓 Trình độ & Chứng chỉ</h3>
+               </div>
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🏫 Trường đào tạo</label>
+                    <input type="text" value={emp.university || ''} placeholder="ĐH Bách Khoa TP.HCM"
+                      onChange={(e) => setEmp({ ...emp, university: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📚 Chuyên ngành</label>
+                    <input type="text" value={emp.major || ''} placeholder="Công nghệ phần mềm"
+                      onChange={(e) => setEmp({ ...emp, major: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🎓 Hệ đào tạo</label>
+                    <input type="text" value={emp.educationLevel || ''} placeholder="Đại học / Cao đẳng / Thạc sĩ"
+                      onChange={(e) => setEmp({ ...emp, educationLevel: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📆 Năm tốt nghiệp</label>
+                    <input type="number" value={emp.graduationYear || ''} placeholder="2020"
+                      onChange={(e) => setEmp({ ...emp, graduationYear: Number(e.target.value) || undefined })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">💻 Ngôn ngữ lập trình</label>
+                    <input type="text" value={emp.programmingLanguages || ''} placeholder="Java, Python, TypeScript"
+                      onChange={(e) => setEmp({ ...emp, programmingLanguages: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🏅 Chứng chỉ CNTT</label>
+                    <input type="text" value={emp.itCertificate || ''} placeholder="AWS SAA, CCNA, PMP..."
+                      onChange={(e) => setEmp({ ...emp, itCertificate: e.target.value })}
+                      disabled={!canEditStructure}
+                      className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+                  </div>
+               </div>
+            </div>
          </div>
 
          {/* Right Column: Work & System info */}
@@ -390,16 +518,39 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         onSelect={(nextId) => setEmp({ ...emp, role: nextId as Employee['role'] })}
                       />
                       <SearchableSelect
-                        label="👨‍💼 Người quản lý trực tiếp"
+                        label="👨‍💼 Người quản lý cấp 1"
                         value={emp.managerId}
                         options={managerSelectOptions}
-                        placeholder="Chọn người quản lý..."
+                        placeholder="Chọn người quản lý cấp 1..."
                         allowClear
                         onSelect={(nextId) => {
                           const selected = managerOptions.find((m) => m.id === nextId);
                           setEmp({ ...emp, managerId: nextId, managerName: selected?.fullName });
                         }}
                       />
+                      <SearchableSelect
+                        label="👨‍💼 Người quản lý cấp 2"
+                        value={emp.manager2Id}
+                        options={managerSelectOptions}
+                        placeholder="Chọn người quản lý cấp 2..."
+                        allowClear
+                        onSelect={(nextId) => {
+                          const selected = managerOptions.find((m) => m.id === nextId);
+                          setEmp({ ...emp, manager2Id: nextId, manager2Name: selected?.fullName });
+                        }}
+                      />
+                      <div>
+                        <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📅 Ngày vào công ty</label>
+                        <input type="date" value={emp.joinDate || ''}
+                          onChange={(e) => setEmp({ ...emp, joinDate: e.target.value })}
+                          className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300" />
+                      </div>
+                      <div>
+                        <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">✍️ Ngày ký HĐ</label>
+                        <input type="date" value={emp.contractSigningDate || ''}
+                          onChange={(e) => setEmp({ ...emp, contractSigningDate: e.target.value })}
+                          className="w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent border border-indigo-500/20 dark:border-indigo-500/25 rounded-2xl py-3 px-4 text-slate-900 dark:text-white font-bold focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all duration-300" />
+                      </div>
                       <SearchableSelect
                         label="✅ Trạng thái hồ sơ"
                         value={emp.status}
@@ -466,9 +617,32 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                               </p>
                            </div>
                         </div>
-                           <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👨‍💼 Người quản lý trực tiếp</p>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👨‍💼 Quản lý cấp 1</p>
                            <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.managerName || 'Không có'}</p>
+                        </div>
+                        <div className="p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white/0 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-transparent rounded-2xl border border-indigo-500/20 dark:border-indigo-500/25 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest mb-2">👨‍💼 Quản lý cấp 2</p>
+                           <p className="text-lg font-black text-slate-900 dark:text-white tracking-widest">{emp.manager2Name || 'Không có'}</p>
+                        </div>
+                        <div className="p-5 bg-gradient-to-br from-sky-500/10 via-cyan-500/5 to-transparent rounded-2xl border border-sky-500/20 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                           <p className="text-[10px] font-black text-slate-400 dark:text-sky-300/60 uppercase tracking-widest mb-2">⏳ Thâm niên</p>
+                           <p className="text-lg font-black text-sky-600 dark:text-sky-400 tracking-tight">
+                             {(() => {
+                               const ref = emp.joinDate || emp.startDate;
+                               if (!ref) return 'N/A';
+                               const start = new Date(ref);
+                               const now = new Date();
+                               const years = now.getFullYear() - start.getFullYear();
+                               const months = now.getMonth() - start.getMonth();
+                               const totalMonths = years * 12 + months;
+                               if (totalMonths < 1) return 'Mới vào';
+                               if (totalMonths < 12) return `${totalMonths} tháng`;
+                               const y = Math.floor(totalMonths / 12);
+                               const m = totalMonths % 12;
+                               return m > 0 ? `${y} năm ${m} tháng` : `${y} năm`;
+                             })()}
+                           </p>
                         </div>
                      </div>
                   )}

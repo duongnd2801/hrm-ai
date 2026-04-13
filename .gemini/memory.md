@@ -7,10 +7,10 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ liệu lịch sử.
 Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
 
-- Current phase: `Polishing & UX Refinement (Done)`
-- Current focus: `Chatbot Intelligence Optimization`
-- Current status: `Gemini Reasoning Implemented / Rigid Logic Removed`
-- Next task (canonical): Theo dõi vận hành, xử lý backlog D14 (Import máy chấm công).
+- Current phase: `Employee Management Upgrade (Hanoi Data & Localization)`
+- Current focus: `Final Polish & Export Verification`
+- Current status: ✅ Hoàn thành nâng cấp thông tin nhân sự và chuẩn hóa dữ liệu vùng miền (Hà Nội).
+- Next task (canonical): Xử lý backlog D14 (Import máy chấm công) hoặc theo dõi vận hành.
 - Blockers: Không có.
 
 ### Open Backlog (Canonical)
@@ -29,7 +29,26 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 - Không xóa entries cũ.
 - Nếu có entry mâu thuẫn nhẹ theo thời điểm, ưu tiên mốc thời gian mới hơn.
 
-- Current phase: Done (All phases completed)
+- [2026-04-13T14:15:00+07:00] **Hanoi Context Data Seeding**:
+  - **Data Localization:** Triển khai Flyway `V27__update_cccd_hanoi_context.sql`. 
+  - **CCCD Identity:** Cập nhật đầu số CCCD từ `079` (HCM) sang `001` (Hà Nội) và các mã tỉnh lân cận (Bắc Ninh, Hưng Yên...); Cập nhật Nơi cấp khớp với khu vực miền Bắc.
+  - **Education:** Chuyển đổi toàn bộ trường đại học sang các trường tại Hà Nội (Bách Khoa HN, Kinh tế Quốc dân, ĐHQGHN...) để đảm bảo dữ liệu mẫu nhất quán.
+- [2026-04-13T14:12:00+07:00] **Employee Management Extended Polish**:
+  - **Data Seeding:** Triển khai Flyway `V25` và `V26`. 100% nhân sự có địa chỉ tại các quận Hà Nội. Tích hợp kịch bản nhân viên nghỉ việc (`INACTIVE`) và hết hạn HĐ thực tế.
+  - **Localization:** Việt hóa 100% dữ liệu xuất Excel (Giới tính, Loại HĐ).
+  - **Formatting:** Hoàn thiện bảng Excel "Luxury" với Header 2 tầng, màu sắc phân nhóm và tự động tính thâm niên Việt hóa.
+- Phase status: Hoàn thành nâng cấp và chuẩn hóa dữ liệu nhân sự.
+- Current phase: Done (Enhanced & Localized Employee Module)
+- [2026-04-13T13:50:00+07:00] **Employee Management Extended Upgrade**:
+  - **Database & Backend:** Triển khai Flyway `V24` bổ sung 16 trường thông tin mở rộng. Nâng cấp `EmployeeDTO`, `EmployeePersonalInfoDTO` và logic `mapToEntity`/`mapToDTO` để hỗ trợ đa cấp quản lý (Manager Level 2).
+  - **Excel Engine:** Nâng cấp `ImportExportService` (Apache POI) để hỗ trợ xuất/nhập tệp 28 cột đồng bộ với mẫu người lao động của công ty. Tích hợp lọc dữ liệu nhạy cảm (CCCD).
+  - **Frontend UI:** 
+    - Trang chi tiết nhân viên: Chia 4 section (Hợp đồng, Cá nhân, Người thân, Trình độ) kèm cơ chế tính thâm niên.
+    - Employee Table: Hover Card premium hiển thị 2 cấp quản lý và thâm niên động.
+    - Import Modal: Cập nhật validation preview 4 trường bắt buộc (Tên, Email, SĐT, CCCD).
+  - **Verification:** Build BE & FE thành công, logic mapping khớp 100% spec.
+- Phase status: Hoàn thành nâng cấp module Nhân sự.
+- Current phase: Done (Enhanced Employee Module)
 - [2026-04-06T11:45:00+07:00] **UI Refinement & Encoding Recovery**:
   - **Standardization:** Cập nhật độ tương phản tiêu đề bảng (`thead`) lên `dark:text-white/70` cho toàn bộ các module (Employees, Users, Projects, OT, Apologies, Leave, Payroll, Positions, Departments) để tăng khả năng đọc trong Dark Mode.
   - **UX Enhancement:** Cải thiện `HoverInfoCard` trong bảng Nhân sự, tăng độ tương phản cho các nhãn thông tin (Phòng ban, Địa chỉ).
@@ -64,7 +83,7 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 | Phase QA | Kiểm thử & Sửa lỗi | ✅ | Fixed Hook, RBAC, and Route bugs. |
 
 - Next task: Theo dõi phản hồi người dùng hoặc thực hiện bảo trì hệ thống.
-- Blockers: Không còn blocker nào đáng kể.
+- Blockers: Không còn.
 
 ## Decisions log
 - Phase 1, 2, 3: đã ổn định.
