@@ -8,8 +8,8 @@ Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ 
 Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
 
 - Current phase: `Employee Management Upgrade (Hanoi Data & Localization)`
-- Current focus: `Final Polish & Export Verification`
-- Current status: ✅ Hoàn thành nâng cấp thông tin nhân sự và chuẩn hóa dữ liệu vùng miền (Hà Nội).
+- Current focus: `Bug Fixing & Data Consistency`
+- Current status: ✅ Đã đồng bộ số liệu thống kê (30/30). Loại bỏ người nghỉ việc khỏi tất cả các card thống kê chính.
 - Next task (canonical): Xử lý backlog D14 (Import máy chấm công) hoặc theo dõi vận hành.
 - Blockers: Không có.
 
@@ -29,6 +29,14 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 - Không xóa entries cũ.
 - Nếu có entry mâu thuẫn nhẹ theo thời điểm, ưu tiên mốc thời gian mới hơn.
 
+- [2026-04-13T15:43:00+07:00] **Employee Stats Finalization**:
+  - **Synchronization:** Cập nhật cả `total` và `active` đều dùng `countByStatusNot(INACTIVE)` để hiển thị con số 30 (loại bỏ 3 người đã nghỉ). Tránh gây hiểu lầm khi phân tách "Hoạt động" và "Chính thức".
+- [2026-04-13T15:37:00+07:00] **Employee Stats Refinement (Rollback attendance filter)**:
+  - **Correction:** Revert `@Query` trong `AttendanceRepository` do lỗi `type "empstatus" does not exist`. 
+  - **Employee Stats:** Giữ nguyên logic `total` (countNot INACTIVE) và `active` (count ACTIVE) vì đây là các phương thức nguyên bản của Spring Data JPA, không gây lỗi JDBC.
+- [2026-04-13T15:25:00+07:00] **Employee Stats Bugfix**:
+  - **Logic Correction:** Sửa lỗi `EmployeeService.getStats` để `total` không đếm nhân viên `INACTIVE`. Cập nhật `active` chỉ đếm những người có trạng thái `ACTIVE` (chính thức).
+  - **Attendance Filtering:** Bổ sung `@Query` trong `AttendanceRepository` để loại bỏ nhân viên `INACTIVE` khỏi thống kê vắng mặt (`absent`) hàng ngày.
 - [2026-04-13T14:15:00+07:00] **Hanoi Context Data Seeding**:
   - **Data Localization:** Triển khai Flyway `V27__update_cccd_hanoi_context.sql`. 
   - **CCCD Identity:** Cập nhật đầu số CCCD từ `079` (HCM) sang `001` (Hà Nội) và các mã tỉnh lân cận (Bắc Ninh, Hưng Yên...); Cập nhật Nơi cấp khớp với khu vực miền Bắc.

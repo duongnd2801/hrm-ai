@@ -36,9 +36,10 @@ public class EmployeeService {
 
     @Transactional(readOnly = true)
     public EmployeeStatsDTO getStats() {
+        long currentWorking = employeeRepository.countByStatusNot(EmpStatus.INACTIVE);
         return EmployeeStatsDTO.builder()
-                .total(employeeRepository.count())
-                .active(employeeRepository.countByStatusNot(EmpStatus.INACTIVE))
+                .total(currentWorking)
+                .active(currentWorking)
                 .absent(attendanceRepository.countByDateAndStatusIn(
                         LocalDate.now(), 
                         List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)
