@@ -10,7 +10,6 @@ import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -62,8 +61,7 @@ public class ApologyService {
                 .status(ApologyStatus.PENDING)
                 .build();
 
-        Apology savedApology = apologyRepository.save(apology);
-        return toDto(savedApology);
+        return toDto(apologyRepository.save(apology));
     }
 
     @Transactional(readOnly = true)
@@ -102,10 +100,8 @@ public class ApologyService {
 
         if (approved) {
             Attendance attendance = apology.getAttendance();
-            if (attendance != null) {
-                attendance.setStatus(AttendanceStatus.APPROVED);
-                attendanceRepository.save(attendance);
-            }
+            attendance.setStatus(AttendanceStatus.APPROVED);
+            attendanceRepository.save(attendance);
         }
 
         Apology saved = apologyRepository.save(apology);
@@ -143,7 +139,7 @@ public class ApologyService {
         }
     }
 
-    private ApologyDTO toDto(@NonNull Apology apology) {
+    private ApologyDTO toDto(Apology apology) {
         ApologyDTO dto = new ApologyDTO();
         dto.setId(apology.getId());
         dto.setEmployeeId(apology.getEmployee().getId());

@@ -292,88 +292,126 @@ export default function AttendancePage() {
           </div>
         </div>
       ) : (
-        <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
-          {selectedUser ? (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between bg-white/10 backdrop-blur-md p-6 rounded-[32px] border border-white/10 shadow-xl mb-8">
-                <div className="flex items-center gap-6">
-                  <Avatar name={selectedUser.employeeName} size="xl" />
-                  <div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{selectedUser.employeeName}</h2>
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{selectedUser.departmentName} • Chi tiết chuyên cần</p>
-                  </div>
+        <div className="space-y-10 animate-in slide-in-from-bottom-5 duration-700">
+            {!selectedUser && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-1">
+                <div className="bg-white/90 dark:bg-black/30 backdrop-blur-xl p-8 rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
+                   <div className="flex items-center justify-between mb-6">
+                      <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Nhân sự</span>
+                      <Avatar name="TEAM" size="sm" />
+                   </div>
+                   <p className="text-4xl font-black text-slate-900 dark:text-white tabular-nums">{teamSummary.length}</p>
+                   <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-2">Tổng số thành viên</p>
                 </div>
-                <button 
-                  onClick={() => setSelectedUser(null)}
-                  className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10"
-                >
-                  <ChevronLeft size={16} /> Quay lại danh sách
-                </button>
+                <div className="bg-white/90 dark:bg-black/30 backdrop-blur-xl p-8 rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl group hover:bg-emerald-500/10 transition-all">
+                   <div className="flex items-center justify-between mb-6">
+                      <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">Đúng giờ</span>
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                   </div>
+                   <p className="text-4xl font-black text-emerald-500 tabular-nums">{teamSummary.filter(t => t.absentCount === 0 && t.lateCount === 0).length}</p>
+                   <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-2">Chuyên cần tuyệt đối</p>
+                </div>
+                <div className="bg-white/90 dark:bg-black/30 backdrop-blur-xl p-8 rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl group hover:bg-amber-500/10 transition-all">
+                   <div className="flex items-center justify-between mb-6">
+                      <span className="text-[10px] font-black text-amber-500/50 uppercase tracking-widest">Đi muộn</span>
+                      <div className="w-2 h-2 rounded-full bg-amber-500" />
+                   </div>
+                   <p className="text-4xl font-black text-amber-500 tabular-nums">{teamSummary.reduce((acc, t) => acc + t.lateCount, 0)}</p>
+                   <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-2">Tổng số buổi muộn</p>
+                </div>
+                <div className="bg-white/90 dark:bg-black/30 backdrop-blur-xl p-8 rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl group hover:bg-rose-500/10 transition-all">
+                   <div className="flex items-center justify-between mb-6">
+                      <span className="text-[10px] font-black text-rose-500/50 uppercase tracking-widest">Vắng mặt</span>
+                      <div className="w-2 h-2 rounded-full bg-rose-500" />
+                   </div>
+                   <p className="text-4xl font-black text-rose-500 tabular-nums">{teamSummary.reduce((acc, t) => acc + t.absentCount, 0)}</p>
+                   <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-2">Tổng số buổi vắng</p>
+                </div>
               </div>
-              {renderMatrix(employeeRecords)}
-            </div>
-          ) : (
-            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest px-1">
-                    Quản lý thành viên
-                  </h2>
-                  <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.4em] mt-3 ml-1 text-justify">Dữ liệu chi tiết tháng {month}/{year}</p>
-                </div>
-                <div className="flex items-center gap-4 bg-black/5 dark:bg-white/5 p-2 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <button onClick={() => setMonth(m => m > 1 ? m - 1 : 12)} className="p-4 hover:bg-slate-900/5 dark:hover:bg-white/10 rounded-2xl transition-all active:scale-90 shadow-md"><ChevronLeft size={20}/></button>
-                  <div className="px-8 flex flex-col items-center">
-                    <span className="text-[12px] font-black tabular-nums tracking-widest text-slate-700 dark:text-white">THÁNG {String(month).padStart(2, '0')}</span>
+            )}
+
+            {selectedUser ? (
+               <div className="space-y-8 animate-in zoom-in-95 duration-500">
+                  <div className="flex items-center justify-between p-8 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl">
+                     <div className="flex items-center gap-8">
+                        <Avatar name={selectedUser.employeeName} size="xl" />
+                        <div>
+                           <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{selectedUser.employeeName}</h2>
+                           <p className="text-[11px] font-black text-indigo-500 uppercase tracking-[0.4em] mt-2">{selectedUser.departmentName} — {selectedUser.employeeId.slice(0, 8).toUpperCase()}</p>
+                        </div>
+                     </div>
+                     <button 
+                       onClick={() => setSelectedUser(null)} 
+                       className="px-10 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-black rounded-2xl uppercase tracking-widest hover:scale-110 active:scale-95 transition-all shadow-xl"
+                     >
+                       <ChevronLeft className="w-4 h-4 inline-block mr-2" />
+                       Quay lại
+                     </button>
                   </div>
-                  <button onClick={() => setMonth(m => m < 12 ? m + 1 : 1)} className="p-4 hover:bg-slate-900/5 dark:hover:bg-white/10 rounded-2xl transition-all active:scale-90 shadow-md"><ChevronRight size={20}/></button>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-separate border-spacing-0">
-                  <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black border-b border-black/5 dark:border-white/5 sticky top-0 z-20 backdrop-blur-md">
-                    <tr>
-                      <th className="px-12 py-8">Thành viên</th>
-                      <th className="px-12 py-8 text-center">Tổng công</th>
-                      <th className="px-12 py-8 text-center">Muộn</th>
-                      <th className="px-12 py-8 text-center">Vắng</th>
-                      <th className="px-12 py-8 text-right">Chi tiết</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {teamSummary.length === 0 ? (
-                      <tr><td colSpan={5} className="py-24 text-center text-slate-300 dark:text-white/10 font-black uppercase tracking-[0.5em] italic">Không có dữ liệu tháng này</td></tr>
-                    ) : (
-                      teamSummary.map((row) => (
-                        <tr key={row.employeeId} className="group/row hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 cursor-pointer">
-                          <td className="px-12 py-7">
-                            <div className="flex items-center gap-6 group-hover/row:translate-x-2 transition-transform duration-500">
-                              <Avatar name={row.employeeName} size="lg" />
-                              <div className="flex flex-col">
-                                <span className="text-[16px] font-black text-slate-900 dark:text-white group-hover/row:text-indigo-500 dark:group-hover/row:text-indigo-400 transition-all duration-300 uppercase tracking-tight">{row.employeeName}</span>
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-1 opacity-60 group-hover/row:opacity-100 transition-opacity whitespace-nowrap">{row.departmentName}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-12 py-7 text-center font-black text-emerald-500 dark:text-emerald-400 tabular-nums text-3xl">{row.totalWorkDays}</td>
-                          <td className="px-12 py-7 text-center font-black text-amber-500 tabular-nums text-3xl">{row.lateCount}</td>
-                          <td className="px-12 py-7 text-center font-black text-rose-500 tabular-nums text-3xl">{row.absentCount}</td>
-                          <td className="px-12 py-7 text-right">
-                            <button 
-                              onClick={() => fetchEmployeeDetails(row)}
-                              className="px-10 py-3 bg-indigo-600 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl dark:shadow-2xl shadow-indigo-600/20 dark:shadow-indigo-600/30 hover:scale-110 active:scale-95 transition-all"
-                            >
-                              Xem lịch
-                            </button>
-                          </td>
+                  {renderMatrix(employeeRecords)}
+               </div>
+            ) : (
+                 <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
+                   <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
+                     <div>
+                       <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest px-1">
+                         Quản lý thành viên
+                       </h2>
+                       <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.4em] mt-3 ml-1 text-justify">Dữ liệu chi tiết tháng {month}/{year}</p>
+                     </div>
+                     <div className="flex items-center gap-4 bg-black/5 dark:bg-white/5 p-2 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                        <button onClick={() => setMonth(m => m > 1 ? m - 1 : 12)} className="p-4 hover:bg-slate-900/5 dark:hover:bg-white/10 rounded-2xl transition-all active:scale-90 shadow-md"><ChevronLeft size={20}/></button>
+                        <div className="px-8 flex flex-col items-center">
+                           <span className="text-[12px] font-black tabular-nums tracking-widest text-slate-700 dark:text-white">THÁNG {String(month).padStart(2, '0')}</span>
+                        </div>
+                        <button onClick={() => setMonth(m => m < 12 ? m + 1 : 1)} className="p-4 hover:bg-slate-900/5 dark:hover:bg-white/10 rounded-2xl transition-all active:scale-90 shadow-md"><ChevronRight size={20}/></button>
+                     </div>
+                   </div>
+                   <div className="overflow-x-auto">
+                     <table className="w-full text-left border-separate border-spacing-0">
+                       <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black border-b border-black/5 dark:border-white/5 sticky top-0 z-20 backdrop-blur-md">
+                         <tr>
+                           <th className="px-12 py-8 rounded-tl-3xl">Thành viên</th>
+                          <th className="px-12 py-8 text-center">Tổng công</th>
+                          <th className="px-12 py-8 text-center">Muộn</th>
+                          <th className="px-12 py-8 text-center">Vắng</th>
+                          <th className="px-12 py-8 text-right rounded-tr-3xl">Chi tiết</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                      </thead>
+                      <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                        {teamSummary.length === 0 ? (
+                          <tr><td colSpan={5} className="py-24 text-center text-slate-300 dark:text-white/10 font-black uppercase tracking-[0.5em] italic">Không có dữ liệu tháng này</td></tr>
+                        ) : (
+                          teamSummary.map((row) => (
+                            <tr key={row.employeeId} className="group/row hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 cursor-pointer">
+                              <td className="px-12 py-7">
+                                 <div className="flex items-center gap-6 group-hover/row:translate-x-2 transition-transform duration-500">
+                                    <Avatar name={row.employeeName} size="lg" />
+                                    <div className="flex flex-col">
+                                       <span className="text-[16px] font-black text-slate-900 dark:text-white group-hover/row:text-indigo-500 dark:group-hover/row:text-indigo-400 transition-all duration-300 uppercase tracking-tight">{row.employeeName}</span>
+                                       <span className="text-[10px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-1 opacity-60 group-hover/row:opacity-100 transition-opacity whitespace-nowrap">{row.departmentName}</span>
+                                    </div>
+                                 </div>
+                              </td>
+                              <td className="px-12 py-7 text-center font-black text-emerald-500 dark:text-emerald-400 tabular-nums text-3xl">{row.totalWorkDays}</td>
+                              <td className="px-12 py-7 text-center font-black text-amber-500 tabular-nums text-3xl">{row.lateCount}</td>
+                              <td className="px-12 py-7 text-center font-black text-rose-500 tabular-nums text-3xl">{row.absentCount}</td>
+                              <td className="px-12 py-7 text-right">
+                                 <button 
+                                   onClick={() => fetchEmployeeDetails(row)}
+                                   className="px-10 py-3 bg-indigo-600 text-white text-[11px] font-black rounded-2xl uppercase tracking-widest shadow-xl dark:shadow-2xl shadow-indigo-600/20 dark:shadow-indigo-600/30 hover:scale-110 active:scale-95 transition-all"
+                                 >
+                                   Xem lịch
+                                 </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+            )}
         </div>
       )}
     </div>
