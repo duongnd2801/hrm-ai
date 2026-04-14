@@ -170,7 +170,7 @@ export default function ProjectsPage() {
                  <tr><td colSpan={6} className="py-20 text-center text-slate-400 dark:text-white/10 font-bold uppercase tracking-widest italic font-medium opacity-40">KHÔNG CÓ DỰ ÁN NÀO</td></tr>
                ) : (
                  filteredProjects.map((p) => (
-                    <tr key={p.id} className="group hover:bg-indigo-500/[0.05] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300">
+                    <tr key={p.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                       <td className="px-6 py-2.5 border-b border-black/5 dark:border-white/5">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-sm shadow-md group-hover:scale-105 transition-transform">

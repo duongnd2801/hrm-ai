@@ -221,10 +221,10 @@ export default function LeavePage() {
             <p className="text-slate-300 dark:text-white/10 font-black uppercase tracking-[0.2em] italic">Không có dữ liệu trong mục này</p>
           </div>
         ) : viewMode === 'table' ? (
-          <div className="bg-white/90 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-[40px] overflow-hidden shadow-xl dark:shadow-none">
+          <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
             <div className="overflow-x-auto">
               <table className="w-full border-separate border-spacing-0">
-                <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/30 text-slate-500 dark:text-white/60 font-black border-b border-slate-200 dark:border-white/5">
+                <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black border-b border-black/5 dark:border-white/5 sticky top-0 z-20 backdrop-blur-md">
                   <tr>
                     <th className="px-10 py-6 text-left whitespace-nowrap">Nhân viên</th>
                     <th className="px-8 py-6 text-left whitespace-nowrap">Loại nghỉ</th>
@@ -237,7 +237,7 @@ export default function LeavePage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                   {filteredDisplayLeaves.map((leave) => (
-                    <tr key={leave.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
+                    <tr key={leave.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                       <td className="px-10 py-5">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-black text-xs uppercase shrink-0">

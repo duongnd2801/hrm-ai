@@ -99,7 +99,7 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
                     const canEdit = canManageGlobal || isSelf;
 
                     return (
-                        <tr key={emp.id} className="group hover:bg-slate-900/[0.04] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300">
+                        <tr key={emp.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5">
                                 <div className="flex items-center gap-5 min-w-[280px]">
                                     <div className="relative group/avatar">

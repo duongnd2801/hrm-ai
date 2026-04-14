@@ -246,7 +246,7 @@ export default function OTPage() {
         <div className={showForm ? 'xl:col-span-8' : 'xl:col-span-12'}>
           {canReview ? (
             /* ── MANAGER/HR/ADMIN: Approval Console (Table) ── */
-            <div className="bg-white/90 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
+            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl flex flex-col h-full overflow-hidden min-h-[700px]">
               <div className="p-10 border-b border-slate-100 dark:border-white/10 space-y-10">
                 <div className="flex items-center justify-between">
                   <div>
@@ -272,7 +272,7 @@ export default function OTPage() {
 
               <div className="flex-1 overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/40 text-slate-500 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-slate-100 dark:border-white/5">
+                  <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/20 text-slate-500 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-slate-100 dark:border-white/5">
                     <tr>
                       <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">Nhân viên</th>
                       <th className="px-8 py-6 text-left whitespace-nowrap">Công việc</th>
@@ -290,7 +290,7 @@ export default function OTPage() {
                       </tr>
                     )}
                     {currentDisplayItems.map(item => (
-                      <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
+                      <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
@@ -416,7 +416,7 @@ export default function OTPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {myItems.map(item => (
-                          <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
+                          <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                             <td className="px-8 py-5">
                               <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{formatDate(item.date)}</span>
                             </td>
