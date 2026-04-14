@@ -16,4 +16,5 @@ public class ImportResultResponse {
     private int failureCount;
     private List<ImportErrorResponse> errors;
     private String message;
+    private List<EmployeeDTO> employees;
 }

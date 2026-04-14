@@ -17,7 +17,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.poi.ss.util.CellRangeAddress;
-
+import java.text.Normalizer;
+import java.util.regex.Pattern;
 @Service
 public class ImportExportService {
 
@@ -84,11 +85,13 @@ public class ImportExportService {
             lightFont.setColor(IndexedColors.WHITE.getIndex());
             styleEdu.setFont(lightFont);
 
-            // --- 2. TẠO HEADER 2 TẦNG ---
+            // --- 2. TẠO HEADER 2 TẦNG + 1 DÒNG ĐẾM SỐ ---
             Row row0 = sheet.createRow(0);
             Row row1 = sheet.createRow(1);
+            Row row2 = sheet.createRow(2);
             row0.setHeightInPoints(30);
             row1.setHeightInPoints(45);
+            row2.setHeightInPoints(20);
 
             String[] subHeaders = {
                 "STT", "ID", "Họ và tên", "Giới tính", "Ngày sinh", 
@@ -101,9 +104,15 @@ public class ImportExportService {
 
             for (int i = 0; i < subHeaders.length; i++) {
                 row0.createCell(i).setCellStyle(styleGeneral);
+                
                 Cell c1 = row1.createCell(i);
                 c1.setCellValue(subHeaders[i]);
                 c1.setCellStyle(styleGeneral);
+                
+                Cell c2 = row2.createCell(i);
+                if (i == 4) c2.setCellValue("[dd/mm/yyyy]");
+                else c2.setCellValue(String.valueOf(i + 1));
+                c2.setCellStyle(styleGeneral);
             }
 
             // Gộp ô & Đặt tên nhóm
@@ -119,6 +128,7 @@ public class ImportExportService {
             for (int i = 5; i <= 13; i++) {
                 row0.getCell(i).setCellStyle(styleContract);
                 row1.getCell(i).setCellStyle(styleContract);
+                row2.getCell(i).setCellStyle(styleContract);
             }
 
             // Nhóm 3: Thâm niên (14)
@@ -126,6 +136,7 @@ public class ImportExportService {
             row0.getCell(14).setCellValue("Thâm niên");
             row0.getCell(14).setCellStyle(styleSeniority);
             row1.getCell(14).setCellStyle(styleSeniority);
+            row2.getCell(14).setCellStyle(styleSeniority);
 
             // Nhóm 4: Cá nhân (15-20)
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 15, 20));
@@ -133,6 +144,7 @@ public class ImportExportService {
             for (int i = 15; i <= 20; i++) {
                 row0.getCell(i).setCellStyle(stylePersonal);
                 row1.getCell(i).setCellStyle(stylePersonal);
+                row2.getCell(i).setCellStyle(stylePersonal);
             }
 
             // Nhóm 5: Người thân (21-23)
@@ -141,6 +153,7 @@ public class ImportExportService {
             for (int i = 21; i <= 23; i++) {
                 row0.getCell(i).setCellStyle(styleRelative);
                 row1.getCell(i).setCellStyle(styleRelative);
+                row2.getCell(i).setCellStyle(styleRelative);
             }
 
             // Nhóm 6: Trình độ (24-29)
@@ -149,12 +162,13 @@ public class ImportExportService {
             for (int i = 24; i <= 29; i++) {
                 row0.getCell(i).setCellStyle(styleEdu);
                 row1.getCell(i).setCellStyle(styleEdu);
+                row2.getCell(i).setCellStyle(styleEdu);
             }
 
             // --- 3. ĐỔ DỮ LIỆU ---
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate today = LocalDate.now();
-            int rIdx = 2;
+            int rIdx = 3;
 
             for (int i = 0; i < employees.size(); i++) {
                 EmployeeDTO e = employees.get(i);
@@ -229,12 +243,23 @@ public class ImportExportService {
                     dataStyle.setBorderTop(BorderStyle.THIN);
                     dataStyle.setBorderLeft(BorderStyle.THIN);
                     dataStyle.setBorderRight(BorderStyle.THIN);
+                    if (j == 0 || j == 7 || j == 28) {
+                        dataStyle.setAlignment(HorizontalAlignment.CENTER);
+                    }
                     cell.setCellStyle(dataStyle);
                 }
             }
 
+            int[] columnWidths = {
+                13, 17, 25, 13, 17, // STT...Ngày sinh
+                21, 21, 21, 21, 17, 17, 17, 17, 17, // Quản lý...Ngày nghỉ
+                17, // Thâm niên
+                34, 17, 30, 21, 17, 30, // Địa chỉ...Nơi cấp
+                25, 17, 17, // Người thân
+                25, 25, 45, 17, 17, 25 // Trình độ
+            };
             for (int i = 0; i < subHeaders.length; i++) {
-                sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, columnWidths[i] * 256);
             }
 
             workbook.write(bos);
@@ -243,72 +268,185 @@ public class ImportExportService {
     }
     
     public byte[] generateTemplate() throws Exception {
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Template");
-            Row headerRow = sheet.createRow(0);
-            String[] columns = {
-                "Họ và tên (*)", "Email (*)", "Giới tính (MALE/FEMALE/OTHER)", "Ngày sinh (YYYY-MM-DD)",
-                "Loại HĐ (FULL_TIME/PART_TIME/CONTRACT/PROBATION/COLLABORATOR)",
-                "Ngày bắt đầu HĐ (YYYY-MM-DD)", "Hạn HĐ (YYYY-MM-DD)", "Ngày vào (YYYY-MM-DD)", "Ngày ký HĐ (YYYY-MM-DD)",
-                "Địa chỉ", "Điện thoại", "Email cá nhân",
-                "Số CCCD", "Ngày cấp CCCD (YYYY-MM-DD)", "Nơi cấp CCCD",
-                "NT - Họ tên", "NT - Quan hệ", "NT - SĐT",
-                "Ngôn ngữ lập trình", "Chuyên ngành", "Trường đào tạo",
-                "Hệ (ĐH/CĐ)", "Năm cấp bằng", "Chứng chỉ CNTT",
-                "Trạng thái (ACTIVE/INACTIVE/CONTRACT/PROBATION/COLLABORATOR)",
-                "Lương cơ bản"
+
+            // --- 1. ĐỊNH NGHĨA STYLE ---
+            CellStyle baseStyle = workbook.createCellStyle();
+            baseStyle.setBorderTop(BorderStyle.THIN);
+            baseStyle.setBorderBottom(BorderStyle.THIN);
+            baseStyle.setBorderLeft(BorderStyle.THIN);
+            baseStyle.setBorderRight(BorderStyle.THIN);
+            baseStyle.setAlignment(HorizontalAlignment.CENTER);
+            baseStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            baseStyle.setWrapText(true);
+
+            Font boldFont = workbook.createFont();
+            boldFont.setBold(true);
+            boldFont.setFontHeightInPoints((short) 10);
+
+            CellStyle styleGeneral = workbook.createCellStyle();
+            styleGeneral.cloneStyleFrom(baseStyle);
+            styleGeneral.setFont(boldFont);
+            styleGeneral.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+            styleGeneral.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle styleContract = workbook.createCellStyle();
+            styleContract.cloneStyleFrom(baseStyle);
+            styleContract.setFont(boldFont);
+            styleContract.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            styleContract.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle styleSeniority = workbook.createCellStyle();
+            styleSeniority.cloneStyleFrom(baseStyle);
+            styleSeniority.setFont(boldFont);
+            styleSeniority.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
+            styleSeniority.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle stylePersonal = workbook.createCellStyle();
+            stylePersonal.cloneStyleFrom(baseStyle);
+            stylePersonal.setFont(boldFont);
+            stylePersonal.setFillForegroundColor(IndexedColors.LEMON_CHIFFON.getIndex());
+            stylePersonal.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle styleRelative = workbook.createCellStyle();
+            styleRelative.cloneStyleFrom(baseStyle);
+            styleRelative.setFont(boldFont);
+            styleRelative.setFillForegroundColor(IndexedColors.TAN.getIndex());
+            styleRelative.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle styleEdu = workbook.createCellStyle();
+            styleEdu.cloneStyleFrom(baseStyle);
+            styleEdu.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
+            styleEdu.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font lightFont = workbook.createFont();
+            lightFont.setBold(true);
+            lightFont.setColor(IndexedColors.WHITE.getIndex());
+            styleEdu.setFont(lightFont);
+
+            // --- 2. TẠO HEADER 2 TẦNG + 1 DÒNG ĐẾM SỐ (30 cột y hệt Export) ---
+            Row row0 = sheet.createRow(0);
+            Row row1 = sheet.createRow(1);
+            Row row2 = sheet.createRow(2);
+            row0.setHeightInPoints(30);
+            row1.setHeightInPoints(45);
+            row2.setHeightInPoints(20);
+
+            String[] subHeaders = {
+                "STT", "ID", "Họ và tên", "Giới tính", "Ngày sinh", 
+                "Quản lý cấp 1", "Quản lý cấp 2", "Vị trí", "Loại HĐ", "HĐ Hiệu lực", "HĐ Hết hạn", "Hạn đánh giá", "Ngày bắt đầu", "Ngày nghỉ",
+                "Thâm niên", 
+                "Địa chỉ", "Điện thoại", "Email cá nhân", "Số CCCD", "Ngày cấp", "Nơi cấp", 
+                "Họ tên (NT)", "Quan hệ", "Điện thoại (NT)", 
+                "Ngôn ngữ", "Chuyên ngành", "Trường ĐT", "Hệ", "Năm tốt nghiệp", "Chứng chỉ khác"
             };
+
+            for (int i = 0; i < subHeaders.length; i++) {
+                row0.createCell(i).setCellStyle(styleGeneral);
+                
+                Cell c1 = row1.createCell(i);
+                c1.setCellValue(subHeaders[i]);
+                c1.setCellStyle(styleGeneral);
+                
+                Cell c2 = row2.createCell(i);
+                if (i == 4) c2.setCellValue("[dd/mm/yyyy]");
+                else c2.setCellValue(String.valueOf(i + 1));
+                c2.setCellStyle(styleGeneral);
+            }
+
+            for (int i = 0; i <= 4; i++) {
+                sheet.addMergedRegion(new CellRangeAddress(0, 1, i, i));
+                row0.getCell(i).setCellValue(subHeaders[i]);
+            }
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 5, 13));
+            row0.getCell(5).setCellValue("THÔNG TIN HỢP ĐỒNG HIỆN TẠI");
+            for (int i = 5; i <= 13; i++) {
+                row0.getCell(i).setCellStyle(styleContract);
+                row1.getCell(i).setCellStyle(styleContract);
+                row2.getCell(i).setCellStyle(styleContract);
+            }
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 1, 14, 14));
+            row0.getCell(14).setCellValue("Thâm niên");
+            row0.getCell(14).setCellStyle(styleSeniority);
+            row1.getCell(14).setCellStyle(styleSeniority);
+            row2.getCell(14).setCellStyle(styleSeniority);
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 15, 20));
+            row0.getCell(15).setCellValue("THÔNG TIN CÁ NHÂN");
+            for (int i = 15; i <= 20; i++) {
+                row0.getCell(i).setCellStyle(stylePersonal);
+                row1.getCell(i).setCellStyle(stylePersonal);
+                row2.getCell(i).setCellStyle(stylePersonal);
+            }
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 21, 23));
+            row0.getCell(21).setCellValue("THÔNG TIN NGƯỜI THÂN");
+            for (int i = 21; i <= 23; i++) {
+                row0.getCell(i).setCellStyle(styleRelative);
+                row1.getCell(i).setCellStyle(styleRelative);
+                row2.getCell(i).setCellStyle(styleRelative);
+            }
+
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 24, 29));
+            row0.getCell(24).setCellValue("TRÌNH ĐỘ");
+            for (int i = 24; i <= 29; i++) {
+                row0.getCell(i).setCellStyle(styleEdu);
+                row1.getCell(i).setCellStyle(styleEdu);
+                row2.getCell(i).setCellStyle(styleEdu);
+            }
+
+            // --- 3. ROW EXAMPLE ---
+            Row exampleRow = sheet.createRow(3);
+            for (int i = 0; i < subHeaders.length; i++) {
+                exampleRow.createCell(i).setCellStyle(baseStyle);
+            }
+            exampleRow.getCell(0).setCellValue(1);
+            exampleRow.getCell(1).setCellValue(""); // ID auto gen
+            exampleRow.getCell(2).setCellValue("Nguyễn Văn Tuấn");
+            exampleRow.getCell(3).setCellValue("Nam");
+            exampleRow.getCell(4).setCellValue("15/06/1995");
+            exampleRow.getCell(5).setCellValue(""); // Manager 1
+            exampleRow.getCell(6).setCellValue(""); // Manager 2
+            exampleRow.getCell(7).setCellValue(""); // Vị trí
+            exampleRow.getCell(8).setCellValue("Toàn thời gian");
+            exampleRow.getCell(9).setCellValue("01/01/2026");
+            exampleRow.getCell(10).setCellValue("01/01/2027");
+            exampleRow.getCell(11).setCellValue("");
+            exampleRow.getCell(12).setCellValue("01/01/2026");
+            exampleRow.getCell(13).setCellValue("");
+            exampleRow.getCell(14).setCellValue("Mới");
+            exampleRow.getCell(15).setCellValue("123 Nguyễn Du, TP.HCM");
+            exampleRow.getCell(16).setCellValue("0912345678");
+            exampleRow.getCell(17).setCellValue("tuan.nguyen@gmail.com");
+            exampleRow.getCell(18).setCellValue("079095012345");
+            exampleRow.getCell(19).setCellValue("15/01/2020");
+            exampleRow.getCell(20).setCellValue("CA TP. Hồ Chí Minh");
+            exampleRow.getCell(21).setCellValue("Nguyễn Thị Lan");
+            exampleRow.getCell(22).setCellValue("Mẹ");
+            exampleRow.getCell(23).setCellValue("0987654321");
+            exampleRow.getCell(24).setCellValue("Java, Python");
+            exampleRow.getCell(25).setCellValue("CNTT");
+            exampleRow.getCell(26).setCellValue("ĐH Bách Khoa");
+            exampleRow.getCell(27).setCellValue("Đại học");
+            exampleRow.getCell(28).setCellValue("2020");
+            exampleRow.getCell(29).setCellValue("AWS SAA");
             
-            CellStyle headerStyle = workbook.createCellStyle();
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerFont.setColor(IndexedColors.BLUE.getIndex());
-            headerStyle.setFont(headerFont);
-            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            
-            for (int i = 0; i < columns.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerStyle);
+            int[] columnWidths = {
+                13, 17, 25, 13, 17, // STT...Ngày sinh
+                21, 21, 21, 21, 17, 17, 17, 17, 17, // Quản lý...Ngày nghỉ
+                17, // Thâm niên
+                34, 17, 30, 21, 17, 30, // Địa chỉ...Nơi cấp
+                25, 17, 17, // Người thân
+                25, 25, 45, 17, 17, 25 // Trình độ
+            };
+            for (int i = 0; i < subHeaders.length; i++) {
+                sheet.setColumnWidth(i, columnWidths[i] * 256);
             }
             
-            // Add example row
-            Row exampleRow = sheet.createRow(1);
-            int c = 0;
-            exampleRow.createCell(c++).setCellValue("Nguyễn Văn A");
-            exampleRow.createCell(c++).setCellValue("a.nguyen@company.com");
-            exampleRow.createCell(c++).setCellValue("MALE");
-            exampleRow.createCell(c++).setCellValue("1995-06-15");
-            exampleRow.createCell(c++).setCellValue("FULL_TIME");
-            exampleRow.createCell(c++).setCellValue("2026-01-01");
-            exampleRow.createCell(c++).setCellValue("2027-01-01");
-            exampleRow.createCell(c++).setCellValue("2026-01-01");
-            exampleRow.createCell(c++).setCellValue("2025-12-28");
-            exampleRow.createCell(c++).setCellValue("123 Nguyễn Du, Q.1, TP.HCM");
-            exampleRow.createCell(c++).setCellValue("0912345678");
-            exampleRow.createCell(c++).setCellValue("a.nguyen@gmail.com");
-            exampleRow.createCell(c++).setCellValue("079095012345");
-            exampleRow.createCell(c++).setCellValue("2020-01-15");
-            exampleRow.createCell(c++).setCellValue("CA TP. Hồ Chí Minh");
-            exampleRow.createCell(c++).setCellValue("Nguyễn Thị B");
-            exampleRow.createCell(c++).setCellValue("Mẹ");
-            exampleRow.createCell(c++).setCellValue("0987654321");
-            exampleRow.createCell(c++).setCellValue("Java, Python, TypeScript");
-            exampleRow.createCell(c++).setCellValue("Công nghệ phần mềm");
-            exampleRow.createCell(c++).setCellValue("ĐH Bách Khoa TP.HCM");
-            exampleRow.createCell(c++).setCellValue("Đại học");
-            exampleRow.createCell(c++).setCellValue(2020);
-            exampleRow.createCell(c++).setCellValue("AWS SAA, CCNA");
-            exampleRow.createCell(c++).setCellValue("ACTIVE");
-            exampleRow.createCell(c++).setCellValue(10000000);
-            
-            for (int i = 0; i < columns.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            
-            workbook.write(out);
-            return out.toByteArray();
+            workbook.write(bos);
+            return bos.toByteArray();
         }
     }
 
@@ -410,111 +548,42 @@ public class ImportExportService {
     }
 
     public List<EmployeeDTO> parseEmployeeExcel(MultipartFile file) throws Exception {
-        List<EmployeeDTO> list = new ArrayList<>();
-        // Use BOMInputStream to handle UTF-8 BOM
-        try (BOMInputStream bomIn = new BOMInputStream(file.getInputStream());
-             Workbook workbook = new XSSFWorkbook(bomIn)) {
-             
-            Sheet sheet = workbook.getSheetAt(0);
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
-                
-                EmployeeDTO dto = new EmployeeDTO();
-                
-                // Col 0: Full Name (required)
-                Cell nameCell = row.getCell(0);
-                if (nameCell != null && !nameCell.getStringCellValue().trim().isEmpty()) {
-                    dto.setFullName(nameCell.getStringCellValue().trim());
-                } else {
-                    throw new IllegalArgumentException("Tên nhân viên không được để trống");
-                }
-                
-                // Col 1: Email (required)
-                Cell emailCell = row.getCell(1);
-                if (emailCell != null && !emailCell.getStringCellValue().trim().isEmpty()) {
-                    dto.setEmail(emailCell.getStringCellValue().trim());
-                } else {
-                    throw new IllegalArgumentException("Email không được để trống");
-                }
-                
-                // Col 2: Phone
-                Cell phoneCell = row.getCell(2);
-                if (phoneCell != null) {
-                    String phone = phoneCell.getStringCellValue().trim();
-                    if (!phone.isEmpty()) dto.setPhone(phone);
-                }
-                
-                // Col 3: Status (ACTIVE, INACTIVE, ...)
-                Cell statusCell = row.getCell(3);
-                if (statusCell != null) {
-                    try {
-                        String statusStr = statusCell.getStringCellValue().trim();
-                        if (!statusStr.isEmpty()) {
-                            dto.setStatus(com.hrm.entity.EmpStatus.valueOf(statusStr.toUpperCase()));
-                        }
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Status không hợp lệ: " + statusCell.getStringCellValue());
-                    }
-                }
-                
-                // Col 4: Contract Type (FULL_TIME, PART_TIME, ...)
-                Cell contractCell = row.getCell(4);
-                if (contractCell != null) {
-                    try {
-                        String contractStr = contractCell.getStringCellValue().trim();
-                        if (!contractStr.isEmpty()) {
-                            dto.setContractType(com.hrm.entity.ContractType.valueOf(contractStr.toUpperCase()));
-                        }
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Contract type không hợp lệ: " + contractCell.getStringCellValue());
-                    }
-                }
-                
-                // Col 5: Base Salary (numeric)
-                Cell salaryCell = row.getCell(5);
-                if (salaryCell != null) {
-                    try {
-                        double salary = salaryCell.getNumericCellValue();
-                        if (salary > 0) {
-                            dto.setBaseSalary((long) salary);
-                        } else {
-                            throw new IllegalArgumentException("Lương cơ bản phải > 0");
-                        }
-                    } catch (IllegalStateException e) {
-                        throw new IllegalArgumentException("Lương cơ bản phải là số");
-                    }
-                }
-                
-                // Col 6: Start Date (YYYY-MM-DD)
-                Cell startDateCell = row.getCell(6);
-                if (startDateCell != null) {
-                    try {
-                        String dateStr = startDateCell.getStringCellValue().trim();
-                        if (!dateStr.isEmpty()) {
-                            dto.setStartDate(LocalDate.parse(dateStr));
-                        } else {
-                            dto.setStartDate(LocalDate.now());
-                        }
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException("Ngày vào làm phải định dạng YYYY-MM-DD");
-                    }
-                } else {
-                    dto.setStartDate(LocalDate.now());
-                }
-
-                // Extended fields (optional) - parse remaining columns
-                parseExtendedFields(row, dto, 7);
-                
-                list.add(dto);
-            }
-        }
-        return list;
+        return parseEmployeeExcelWithValidation(file).getEmployees(); // Refactored to reuse logic if available or just dummy
     }
 
-    /**
-     * Parse employee Excel with detailed error tracking per row
-     */
+    private String generateEmailFromName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) return "employee" + System.currentTimeMillis() + "@company.com";
+        String normalized = Normalizer.normalize(fullName.trim(), Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String ascii = pattern.matcher(normalized).replaceAll("").toLowerCase().replaceAll("đ", "d");
+        
+        String[] parts = ascii.split("\\s+");
+        if (parts.length == 1) {
+            return parts[0] + "@company.com";
+        }
+        StringBuilder email = new StringBuilder(parts[parts.length - 1]);
+        for (int i = 0; i < parts.length - 1; i++) {
+            if (!parts[i].isEmpty()) {
+                email.append(parts[i].charAt(0));
+            }
+        }
+        return email.toString() + "@company.com";
+    }
+
+    private LocalDate parseDateFlexible(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) return null;
+        try {
+            // Check if format is dd/MM/yyyy
+            if (dateStr.contains("/")) {
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                return LocalDate.parse(dateStr, dtf);
+            }
+            return LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public ImportResultResponse parseEmployeeExcelWithValidation(MultipartFile file) throws Exception {
         List<EmployeeDTO> validRows = new ArrayList<>();
         List<ImportErrorResponse> errors = new ArrayList<>();
@@ -524,119 +593,122 @@ public class ImportExportService {
              Workbook workbook = new XSSFWorkbook(bomIn)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            // Bắt đầu đọc từ dòng index 3 (Rows 0, 1 là header, Row 2 là đếm số)
+            for (int i = 3; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 totalRows++;
                 int excelRowNum = i + 1; // 1-based Excel row number
-                String email = "";
                 List<String> rowErrors = new ArrayList<>();
 
                 try {
                     EmployeeDTO dto = new EmployeeDTO();
 
-                    // Col 0: Full Name (required)
-                    Cell nameCell = row.getCell(0);
-                    String name = (nameCell != null) ? nameCell.getStringCellValue().trim() : "";
+                    // Col 2: Họ và tên
+                    String name = getStringCell(row, 2);
                     if (name.isEmpty()) {
                         rowErrors.add("Tên nhân viên không được để trống");
                     } else {
                         dto.setFullName(name);
+                        // Auto generate email
+                        dto.setEmail(generateEmailFromName(name));
+                        // Set basic defaults
+                        dto.setBaseSalary(0L);
+                        dto.setStatus(com.hrm.entity.EmpStatus.ACTIVE);
                     }
 
-                    // Col 1: Email (required)
-                    Cell emailCell = row.getCell(1);
-                    email = (emailCell != null) ? emailCell.getStringCellValue().trim() : "";
-                    if (email.isEmpty()) {
-                        rowErrors.add("Email không được để trống");
-                    } else if (!email.contains("@")) {
-                        rowErrors.add("Email không hợp lệ");
+                    // Col 3: Giới tính
+                    String genderStr = getStringCell(row, 3).toLowerCase();
+                    if (genderStr.contains("nam")) dto.setGender(com.hrm.entity.GenderType.MALE);
+                    else if (genderStr.contains("nữ") || genderStr.contains("nu")) dto.setGender(com.hrm.entity.GenderType.FEMALE);
+                    else if (!genderStr.isEmpty()) dto.setGender(com.hrm.entity.GenderType.OTHER);
+
+                    // Col 4: Ngày sinh
+                    String birthStr = getStringCell(row, 4);
+                    LocalDate birthDate = parseDateFlexible(birthStr);
+                    if (birthDate != null) dto.setBirthDate(birthDate);
+
+                    // Col 8: Loại HĐ
+                    String contractType = getStringCell(row, 8).toLowerCase();
+                    if (contractType.contains("toàn")) dto.setContractType(com.hrm.entity.ContractType.FULL_TIME);
+                    else if (contractType.contains("bán")) dto.setContractType(com.hrm.entity.ContractType.PART_TIME);
+                    else if (contractType.contains("hợp đồng")) dto.setContractType(com.hrm.entity.ContractType.CONTRACT);
+                    else if (contractType.contains("thử việc")) dto.setContractType(com.hrm.entity.ContractType.PROBATION);
+                    else if (contractType.contains("cộng tác")) dto.setContractType(com.hrm.entity.ContractType.COLLABORATOR);
+                    else dto.setContractType(com.hrm.entity.ContractType.FULL_TIME); // default
+
+                    // Col 9, 10: HĐ Hiệu lực, Hết hạn
+                    LocalDate contractStartDate = parseDateFlexible(getStringCell(row, 9));
+                    if (contractStartDate != null) dto.setJoinDate(contractStartDate);
+                    
+                    LocalDate contractEndDate = parseDateFlexible(getStringCell(row, 10));
+                    if (contractEndDate != null) dto.setEndDate(contractEndDate);
+                    
+                    // Col 12: Ngày bắt đầu (StartDate)
+                    LocalDate startDate = parseDateFlexible(getStringCell(row, 12));
+                    if (startDate != null) dto.setStartDate(startDate);
+                    else dto.setStartDate(LocalDate.now());
+
+                    // Col 15: Địa chỉ
+                    String address = getStringCell(row, 15);
+                    if (!address.isEmpty()) dto.setAddress(address);
+
+                    // Col 16: Điện thoại
+                    String phone = getStringCell(row, 16);
+                    if (!phone.isEmpty()) {
+                        dto.setPhone(phone);
                     } else {
-                        dto.setEmail(email);
+                        rowErrors.add("SĐT không được để trống");
                     }
 
-                    // Col 2: Phone
-                    Cell phoneCell = row.getCell(2);
-                    if (phoneCell != null) {
-                        String phone = phoneCell.getStringCellValue().trim();
-                        if (!phone.isEmpty()) dto.setPhone(phone);
-                    }
+                    // Col 17: Email cá nhân
+                    String pEmail = getStringCell(row, 17);
+                    if (!pEmail.isEmpty()) dto.setPersonalEmail(pEmail);
 
-                    // Col 3: Status
-                    Cell statusCell = row.getCell(3);
-                    if (statusCell != null) {
-                        try {
-                            String statusStr = statusCell.getStringCellValue().trim();
-                            if (!statusStr.isEmpty()) {
-                                dto.setStatus(com.hrm.entity.EmpStatus.valueOf(statusStr.toUpperCase()));
-                            }
-                        } catch (IllegalArgumentException e) {
-                            rowErrors.add("Status không hợp lệ: " + statusCell.getStringCellValue());
-                        }
-                    }
-
-                    // Col 4: Contract Type
-                    Cell contractCell = row.getCell(4);
-                    if (contractCell != null) {
-                        try {
-                            String contractStr = contractCell.getStringCellValue().trim();
-                            if (!contractStr.isEmpty()) {
-                                dto.setContractType(com.hrm.entity.ContractType.valueOf(contractStr.toUpperCase()));
-                            }
-                        } catch (IllegalArgumentException e) {
-                            rowErrors.add("Contract type không hợp lệ: " + contractCell.getStringCellValue());
-                        }
-                    }
-
-                    // Col 5: Base Salary
-                    Cell salaryCell = row.getCell(5);
-                    if (salaryCell != null) {
-                        try {
-                            double salary = salaryCell.getNumericCellValue();
-                            if (salary > 0) {
-                                dto.setBaseSalary((long) salary);
-                            } else {
-                                rowErrors.add("Lương cơ bản phải > 0");
-                            }
-                        } catch (IllegalStateException e) {
-                            rowErrors.add("Lương cơ bản phải là số");
-                        }
-                    }
-
-                    // Col 6: Start Date
-                    Cell startDateCell = row.getCell(6);
-                    if (startDateCell != null) {
-                        try {
-                            String dateStr = startDateCell.getStringCellValue().trim();
-                            if (!dateStr.isEmpty()) {
-                                dto.setStartDate(LocalDate.parse(dateStr));
-                            } else {
-                                dto.setStartDate(LocalDate.now());
-                            }
-                        } catch (Exception e) {
-                            rowErrors.add("Ngày vào làm phải định dạng YYYY-MM-DD");
-                        }
+                    // Col 18: CCCD
+                    String cccd = getStringCell(row, 18);
+                    if (!cccd.isEmpty()) {
+                        dto.setCitizenId(cccd);
                     } else {
-                        dto.setStartDate(LocalDate.now());
+                        rowErrors.add("CCCD không được để trống");
                     }
 
-                    // Extended fields (optional)
+                    // Col 19: Ngày cấp CCCD
+                    LocalDate cccdDate = parseDateFlexible(getStringCell(row, 19));
+                    if (cccdDate != null) dto.setCitizenIdDate(cccdDate);
+
+                    // Col 20: Nơi cấp CCCD
+                    String cccdPlace = getStringCell(row, 20);
+                    if (!cccdPlace.isEmpty()) dto.setCitizenIdPlace(cccdPlace);
+
+                    // Col 21, 22, 23: Người thân
+                    dto.setEmergencyContactName(getStringCell(row, 21));
+                    dto.setEmergencyContactRelationship(getStringCell(row, 22));
+                    dto.setEmergencyContactPhone(getStringCell(row, 23));
+
+                    // Col 24..29: Trình độ
+                    dto.setProgrammingLanguages(getStringCell(row, 24));
+                    dto.setMajor(getStringCell(row, 25));
+                    dto.setUniversity(getStringCell(row, 26));
+                    dto.setEducationLevel(getStringCell(row, 27));
+                    
+                    String gradYear = getStringCell(row, 28);
                     try {
-                        parseExtendedFields(row, dto, 7);
-                    } catch (Exception e) {
-                        rowErrors.add("Lỗi parse thông tin mở rộng: " + e.getMessage());
-                    }
+                        if (!gradYear.isEmpty()) dto.setGraduationYear(Integer.parseInt(gradYear));
+                    } catch (Exception ignored) {}
+                    
+                    dto.setItCertificate(getStringCell(row, 29));
 
                     // If no errors, add to valid rows
                     if (rowErrors.isEmpty()) {
                         validRows.add(dto);
                     } else {
-                        errors.add(new ImportErrorResponse(excelRowNum, email, String.join("; ", rowErrors)));
+                        errors.add(new ImportErrorResponse(excelRowNum, dto.getEmail(), String.join("; ", rowErrors)));
                     }
 
                 } catch (Exception e) {
-                    errors.add(new ImportErrorResponse(excelRowNum, email, "Lỗi xử lý dòng: " + e.getMessage()));
+                    errors.add(new ImportErrorResponse(excelRowNum, "Unknown", "Lỗi xử lý dòng: " + e.getMessage()));
                 }
             }
         }
@@ -646,100 +718,13 @@ public class ImportExportService {
                 .successCount(validRows.size())
                 .failureCount(errors.size())
                 .errors(errors)
+                .employees(validRows)
                 .message(validRows.size() + " hàng hợp lệ, " + errors.size() + " hàng có lỗi")
                 .build();
     }
 
-    /**
-     * Parse extended employee fields from Excel row (columns after the base 7).
-     * All fields are optional — gracefully skips if column is missing or empty.
-     */
     private void parseExtendedFields(Row row, EmployeeDTO dto, int startCol) {
-        // Note: Template column order after col 6 (Start Date):
-        // 7: Hạn HĐ, 8: Ngày vào, 9: Ngày ký HĐ,
-        // 10: Địa chỉ, 11: Điện thoại, 12: Email cá nhân,
-        // 13: Số CCCD, 14: Ngày cấp CCCD, 15: Nơi cấp CCCD,
-        // 16: NT Họ tên, 17: NT Quan hệ, 18: NT SĐT,
-        // 19: Ngôn ngữ LT, 20: Chuyên ngành, 21: Trường ĐT,
-        // 22: Hệ, 23: Năm cấp bằng, 24: Chứng chỉ CNTT,
-        // 25: Trạng thái, 26: Lương cơ bản
-
-        // Hạn HĐ (endDate)
-        String endDateStr = getStringCell(row, startCol);
-        if (!endDateStr.isEmpty()) {
-            try { dto.setEndDate(LocalDate.parse(endDateStr)); } catch (Exception ignored) {}
-        }
-
-        // Ngày vào (joinDate)
-        String joinDateStr = getStringCell(row, startCol + 1);
-        if (!joinDateStr.isEmpty()) {
-            try { dto.setJoinDate(LocalDate.parse(joinDateStr)); } catch (Exception ignored) {}
-        }
-
-        // Ngày ký HĐ
-        String signingDateStr = getStringCell(row, startCol + 2);
-        if (!signingDateStr.isEmpty()) {
-            try { dto.setContractSigningDate(LocalDate.parse(signingDateStr)); } catch (Exception ignored) {}
-        }
-
-        // Địa chỉ (override if present)
-        String address = getStringCell(row, startCol + 3);
-        if (!address.isEmpty()) dto.setAddress(address);
-
-        // Điện thoại (override if present)
-        String phone = getStringCell(row, startCol + 4);
-        if (!phone.isEmpty()) dto.setPhone(phone);
-
-        // Email cá nhân
-        String personalEmail = getStringCell(row, startCol + 5);
-        if (!personalEmail.isEmpty()) dto.setPersonalEmail(personalEmail);
-
-        // CCCD
-        String citizenId = getStringCell(row, startCol + 6);
-        if (!citizenId.isEmpty()) dto.setCitizenId(citizenId);
-
-        String citizenIdDateStr = getStringCell(row, startCol + 7);
-        if (!citizenIdDateStr.isEmpty()) {
-            try { dto.setCitizenIdDate(LocalDate.parse(citizenIdDateStr)); } catch (Exception ignored) {}
-        }
-
-        String citizenIdPlace = getStringCell(row, startCol + 8);
-        if (!citizenIdPlace.isEmpty()) dto.setCitizenIdPlace(citizenIdPlace);
-
-        // Người thân liên hệ
-        String ecName = getStringCell(row, startCol + 9);
-        if (!ecName.isEmpty()) dto.setEmergencyContactName(ecName);
-
-        String ecRelationship = getStringCell(row, startCol + 10);
-        if (!ecRelationship.isEmpty()) dto.setEmergencyContactRelationship(ecRelationship);
-
-        String ecPhone = getStringCell(row, startCol + 11);
-        if (!ecPhone.isEmpty()) dto.setEmergencyContactPhone(ecPhone);
-
-        // Trình độ
-        String progLangs = getStringCell(row, startCol + 12);
-        if (!progLangs.isEmpty()) dto.setProgrammingLanguages(progLangs);
-
-        String major = getStringCell(row, startCol + 13);
-        if (!major.isEmpty()) dto.setMajor(major);
-
-        String university = getStringCell(row, startCol + 14);
-        if (!university.isEmpty()) dto.setUniversity(university);
-
-        String eduLevel = getStringCell(row, startCol + 15);
-        if (!eduLevel.isEmpty()) dto.setEducationLevel(eduLevel);
-
-        // Năm cấp bằng (numeric)
-        Cell gradYearCell = row.getCell(startCol + 16);
-        if (gradYearCell != null) {
-            try {
-                int year = (int) gradYearCell.getNumericCellValue();
-                if (year > 1900) dto.setGraduationYear(year);
-            } catch (Exception ignored) {}
-        }
-
-        String itCert = getStringCell(row, startCol + 17);
-        if (!itCert.isEmpty()) dto.setItCertificate(itCert);
+        // Obsolete as we merged this into the main parser method
     }
 
     /** Helper: safely read a cell as String */

@@ -25,10 +25,31 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
   const [headers, setHeaders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
+    await processFile(e.target.files?.[0]);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    await processFile(e.dataTransfer.files?.[0]);
+  };
+
+  const processFile = async (selectedFile: File | undefined) => {
     if (!selectedFile) return;
     
     if (!selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls')) {
@@ -44,41 +65,41 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Read as array of arrays first to get headers cleanly
 
-      if (jsonData.length < 2) {
-        throw new Error('File Excel không có dữ liệu (cần ít nhất 1 dòng tiêu đề và 1 dòng dữ liệu)');
+      if (jsonData.length < 4) {
+        throw new Error('File Excel không có dữ liệu (cần ít nhất 3 dòng tiêu đề và 1 dòng dữ liệu)');
       }
 
-      const headerRow = jsonData[0] as string[];
-      const dataRows = jsonData.slice(1) as ExcelCell[][];
+      const mainHeaders = (jsonData[0] || []) as string[]; 
+      const subHeaders = (jsonData[1] || []) as string[]; 
+      const dataRows = jsonData.slice(3) as ExcelCell[][]; 
+      
+      const headerRow: string[] = [];
+      for (let i = 0; i < 30; i++) {
+        const sub = subHeaders[i];
+        const main = mainHeaders[i];
+        headerRow.push((sub && String(sub).trim() !== '') ? String(sub) : (main ? String(main) : `Cột ${i + 1}`));
+      }
       
       setHeaders(headerRow);
       setFile(selectedFile);
 
-      // Validation for preview based on Backend mapping (V24 Extended)
+      // Validation for preview based on Backend mapping (30 columns format)
       const rowsWithErrors: ExcelRow[] = dataRows.map((rowArr, idx) => {
         const errors: string[] = [];
         const rowData: ExcelRow = {
-          rowIndex: idx + 2,
+          rowIndex: idx + 4, // 1-based excel row index
           errors
         };
         
         headerRow.forEach((h, i) => {
-           // Ensure header is string to avoid issues
-          rowData[String(h || `Cột ${i}`)] = rowArr[i];
+          rowData[`col_${i}`] = rowArr[i];
         });
 
-        const name = rowArr[0];  // Họ tên
-        const email = rowArr[1]; // Email login
-        const phone = rowArr[2]; // Số điện thoại
-        const cccd  = rowArr[17]; // CCCD
+        const name = rowArr[2];   // Họ tên (col 2)
+        const phone = rowArr[16]; // Số điện thoại (col 16)
+        const cccd  = rowArr[18]; // CCCD (col 18)
 
         if (!name || String(name).trim() === '') errors.push('Thiếu Tên');
-        
-        if (!email || String(email).trim() === '') {
-          errors.push('Thiếu Email');
-        } else if (!String(email).includes('@')) {
-          errors.push('Email sai định dạng');
-        }
         
         if (!phone || String(phone).trim() === '') {
           errors.push('Thiếu SĐT');
@@ -92,6 +113,7 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
       });
 
       setPreviewData(rowsWithErrors);
+      setSelectedRows(rowsWithErrors.filter(r => !r.errors?.length).map(r => r.rowIndex));
       setStep('preview');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Lỗi đọc file Excel');
@@ -102,11 +124,27 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
 
   const handleImport = async () => {
     if (!file) return;
+    if (selectedRows.length === 0) {
+      setError('Vui lòng chọn ít nhất 1 dòng nhân viên hợp lệ để import.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
+      const fileBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(fileBuffer, { type: 'array' });
+      const worksheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[worksheetName];
+      const allRows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+      
+      const newRows = allRows.filter((_, idx) => idx < 3 || selectedRows.includes(idx + 1));
+      const newWorksheet = XLSX.utils.aoa_to_sheet(newRows);
+      workbook.Sheets[worksheetName] = newWorksheet;
+      const newBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const filteredFile = new File([newBuffer], file.name, { type: file.type });
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', filteredFile);
       const res = await api.post('/api/employees/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -123,6 +161,26 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
         ? err.response?.data?.message || 'Có lỗi xảy ra khi import danh sách.'
         : 'Có lỗi xảy ra khi import danh sách.';
       setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await api.get('/api/employees/template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'employee_template.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      setError('Có lỗi xảy ra khi tải file mẫu. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -164,7 +222,14 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
           <div className="space-y-10">
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-black/10 dark:border-white/10 p-20 rounded-[44px] flex items-center justify-center bg-white/5 hover:bg-indigo-500/5 hover:border-indigo-500/50 transition-all duration-700 cursor-pointer group shadow-inner"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed p-20 rounded-[44px] flex items-center justify-center transition-all duration-700 cursor-pointer group shadow-inner ${
+                isDragging 
+                  ? 'bg-indigo-500/10 border-indigo-500 shadow-indigo-500/20' 
+                  : 'border-black/10 dark:border-white/10 bg-white/5 hover:bg-indigo-500/5 hover:border-indigo-500/50'
+              }`}
             >
               <div className="text-center group-hover:scale-105 transition-transform duration-700">
                 <div className="w-24 h-24 bg-indigo-500/20 rounded-[32px] flex items-center justify-center text-indigo-400 mx-auto mb-8 border border-indigo-500/20 shadow-2xl group-hover:shadow-indigo-500/40 group-hover:-translate-y-2 transition-all duration-500">
@@ -186,12 +251,13 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-5">
               <button onClick={onClose} className="px-8 py-5 rounded-[22px] text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10">Hủy bỏ</button>
-              <a 
-                href="http://localhost:8080/api/employees/template" 
-                className="px-8 py-5 rounded-[22px] text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 text-center transition-all shadow-xl"
+              <button 
+                onClick={handleDownloadTemplate}
+                disabled={loading}
+                className="px-8 py-5 rounded-[22px] text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 text-center transition-all shadow-xl disabled:opacity-50"
               >
-                Tải file Excel mẫu
-              </a>
+                {loading ? 'Đang tải...' : 'Tải file Excel mẫu'}
+              </button>
             </div>
           </div>
         ) : (
@@ -243,20 +309,43 @@ export default function ImportExcelModal({ onClose, onSuccess }: Props) {
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-[#0f172a]/95 backdrop-blur-xl shadow-2xl z-20">
                   <tr>
+                    <th className="px-5 py-5 w-10 border-b border-white/5">
+                      <input 
+                         type="checkbox" 
+                         className="w-4 h-4 bg-white/5 border-white/10 rounded cursor-pointer checked:bg-indigo-500 transition-colors"
+                         checked={selectedRows.length > 0 && selectedRows.length === previewData.filter(r => !r.errors?.length).length}
+                         onChange={(e) => {
+                            if (e.target.checked) setSelectedRows(previewData.filter(r => !r.errors?.length).map(r => r.rowIndex));
+                            else setSelectedRows([]);
+                         }}
+                      />
+                    </th>
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">#</th>
-                    {headers.map(header => (
-                      <th key={header} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-indigo-300/80 border-b border-white/5">{header}</th>
+                    {headers.map((header, i) => (
+                      <th key={i} className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-indigo-300/80 border-b border-white/5 whitespace-nowrap">{header}</th>
                     ))}
                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {previewData.map((row) => (
-                    <tr key={row.rowIndex} className={`group/row transition-all duration-300 ${row.errors?.length ? 'bg-rose-500/5 hover:bg-rose-500/10' : 'hover:bg-white/5'}`}>
+                    <tr key={row.rowIndex} className={`group/row transition-all duration-300 ${row.errors?.length ? 'bg-rose-500/5 hover:bg-rose-500/10' : 'hover:bg-white/5'} ${selectedRows.includes(row.rowIndex) ? 'bg-indigo-500/5' : ''}`}>
+                      <td className="px-5 py-5 text-center">
+                        <input 
+                           type="checkbox" 
+                           className="w-4 h-4 bg-white/5 border-white/10 rounded cursor-pointer disabled:opacity-20"
+                           disabled={(row.errors?.length || 0) > 0}
+                           checked={selectedRows.includes(row.rowIndex)}
+                           onChange={(e) => {
+                              if (e.target.checked) setSelectedRows([...selectedRows, row.rowIndex]);
+                              else setSelectedRows(selectedRows.filter(id => id !== row.rowIndex));
+                           }}
+                        />
+                      </td>
                       <td className="px-8 py-5 text-[12px] font-bold text-slate-500 group-hover/row:text-slate-300 transition-colors">{row.rowIndex}</td>
-                      {headers.map(header => (
-                        <td key={header} className="px-8 py-5 text-[13px] text-slate-300 group-hover/row:text-white transition-colors">
-                          {String(row[header] || '-')}
+                      {headers.map((header, i) => (
+                        <td key={i} className="px-6 py-5 text-[13px] text-slate-300 group-hover/row:text-white transition-colors whitespace-nowrap">
+                          {String(row[`col_${i}`] || '-')}
                         </td>
                       ))}
                       <td className="px-8 py-5">

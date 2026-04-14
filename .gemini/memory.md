@@ -7,9 +7,9 @@ Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 Phần này chỉ để làm sạch cách đọc nhanh, không thay đổi dữ liệu lịch sử.
 Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dưới.
 
-- Current phase: `Employee Management Upgrade (Hanoi Data & Localization)`
-- Current focus: `Bug Fixing & Data Consistency`
-- Current status: ✅ Đã đồng bộ số liệu thống kê (30/30). Loại bỏ người nghỉ việc khỏi tất cả các card thống kê chính.
+- Current phase: `Employee Management Upgrade (Import/Export Excel)`
+- Current focus: `Refactored Excel Template to 30 columns`
+- Current status: ✅ Đã hoàn thành cập nhật Import/Export Template bảng 30 cột, có thêm dòng đếm số. BE gen email tự động từ họ tên. FE parse bỏ qua 3 dòng header.
 - Next task (canonical): Xử lý backlog D14 (Import máy chấm công) hoặc theo dõi vận hành.
 - Blockers: Không có.
 

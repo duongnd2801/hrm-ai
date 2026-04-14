@@ -42,9 +42,10 @@ public class EmployeeController {
     @PreAuthorize("hasAuthority('EMP_VIEW')")
     public ResponseEntity<PageResponse<EmployeeDTO>> getAllEmployees(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
             @PageableDefault(size = 10, sort = "fullName", direction = Sort.Direction.ASC) Pageable pageable,
             Authentication authentication) {
-        return ResponseEntity.ok(employeeService.getAllEmployees(search, pageable, authentication));
+        return ResponseEntity.ok(employeeService.getAllEmployees(search, status, pageable, authentication));
     }
 
     @GetMapping("/{id}")
@@ -76,7 +77,7 @@ public class EmployeeController {
             @RequestParam(required = false) String search,
             Authentication authentication) throws Exception {
         byte[] excelData = importExportService.exportEmployeesToExcel(
-                employeeService.getAllEmployees(search, Pageable.unpaged(), authentication).getContent()
+                employeeService.getAllEmployees(search, null, Pageable.unpaged(), authentication).getContent()
         );
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
@@ -103,10 +104,20 @@ public class EmployeeController {
                         .body("File trống. Vui lòng chọn file Excel.");
             }
             
-            List<EmployeeDTO> parsed = importExportService.parseEmployeeExcel(file);
-            if (parsed.isEmpty()) {
+            com.hrm.dto.ImportResultResponse result = importExportService.parseEmployeeExcelWithValidation(file);
+            List<EmployeeDTO> parsed = result.getEmployees();
+            
+            if (parsed == null || parsed.isEmpty()) {
+                if (result.getFailureCount() > 0) {
+                     return ResponseEntity.ok(result); // Return the details so FE can display them
+                }
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("File không chứa dữ liệu hợp lệ. Vui lòng kiểm tra định dạng Excel.");
+            }
+            
+            if (result.getFailureCount() > 0) {
+                // To keep it simple, if there are ANY row errors, refuse to save and let FE display the errors preview!
+                return ResponseEntity.ok(result); 
             }
             
             int successCount = 0;

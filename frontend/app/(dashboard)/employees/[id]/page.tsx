@@ -564,6 +564,17 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                         placeholder="Chọn trạng thái..."
                         onSelect={(nextId) => setEmp({ ...emp, status: nextId as Employee['status'] })}
                       />
+                      {emp.status === 'INACTIVE' && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                          <label className="block text-rose-500 dark:text-rose-400 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🚫 Ngày nghỉ việc chính thức</label>
+                          <input
+                            type="date"
+                            value={emp.endDate || ''}
+                            onChange={(e) => setEmp({ ...emp, endDate: e.target.value })}
+                            className="w-full bg-rose-500/10 border border-rose-500/20 rounded-2xl py-3 px-4 text-rose-600 dark:text-rose-400 font-bold focus:ring-4 focus:ring-rose-500/30 outline-none transition-all duration-300"
+                          />
+                        </div>
+                      )}
                       <div>
                         <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">💰 Lương cơ bản (VND)</label>
                         <div className="relative">

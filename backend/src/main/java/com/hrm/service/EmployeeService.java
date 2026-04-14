@@ -48,11 +48,24 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<EmployeeDTO> getAllEmployees(String search, Pageable pageable, Authentication authentication) {
+    public PageResponse<EmployeeDTO> getAllEmployees(String search, String status, Pageable pageable, Authentication authentication) {
         Page<Employee> page;
-        if (search != null && !search.trim().isEmpty()) {
-            page = employeeRepository.searchEmployees(search.trim().toLowerCase(), pageable);
+        EmpStatus empStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                empStatus = EmpStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid status
+            }
+        }
+
+        if (search != null && !search.isBlank()) {
+            page = employeeRepository.searchEmployees(search, empStatus, pageable);
+        } else if (empStatus != null) {
+            // Search with status filter but no search terms
+            page = employeeRepository.searchEmployees("", empStatus, pageable);
         } else {
+            // No filters, get all employees
             page = employeeRepository.findAll(pageable);
         }
 

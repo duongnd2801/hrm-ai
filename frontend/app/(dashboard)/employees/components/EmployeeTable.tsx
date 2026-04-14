@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: Employee['status'] }) {
   );
 }
 
-export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?: string; refreshKey?: number }) {
+export default function EmployeeTable({ search = '', status = '', refreshKey = 0 }: { search?: string; status?: string; refreshKey?: number }) {
   const { session } = useSession();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,7 @@ export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?
         const res = await api.get('/api/employees', { 
             params: { 
                 search,
+                status: status || undefined,
                 page: currentPage - 1,
                 size: pageSize
             } 
@@ -61,11 +62,11 @@ export default function EmployeeTable({ search = '', refreshKey = 0 }: { search?
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [search, currentPage, pageSize, refreshKey]);
+  }, [search, status, currentPage, pageSize, refreshKey]);
 
   useEffect(() => {
      setCurrentPage(1);
-  }, [search]);
+  }, [search, status]);
 
   const canManageGlobal = session?.permissions.includes('EMP_UPDATE') ?? false;
   const totalPages = Math.ceil(totalItems / pageSize);
