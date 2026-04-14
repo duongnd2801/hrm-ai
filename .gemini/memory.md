@@ -9,12 +9,16 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 
 - Current phase: `Employee Management Upgrade (Import/Export Excel)`
 - Current focus: `Refactored Excel Template to 30 columns`
-- Current status: ✅ Đã hoàn thành cập nhật Import/Export Template bảng 30 cột, có thêm dòng đếm số. BE gen email tự động từ họ tên. FE parse bỏ qua 3 dòng header.
-- Next task (canonical): Xử lý backlog D14 (Import máy chấm công) hoặc theo dõi vận hành.
+- Current status: ✅ Hoàn thành tích hợp dữ liệu máy chấm công và nâng cấp giao diện Quản lý chuyên cần toàn diện. Đã xử lý logic bỏ qua dòng trống, lọc ngày cuối tuần và tính năng soi chi tiết lịch công từng nhân viên.
+- Next task (canonical): Theo dõi vận hành và hỗ trợ người dùng.
+- [2026-04-14T14:30:00+07:00] **Phase Team Attendance Management Completed**:
+  - **Backend:** Triển khai API `/api/attendance/summary` cung cấp thống kê ngày công (Đúng giờ, Muộn, Vắng) toàn team. Tối ưu query Group By tại `AttendanceRepository`.
+  - **Frontend:** Đại tu trang Chấm công. Tab "Quản lý" mới hiển thị bảng tổng hợp nhân sự thay vì danh sách lỗi. Tích hợp tính năng "Drill-down": click xem chi tiết lịch công cá nhân của từng nhân viên từ bảng tổng hợp.
+  - **Bugfix:** Bổ sung logic tự động bỏ qua dòng trống và xử lý ngày cuối tuần là `DAY_OFF` khi import máy chấm công. Dọn dẹp 122 bản ghi vắng mặt nhầm ở cuối tuần.
 - Blockers: Không có.
 
 ### Open Backlog (Canonical)
-- D14: Attendance import từ máy chấm công (MEDIUM).
+- (None)
 
 ### Security Hardening Summary (2026-04-03)
 - **Backend:** HttpOnly Cookies, RS256 JWT, CSRF Protection, Strict DTO Validation, Security Headers.

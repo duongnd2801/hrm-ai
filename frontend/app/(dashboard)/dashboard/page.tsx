@@ -255,14 +255,14 @@ export default function DashboardPage() {
       {/* Hero Welcome Section - Premium Styling */}
       <div className="relative pt-10 px-2 lg:px-6">
          {/* Gradient background effect */}
-         <div className="absolute -z-10 inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl" />
+         <div className="absolute -z-10 inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl opacity-50 dark:opacity-100" />
          
          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-               <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white uppercase leading-none tracking-tighter mb-4">
+               <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
                   Chào {namePrefix}
                </h1>
-               <p className="text-base md:text-lg font-bold text-white/70 uppercase tracking-widest ml-1">
+               <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
                   ⏰ Hệ thống quản trị nhân sự cao cấp
                </p>
             </div>

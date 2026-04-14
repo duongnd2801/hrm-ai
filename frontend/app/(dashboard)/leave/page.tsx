@@ -144,27 +144,29 @@ export default function LeavePage() {
     <div className="flex flex-col gap-8 h-full max-w-[1400px] mx-auto pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-[0.05em] uppercase">
-            Quản lý <span className="text-indigo-600 dark:text-indigo-400">Nghỉ phép</span>
+      {/* Hero Header - Synced with Payroll Style */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 pt-10">
+        <div>
+          <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
+            Nghỉ phép
           </h1>
-          <p className="text-slate-500 dark:text-white/40 font-medium tracking-wide">Đăng ký và duyệt đơn nghỉ phép linh hoạt</p>
+          <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+            Quản lý & Đăng ký thời gian nghỉ
+          </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl">
           {canApprove && (
-            <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl flex gap-1 border border-slate-200 dark:border-white/5 shadow-sm">
+            <div className="flex bg-white/5 p-1 rounded-[20px] border border-white/10">
               <button
                 onClick={() => setTab('MY')}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${tab === 'MY' ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/30 hover:text-slate-800 dark:hover:text-white/60'}`}
+                className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'MY' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40' : 'text-white/40 hover:text-white/80'}`}
               >
                 Của tôi
               </button>
               <button
                 onClick={() => setTab('REVIEW')}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${tab === 'REVIEW' ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/30 hover:text-slate-800 dark:hover:text-white/60'}`}
+                className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'REVIEW' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40' : 'text-white/40 hover:text-white/80'}`}
               >
                 Cần duyệt
               </button>
@@ -174,10 +176,10 @@ export default function LeavePage() {
           {canCreate && (
             <button
               onClick={() => setIsDialogOpen(true)}
-              className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+              className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-emerald-500/40 active:scale-95 transition-all"
             >
               <svg fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-              Đăng ký nghỉ
+              ĐĂNG KÝ NGHỈ
             </button>
           )}
         </div>

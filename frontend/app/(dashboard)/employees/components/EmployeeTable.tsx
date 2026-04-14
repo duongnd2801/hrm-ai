@@ -75,7 +75,7 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
     <div className="w-full relative">
       <div className={`w-full overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 pb-4 bg-transparent border-none transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
         <table className="min-w-[1200px] w-full text-left border-separate border-spacing-0">
-          <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+          <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
             <tr>
               <th className="px-6 py-5 rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
               <th className="px-6 py-5 whitespace-nowrap">LIÊN LẠC</th>

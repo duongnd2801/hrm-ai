@@ -41,14 +41,14 @@ public class EmployeeService {
                 .total(currentWorking)
                 .active(currentWorking)
                 .absent(attendanceRepository.countByDateAndStatusIn(
-                        LocalDate.now(), 
-                        List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)
-                ))
+                        LocalDate.now(),
+                        List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)))
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<EmployeeDTO> getAllEmployees(String search, String status, Pageable pageable, Authentication authentication) {
+    public PageResponse<EmployeeDTO> getAllEmployees(String search, String status, Pageable pageable,
+            Authentication authentication) {
         Page<Employee> page;
         EmpStatus empStatus = null;
         if (status != null && !status.isBlank()) {
@@ -78,13 +78,13 @@ public class EmployeeService {
                 page.getTotalElements(),
                 page.getTotalPages(),
                 page.getSize(),
-                page.getNumber()
-        );
+                page.getNumber());
     }
 
     @Transactional(readOnly = true)
     public EmployeeDTO getEmployeeById(UUID id, Authentication authentication) {
-        Employee emp = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
         return filterSensitiveData(mapToDTO(emp), authentication);
     }
 
@@ -118,11 +118,12 @@ public class EmployeeService {
             User user = new User();
             user.setEmail(normalizedEmail);
             user.setPassword(passwordEncoder.encode("Emp@123")); // Default password
-            
-            String roleName = (dto.getRole() != null && !dto.getRole().isEmpty()) ? dto.getRole().toUpperCase() : "EMPLOYEE";
+
+            String roleName = (dto.getRole() != null && !dto.getRole().isEmpty()) ? dto.getRole().toUpperCase()
+                    : "EMPLOYEE";
             Role targetRole = roleRepository.findByName(roleName)
                     .orElseThrow(() -> new RuntimeException("Role '" + roleName + "' not found"));
-            
+
             user.setRole(targetRole);
             user = userRepository.save(user);
 
@@ -139,11 +140,12 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeDTO updateEmployee(UUID id, EmployeeDTO dto) {
-        Employee emp = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
         if (!emp.getEmail().equals(dto.getEmail()) && employeeRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email đã tồn tại");
         }
-        
+
         // Update user email and role if changed
         User user = emp.getUser();
         if (user != null) {
@@ -162,7 +164,7 @@ public class EmployeeService {
                 userRepository.save(user);
             }
         }
-        
+
         mapToEntity(dto, emp);
         emp = employeeRepository.save(emp);
         return mapToDTO(emp);
@@ -170,14 +172,15 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeDTO updatePersonalInfo(UUID id, EmployeePersonalInfoDTO dto, Authentication authentication) {
-        Employee emp = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         User currentUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         if (emp.getUser() == null || !emp.getUser().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Bạn chỉ được cập nhật hồ sơ cá nhân của chính mình.");
         }
-        
+
         // Only update personal allowed info
         emp.setPhone(dto.getPhone());
         emp.setAddress(dto.getAddress());
@@ -192,7 +195,7 @@ public class EmployeeService {
         emp.setEmergencyContactName(dto.getEmergencyContactName());
         emp.setEmergencyContactRelationship(dto.getEmergencyContactRelationship());
         emp.setEmergencyContactPhone(dto.getEmergencyContactPhone());
-        
+
         emp = employeeRepository.save(emp);
         return mapToDTO(emp);
     }
@@ -226,10 +229,11 @@ public class EmployeeService {
     }
 
     private EmployeeDTO filterSensitiveData(EmployeeDTO dto, Authentication authentication) {
-        if (authentication == null) return dto;
+        if (authentication == null)
+            return dto;
 
-        boolean isElevated = authentication.getAuthorities().stream().anyMatch(a ->
-                a.getAuthority().equals("ROLE_HR") || a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isElevated = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_HR") || a.getAuthority().equals("ROLE_ADMIN"));
 
         User currentUser = userRepository.findByEmail(authentication.getName()).orElse(null);
         boolean isOwner = currentUser != null && dto.getUserId() != null && dto.getUserId().equals(currentUser.getId());
@@ -254,19 +258,19 @@ public class EmployeeService {
 
     private void mapToEntity(EmployeeDTO dto, Employee emp) {
         BeanUtils.copyProperties(dto, emp, "id", "user", "createdAt", "updatedAt");
-        
+
         if (dto.getDepartmentId() != null) {
             emp.setDepartment(departmentRepository.findById(dto.getDepartmentId()).orElse(null));
         } else {
             emp.setDepartment(null);
         }
-        
+
         if (dto.getPositionId() != null) {
             emp.setPosition(positionRepository.findById(dto.getPositionId()).orElse(null));
         } else {
             emp.setPosition(null);
         }
-        
+
         if (dto.getManagerId() != null) {
             emp.setManager(employeeRepository.findById(dto.getManagerId()).orElse(null));
         } else {

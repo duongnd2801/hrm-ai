@@ -1,21 +1,23 @@
-### 📋 Plan — [Phase 3: Cập nhật Import nhân viên theo mẫu template mới]
+### 📋 Plan — [Phase 4: Import dữ liệu máy chấm công (D14)]
 
-**Mục tiêu:** Nâng cấp tính năng Import từ Excel (BE parser và FE preview) để đồng bộ 100% với định dạng 30 cột và cấu trúc Header 2 tầng (chứa các Merge Cells Nhóm Hợp đồng, Nhóm Cá nhân...) y hệt như bản xuất Excel hoặc hình ảnh tham chiếu, đảm bảo dễ thao tác và đồng nhất hai chiều.
+**Mục tiêu:** Xây dựng tính năng Import file Excel xuất trực tiếp từ máy chấm công. Sử dụng file `cham_cong_nhan_vien.xlsx` đã chuẩn hóa (377 dòng, dùng Full UUID) làm chuẩn. Sau đó nâng cấp UI để quản lý dễ dàng kiểm soát ai chưa chấm công đủ.
 
 **Các bước thực hiện:**
 | # | File tạo/sửa | Việc cần làm |
 |---|---|---|
-| [x] | `backend/src/main/java/com/hrm/service/ImportExportService.java` | Refactor `generateTemplate()` để xuất đúng 30 cột 2 dòng header. (Có dòng data mẫu). |
-| [x] | `backend/src/main/java/com/hrm/service/ImportExportService.java` | Thay đổi `parseEmployeeExcelWithValidation` / `parseEmployeeExcel`. Data từ dòng 3 (index 2). Cột 30. Tự generate Email theo họ tên (vd: nguyen van tuan -> tuannv@company.com), set Default lương = 0, mặc định nhập email cá nhân vào cột 17 v.v.. |
-| [x] | `frontend/app/(dashboard)/employees/components/ImportExcelModal.tsx` | Cập nhật preview parsing map index lại cho chuẩn 30 cột, sửa logic check email vì giờ server tự tạo email. Kiểm tra FE lỗi để upload báo đúng cột. |
+| 1 | `ImportExportService.java` | [IN PROGRESS] Viết hàm `parseMachineAttendanceExcel()`. Đọc file Excel từ dòng 6. Map Cột B (Full ID UUID) với `id` trong DB. Lấy "Ngày", "Giờ vào", "Giờ ra". Xử lý format Date/Time. |
+| 2 | `AttendanceService.java` | Xử lý lưu dữ liệu: Cập nhật hoặc ghi đè `check_in`/`check_out`. Tự động tính `total_hours` và `status` (ON_TIME/LATE/INSUFFICIENT). |
+| 3 | `AttendanceController.java` | Bổ sung API `POST /api/attendances/import-machine`. |
+| 4 | `ImportMachineModal.tsx` | UI kéo thả file Excel máy chấm công tại màn hình Attendance. |
+| 5 | `Attendance Supervision View` | (Yêu cầu mới) Thêm giao diện Dashboard/Filter cho HR/Manager để phát hiện nhanh: "Thiếu chấm công", "Quên checkout", "Nghỉ không phép". |
 
-**Thứ tự:** BE trước / FE trước — Thiết lập cấu trúc Template ở BE trước rồi mới cập nhật logic validate và Preview ở FE theo index tương ứng, cuối cùng là parse ở BE để lưu.
+**Thứ tự thực hiện:**
+1. BE: Xây dựng logic Parsing & API.
+2. FE: UI Import & Preview.
+3. FE: UI Giám sát (Supervision Dashboard).
 
-**Rủi ro / cần chú ý:** 
-- Break API với mẫu template cũ (chỉ 1 dòng header 26 cột). Người dùng bắt buộc phải dùng lệnh `Tải file mẫu` mới sau khi cập nhật.
-- File export hiện tại dường như không có "Mật khẩu", "Email hệ thống (để login)" và "Lương cơ bản". Mặc định hệ thống cần "Email" để tạo user. Xin Human làm rõ: *Sẽ gộp cột Email cá nhân làm Email login, hay thêm cột riêng vào khuôn mẫu?* 
+**Ghi chú:**
+- Đã dọn dẹp "Final Test 4" và đã map toàn bộ 377 nhân viên trong file Excel với UUID thật trong DB.
+- Logic mapping hiện tại là 100% khớp UUID.
 
-**Verify bằng cách:** 
-- Tải file template mới thấy định dạng chia nhóm (Header 2 tầng, màu sắc y hệt hình).
-- FE: Upload file thấy hiển thị Preview bóc tách đúng thông tin (chuẩn validate Họ tên, Email, số CCCD).
-- BE: Import báo xanh, parse chuẩn thông tin ngày tháng, chức vụ, quản lý. Mở cơ sở dữ liệu `employees` hiển thị 100% cột chính xác. Mở UI hiển thị đầy đủ data mở rộng.
+⏳ Chờ bạn xác nhận 'ok' trên implementation_plan.md để tôi bắt đầu thực hiện Phase 4.

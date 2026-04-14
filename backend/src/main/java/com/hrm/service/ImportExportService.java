@@ -17,8 +17,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.poi.ss.util.CellRangeAddress;
+import com.hrm.dto.AttendanceDTO;
 import java.text.Normalizer;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.regex.Pattern;
+import java.util.UUID;
+
 @Service
 public class ImportExportService {
 
@@ -548,7 +553,7 @@ public class ImportExportService {
     }
 
     public List<EmployeeDTO> parseEmployeeExcel(MultipartFile file) throws Exception {
-        return parseEmployeeExcelWithValidation(file).getEmployees(); // Refactored to reuse logic if available or just dummy
+        return parseEmployeeExcelWithValidation(file).getData(); 
     }
 
     private String generateEmailFromName(String fullName) {
@@ -584,7 +589,7 @@ public class ImportExportService {
         }
     }
 
-    public ImportResultResponse parseEmployeeExcelWithValidation(MultipartFile file) throws Exception {
+    public ImportResultResponse<EmployeeDTO> parseEmployeeExcelWithValidation(MultipartFile file) throws Exception {
         List<EmployeeDTO> validRows = new ArrayList<>();
         List<ImportErrorResponse> errors = new ArrayList<>();
         int totalRows = 0;
@@ -713,12 +718,12 @@ public class ImportExportService {
             }
         }
 
-        return ImportResultResponse.builder()
+        return ImportResultResponse.<EmployeeDTO>builder()
                 .totalRows(totalRows)
                 .successCount(validRows.size())
                 .failureCount(errors.size())
                 .errors(errors)
-                .employees(validRows)
+                .data(validRows)
                 .message(validRows.size() + " hàng hợp lệ, " + errors.size() + " hàng có lỗi")
                 .build();
     }
@@ -727,15 +732,137 @@ public class ImportExportService {
         // Obsolete as we merged this into the main parser method
     }
 
+    public ImportResultResponse<AttendanceDTO> parseMachineAttendanceExcel(MultipartFile file) throws Exception {
+        List<AttendanceDTO> validRows = new ArrayList<>();
+        List<ImportErrorResponse> errors = new ArrayList<>();
+        int totalRows = 0;
+
+        try (BOMInputStream bomIn = new BOMInputStream(file.getInputStream());
+             Workbook workbook = new XSSFWorkbook(bomIn)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            // Bắt đầu đọc từ dòng index 5 (Dòng 6 trong Excel máy chấm công)
+            for (int i = 5; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                // Kiểm tra nếu dòng trống (STT hoặc Mã NV trống)
+                String stt = getStringCell(row, 0);
+                String rawEmpId = getStringCell(row, 1);
+                if (stt.isEmpty() && rawEmpId.isEmpty()) continue;
+
+                totalRows++;
+                int excelRowNum = i + 1;
+                List<String> rowErrors = new ArrayList<>();
+
+                try {
+                    AttendanceDTO dto = new AttendanceDTO();
+
+                    // Cột B (index 1): Mã nhân viên (UUID)
+                    if (rawEmpId.isEmpty()) {
+                        rowErrors.add("Mã nhân viên không được để trống");
+                    } else {
+                        try {
+                            // Trim and handle if it's a long UUID string
+                            dto.setEmployeeId(UUID.fromString(rawEmpId.trim()));
+                        } catch (Exception e) {
+                            rowErrors.add("Mã nhân viên (UUID) không hợp lệ: " + rawEmpId);
+                        }
+                    }
+
+                    // Cột E (index 4): Ngày (dd/MM/yyyy)
+                    String dateStr = getStringCell(row, 4);
+                    LocalDate date = parseDateFlexible(dateStr);
+                    if (date == null) {
+                        rowErrors.add("Ngày không hợp lệ: " + dateStr);
+                    } else {
+                        dto.setDate(date);
+                    }
+
+                    // Cột G (index 6): Giờ vào (HH:mm)
+                    LocalTime checkInTime = getTimeCell(row, 6);
+                    if (checkInTime != null && date != null) {
+                        dto.setCheckIn(LocalDateTime.of(date, checkInTime));
+                    }
+
+                    // Cột H (index 7): Giờ ra (HH:mm)
+                    LocalTime checkOutTime = getTimeCell(row, 7);
+                    if (checkOutTime != null && date != null) {
+                        dto.setCheckOut(LocalDateTime.of(date, checkOutTime));
+                    }
+
+                    // SKIP rows with no punches
+                    if (checkInTime == null && checkOutTime == null) {
+                        continue;
+                    }
+
+                    if (rowErrors.isEmpty()) {
+                        validRows.add(dto);
+                    } else {
+                        errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, String.join("; ", rowErrors)));
+                    }
+
+                } catch (Exception e) {
+                    errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, "Lỗi xử lý: " + e.getMessage()));
+                }
+            }
+        }
+
+        return ImportResultResponse.<AttendanceDTO>builder()
+                .totalRows(totalRows)
+                .successCount(validRows.size())
+                .failureCount(errors.size())
+                .errors(errors)
+                .data(validRows)
+                .message("Phân tích xong " + totalRows + " dòng, tìm thấy " + validRows.size() + " dòng hợp lệ.")
+                .build();
+    }
+
+    private LocalTime getTimeCell(Row row, int colIdx) {
+        Cell cell = row.getCell(colIdx);
+        if (cell == null) return null;
+        try {
+            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+                return cell.getLocalDateTimeCellValue().toLocalTime();
+            }
+            String val = getStringCell(row, colIdx);
+            if (val.isEmpty() || val.equals("0")) return null;
+            
+            // Handle HH:mm format
+            return LocalTime.parse(val, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (Exception e) {
+            // Try fallback one more time for mixed formats
+            try {
+                String val = cell.toString().trim();
+                if (val.length() == 5 && val.contains(":")) {
+                    return LocalTime.parse(val);
+                }
+            } catch (Exception ignored) {}
+            return null;
+        }
+    }
+
     /** Helper: safely read a cell as String */
     private String getStringCell(Row row, int colIdx) {
         Cell cell = row.getCell(colIdx);
         if (cell == null) return "";
         try {
             if (cell.getCellType() == CellType.NUMERIC) {
-                return String.valueOf((long) cell.getNumericCellValue());
+                // If it's a date/time formatted numeric cell, don't just cast to long
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    // Try to format appropriately but mostly we use specific getters for those
+                    return cell.getLocalDateTimeCellValue().toString();
+                }
+                double val = cell.getNumericCellValue();
+                if (val == (long) val) return String.valueOf((long) val);
+                return String.valueOf(val);
             }
-            return cell.getStringCellValue().trim();
+            if (cell.getCellType() == CellType.STRING) {
+                return cell.getStringCellValue().trim();
+            }
+            return cell.toString().trim();
         } catch (Exception e) {
             return "";
         }

@@ -111,21 +111,21 @@ export default function ProjectsPage() {
         onCancel={() => { setShowConfirm(false); setProjectToDelete(null); }} 
       />
 
-      {/* Hero Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10 px-2">
+      {/* Hero Section - Synced with Payroll style */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between pt-10 gap-8 px-2">
          <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Dự án</h1>
-            <p className="text-lg font-bold uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Điều phối nhân sự & tiến độ tập trung</p>
+            <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>Dự án</h1>
+            <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>Điều phối nhân sự & tiến độ tập trung</p>
          </div>
 
          {canCreate && (
-            <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-6 md:mt-0 px-4 py-3">
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
                <button
                   onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase"
+                  className="flex items-center gap-3 px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/40 active:scale-95"
                >
                   <Plus className="w-4 h-4" strokeWidth={3} />
-                  Thêm dự án
+                  THÊM DỰ ÁN
                </button>
             </div>
          )}
@@ -153,7 +153,7 @@ export default function ProjectsPage() {
 
         <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 pb-4 bg-transparent border-none relative z-10">
            <table className="min-w-[1200px] w-full text-left border-separate border-spacing-0">
-             <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+             <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
                <tr>
                  <th className="px-6 py-5 rounded-tl-3xl whitespace-nowrap">DỰ ÁN</th>
                  <th className="px-6 py-5 whitespace-nowrap">MÔ TẢ</th>

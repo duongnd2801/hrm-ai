@@ -101,6 +101,19 @@ export interface Attendance {
   note?: string;
 }
 
+export interface AttendanceSummary {
+  employeeId: string;
+  employeeName: string;
+  departmentName: string;
+  onTimeCount: number;
+  lateCount: number;
+  insufficientCount: number;
+  absentCount: number;
+  approvedCount: number;
+  dayOffCount: number;
+  totalWorkDays: number;
+}
+
 export interface Payroll {
   id: string;
   employeeId: string;

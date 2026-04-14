@@ -185,7 +185,7 @@ export default function PayrollPage() {
           ) : (
             <>
               <table className="w-full text-left text-base relative">
-                <thead className="text-sm uppercase tracking-[0.15em] bg-white/90 dark:bg-black/40 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+                <thead className="text-sm uppercase tracking-[0.15em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
                   <tr>
                     <th className="px-2 py-3 rounded-tl-2xl whitespace-nowrap">THỜI ĐIỂM</th>
                     <th className="px-2 py-3 whitespace-nowrap">NHÂN VIÊN</th>

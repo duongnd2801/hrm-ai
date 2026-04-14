@@ -1,6 +1,8 @@
 package com.hrm.service;
 
 import com.hrm.dto.AttendanceDTO;
+import com.hrm.dto.ImportErrorResponse;
+import com.hrm.dto.ImportResultResponse;
 import com.hrm.entity.*;
 import com.hrm.repository.AttendanceRepository;
 import com.hrm.repository.CompanyConfigRepository;
@@ -15,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.*;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -126,6 +128,56 @@ public class AttendanceService {
         return records.stream().map(this::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<com.hrm.dto.AttendanceSummaryDTO> getTeamSummary(Integer month, Integer year, Authentication authentication) {
+        if (!hasAuthority(authentication, "ATT_TEAM_VIEW")) {
+            throw new AccessDeniedException("Bạn không có quyền xem thống kê đội ngũ.");
+        }
+
+        int resolvedYear = year == null ? LocalDate.now(APP_ZONE).getYear() : year;
+        int resolvedMonth = month == null ? LocalDate.now(APP_ZONE).getMonthValue() : month;
+        
+        LocalDate fromDate = LocalDate.of(resolvedYear, resolvedMonth, 1);
+        LocalDate toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+
+        List<Object[]> stats = attendanceRepository.getAttendanceStats(fromDate, toDate);
+        
+        // Map to group by Employee ID
+        Map<UUID, com.hrm.dto.AttendanceSummaryDTO> summaryMap = new LinkedHashMap<>();
+
+        for (Object[] row : stats) {
+            UUID empId = (UUID) row[0];
+            String name = (String) row[1];
+            String dept = (String) row[2];
+            AttendanceStatus status = (AttendanceStatus) row[3];
+            long count = (long) row[4];
+
+            com.hrm.dto.AttendanceSummaryDTO dto = summaryMap.computeIfAbsent(empId, id -> 
+                com.hrm.dto.AttendanceSummaryDTO.builder()
+                    .employeeId(id)
+                    .employeeName(name)
+                    .departmentName(dept != null ? dept : "N/A")
+                    .build()
+            );
+
+            switch (status) {
+                case ON_TIME -> dto.setOnTimeCount(count);
+                case LATE -> dto.setLateCount(count);
+                case INSUFFICIENT -> dto.setInsufficientCount(count);
+                case ABSENT -> dto.setAbsentCount(count);
+                case APPROVED -> dto.setApprovedCount(count);
+                case DAY_OFF -> dto.setDayOffCount(count);
+            }
+        }
+
+        // Compute total work days
+        for (com.hrm.dto.AttendanceSummaryDTO dto : summaryMap.values()) {
+            dto.setTotalWorkDays(dto.getOnTimeCount() + dto.getLateCount() + dto.getInsufficientCount() + dto.getApprovedCount());
+        }
+
+        return new ArrayList<>(summaryMap.values());
+    }
+
     private void normalizeStatus(Attendance attendance, CompanyConfig config) {
         if (attendance.getStatus() == AttendanceStatus.APPROVED || attendance.getStatus() == AttendanceStatus.DAY_OFF) {
             return;
@@ -136,7 +188,13 @@ public class AttendanceService {
         // Case: No check-in and no check-out
         if (attendance.getCheckIn() == null && attendance.getCheckOut() == null) {
             if (attendance.getDate().isBefore(today)) {
-                attendance.setStatus(AttendanceStatus.ABSENT);
+                // If it's a weekend (Saturday or Sunday), mark as DAY_OFF
+                DayOfWeek dow = attendance.getDate().getDayOfWeek();
+                if (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY) {
+                    attendance.setStatus(AttendanceStatus.DAY_OFF);
+                } else {
+                    attendance.setStatus(AttendanceStatus.ABSENT);
+                }
             } else {
                 attendance.setStatus(AttendanceStatus.PENDING);
             }
@@ -231,6 +289,62 @@ public class AttendanceService {
     private boolean hasAuthority(Authentication authentication, String authority) {
         return authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(authority));
+    }
+
+    @Transactional
+    public ImportResultResponse<AttendanceDTO> importMachineAttendance(ImportResultResponse<AttendanceDTO> result) {
+        List<AttendanceDTO> data = result.getData();
+        if (data == null || data.isEmpty())
+            return result;
+
+        int successCount = 0;
+        List<ImportErrorResponse> processErrors = new ArrayList<>();
+        CompanyConfig config = getCompanyConfig();
+
+        for (AttendanceDTO dto : data) {
+            try {
+                if (dto.getEmployeeId() == null) {
+                    processErrors.add(new ImportErrorResponse(0, "N/A", "Mã nhân viên (UUID) bị thiếu."));
+                    continue;
+                }
+
+                Employee employee = employeeRepository.findById(dto.getEmployeeId())
+                        .orElseThrow(() -> new RuntimeException("Nhân viên " + dto.getEmployeeId() + " không tồn tại."));
+
+                // Tìm hoặc tạo bản ghi chấm công cho ngày đó
+                Attendance attendance = attendanceRepository.findByEmployeeAndDate(employee, dto.getDate())
+                        .orElseGet(() -> Attendance.builder()
+                                .employee(employee)
+                                .date(dto.getDate())
+                                .build());
+
+                // Cập nhật/Ghi đè thời gian từ máy chấm công
+                if (dto.getCheckIn() != null) {
+                    attendance.setCheckIn(dto.getCheckIn());
+                }
+                if (dto.getCheckOut() != null) {
+                    attendance.setCheckOut(dto.getCheckOut());
+                }
+
+                // Tính toán lại trạng thái và số giờ làm
+                normalizeStatus(attendance, config);
+                attendanceRepository.save(attendance);
+                successCount++;
+            } catch (Exception e) {
+                processErrors.add(new ImportErrorResponse(0,
+                        dto.getEmployeeId() != null ? dto.getEmployeeId().toString() : "Unknown", e.getMessage()));
+            }
+        }
+
+        result.setSuccessCount(successCount);
+        result.setFailureCount(result.getFailureCount() + processErrors.size());
+        if (result.getErrors() == null) {
+            result.setErrors(new java.util.ArrayList<>());
+        }
+        result.getErrors().addAll(processErrors);
+        result.setMessage("Đã xử lý xong dữ liệu máy chấm công. Thành công: " + successCount + ", Lỗi mới: "
+                + processErrors.size());
+        return result;
     }
 
     private AttendanceDTO toDto(Attendance attendance) {

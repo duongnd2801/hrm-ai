@@ -10,11 +10,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ImportResultResponse {
+public class ImportResultResponse<T> {
     private int totalRows;
     private int successCount;
     private int failureCount;
     private List<ImportErrorResponse> errors;
     private String message;
-    private List<EmployeeDTO> employees;
+    private List<T> data;
 }

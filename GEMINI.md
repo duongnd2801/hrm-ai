@@ -6,8 +6,7 @@ Toàn bộ nội dung chi tiết bên dưới vẫn được giữ nguyên.
 - Project status: `Hardening & Security Phase Completed`
 - Current focus:
   - Vận hành ổn định với bảo mật cao (HttpOnly Cookies, CSRF, Security Headers)
-  - Hoàn thiện backlog `D14` (import chấm công máy chấm công)
-  - Theo dõi phản hồi người dùng sau đợt cập nhật bảo mật
+  - Theo dõi phản hồi người dùng sau khi hoàn thành D14 (Import máy chấm công)
 - Canonical runtime docs:
   - Active plan: `.gemini/plan.md` (mục `Canonical Plan Snapshot`)
   - Session memory: `.gemini/memory.md` (mục `Canonical Memory Snapshot`)

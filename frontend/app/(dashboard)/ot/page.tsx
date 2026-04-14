@@ -140,25 +140,26 @@ export default function OTPage() {
     <div className="space-y-12 pb-24">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
-      {/* Hero Header */}
-      <div className="pt-10 mb-2 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* Hero Header - Synced with Payroll Style */}
+      <div className="pt-10 mb-8 relative flex flex-col xl:flex-row xl:items-end justify-between gap-8">
         <div>
-          <h1 className="text-8xl font-black text-slate-900 dark:text-white px-1 tracking-tighter mix-blend-overlay dark:mix-blend-overlay uppercase leading-[0.8]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+          <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
             Tăng ca<br />& Overtime
           </h1>
-          <div className="flex items-center gap-4 mt-6 ml-2">
-            <span className="w-8 h-1 bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-            <p className="text-sm font-bold uppercase tracking-[0.4em] italic text-slate-700 dark:text-white/80" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>Phê duyệt & Ghi nhận ngoài giờ</p>
-          </div>
+          <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+             Phê duyệt & Ghi nhận ngoài giờ
+          </p>
         </div>
 
         {canCreate && isReviewer && (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-8 py-4 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase tracking-widest text-xs transition-all active:scale-95"
-          >
-            {showForm ? 'Hủy' : 'Đăng ký tăng ca'}
-          </button>
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${showForm ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-rose-600 text-white shadow-xl shadow-rose-600/40 hover:bg-rose-500'}`}
+            >
+              {showForm ? 'HỦY' : 'ĐĂNG KÝ TĂNG CA'}
+            </button>
+          </div>
         )}
       </div>
 

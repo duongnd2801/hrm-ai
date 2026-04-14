@@ -104,8 +104,8 @@ public class EmployeeController {
                         .body("File trống. Vui lòng chọn file Excel.");
             }
             
-            com.hrm.dto.ImportResultResponse result = importExportService.parseEmployeeExcelWithValidation(file);
-            List<EmployeeDTO> parsed = result.getEmployees();
+            com.hrm.dto.ImportResultResponse<EmployeeDTO> result = importExportService.parseEmployeeExcelWithValidation(file);
+            List<EmployeeDTO> parsed = result.getData();
             
             if (parsed == null || parsed.isEmpty()) {
                 if (result.getFailureCount() > 0) {

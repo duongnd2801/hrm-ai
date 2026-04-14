@@ -104,22 +104,27 @@ export default function HolidaysPage() {
 
   return (
     <div className="space-y-10 pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
+      {/* Hero Header - Synced with Payroll Style */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 pt-10">
          <div>
-            <h1 className="text-[clamp(3rem,8vw,6rem)] font-black text-slate-900 dark:text-white px-1 tracking-tighter uppercase leading-none">Ngày lễ</h1>
-            <p className="text-lg font-bold text-slate-600 dark:text-white/70 uppercase tracking-widest mt-6 ml-1">Lịch nghỉ lễ toàn công ty trong năm {year}</p>
+            <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
+               Ngày lễ
+            </h1>
+            <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+               Lịch nghỉ lễ toàn công ty trong năm {year}
+            </p>
          </div>
 
-         <div className="flex items-center gap-2 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl mt-6 md:mt-0 px-4 py-3">
+         <div className="flex items-center gap-4 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
             <button
                onClick={() => setTab('calendar')}
-               className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${tab === 'calendar' ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5'}`}
+               className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${tab === 'calendar' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
             >
                LỊCH NĂM
             </button>
             <button
                onClick={() => setTab('list')}
-               className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${tab === 'list' ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5'}`}
+               className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${tab === 'list' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
             >
                DANH SÁCH
             </button>

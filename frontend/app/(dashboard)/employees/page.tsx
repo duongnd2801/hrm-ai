@@ -93,11 +93,11 @@ export default function EmployeesPage() {
             </div>
 
             {(canCreate || canImport || canExport) && (
-              <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl mt-6 md:mt-0 px-4 py-3">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
                 {canCreate && (
                   <button
                     onClick={() => setShowCreate(true)}
-                    className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs font-black tracking-widest transition-all shadow-lg active:scale-95"
+                    className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[11px] font-black tracking-widest transition-all shadow-xl shadow-indigo-600/40 active:scale-95 uppercase"
                   >
                     THÊM MỚI
                   </button>
@@ -105,7 +105,7 @@ export default function EmployeesPage() {
                 {canImport && (
                   <button
                     onClick={() => setShowImport(true)}
-                    className="px-6 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-black tracking-widest transition-all active:scale-95"
+                    className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[11px] font-black tracking-widest transition-all shadow-xl shadow-emerald-600/40 active:scale-95 uppercase"
                   >
                     NHẬP EXCEL
                   </button>
@@ -113,7 +113,8 @@ export default function EmployeesPage() {
                 {canExport && (
                   <button
                     onClick={handleExport}
-                    className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
+                    className="p-3.5 bg-white/10 text-white/60 hover:text-white hover:bg-white/20 rounded-2xl transition-all active:scale-95 shadow-lg border border-white/10"
+                    title="Xuất Excel"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
