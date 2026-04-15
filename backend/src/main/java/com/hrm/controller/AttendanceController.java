@@ -4,7 +4,6 @@ import com.hrm.dto.ImportResultResponse;
 import com.hrm.dto.AttendanceDTO;
 import com.hrm.dto.AttendanceSummaryDTO;
 import com.hrm.service.AttendanceService;
-import com.hrm.service.ImportExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,6 @@ import java.util.UUID;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
-    private final ImportExportService importExportService;
 
     @PostMapping("/checkin")
     @PreAuthorize("hasAuthority('ATT_CHECKIN')")
@@ -42,8 +40,7 @@ public class AttendanceController {
     public ResponseEntity<List<AttendanceDTO>> getMyAttendance(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(attendanceService.getMyAttendance(month, year, authentication));
     }
 
@@ -53,8 +50,7 @@ public class AttendanceController {
             @PathVariable UUID employeeId,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(attendanceService.getAttendanceForEmployee(employeeId, month, year, authentication));
     }
 
@@ -63,8 +59,7 @@ public class AttendanceController {
     public ResponseEntity<List<AttendanceSummaryDTO>> getTeamSummary(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(attendanceService.getTeamSummary(month, year, authentication));
     }
 
@@ -75,8 +70,7 @@ public class AttendanceController {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn file Excel.");
         }
-        ImportResultResponse<AttendanceDTO> parsed = importExportService.parseMachineAttendanceExcel(file);
-        return ResponseEntity.ok(attendanceService.importMachineAttendance(parsed));
+        return ResponseEntity.ok(attendanceService.importMachineAttendance(file));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

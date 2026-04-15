@@ -4,19 +4,32 @@ import com.hrm.dto.EmployeeDTO;
 import com.hrm.dto.PayrollDTO;
 import com.hrm.dto.ImportErrorResponse;
 import com.hrm.dto.ImportResultResponse;
+import org.apache.poi.ooxml.util.SAXHelper;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
+import org.apache.poi.xssf.model.StylesTable;
 import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellReference;
 import com.hrm.dto.AttendanceDTO;
 import java.text.Normalizer;
 import java.time.LocalTime;
@@ -733,90 +746,140 @@ public class ImportExportService {
     }
 
     public ImportResultResponse<AttendanceDTO> parseMachineAttendanceExcel(MultipartFile file) throws Exception {
-        List<AttendanceDTO> validRows = new ArrayList<>();
+        List<AttendanceDTO> collected = new ArrayList<>();
+        ImportResultResponse<AttendanceDTO> parsed = parseAndProcessMachineAttendanceExcel(file, 1000, collected::addAll);
+        parsed.setData(collected);
+        parsed.setSuccessCount(collected.size());
+        return parsed;
+    }
+
+    public ImportResultResponse<AttendanceDTO> parseAndProcessMachineAttendanceExcel(
+            MultipartFile file,
+            int chunkSize,
+            Consumer<List<AttendanceDTO>> chunkConsumer) throws Exception {
         List<ImportErrorResponse> errors = new ArrayList<>();
-        int totalRows = 0;
+        final int[] totalRows = {0};
+        final int[] successRows = {0};
 
-        try (BOMInputStream bomIn = new BOMInputStream(file.getInputStream());
-             Workbook workbook = new XSSFWorkbook(bomIn)) {
+        try (OPCPackage pkg = OPCPackage.open(file.getInputStream())) {
+            XSSFReader reader = new XSSFReader(pkg);
+            StylesTable styles = reader.getStylesTable();
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(pkg);
+            XSSFReader.SheetIterator sheets = (XSSFReader.SheetIterator) reader.getSheetsData();
+            if (!sheets.hasNext()) {
+                throw new IllegalArgumentException("File Excel không có sheet dữ liệu.");
+            }
 
-            Sheet sheet = workbook.getSheetAt(0);
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            final List<AttendanceDTO> chunkBuffer = new ArrayList<>(Math.max(100, chunkSize));
+            try (InputStream sheetStream = sheets.next()) {
+                XMLReader parser = SAXHelper.newXMLReader();
+                XSSFSheetXMLHandler.SheetContentsHandler handler = new XSSFSheetXMLHandler.SheetContentsHandler() {
+                    private int currentRowNum = -1;
+                    private final Map<Integer, String> rowValues = new HashMap<>();
 
-            // Bắt đầu đọc từ dòng index 5 (Dòng 6 trong Excel máy chấm công)
-            for (int i = 5; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
+                    @Override
+                    public void startRow(int rowNum) {
+                        currentRowNum = rowNum;
+                        rowValues.clear();
+                    }
 
-                // Kiểm tra nếu dòng trống (STT hoặc Mã NV trống)
-                String stt = getStringCell(row, 0);
-                String rawEmpId = getStringCell(row, 1);
-                if (stt.isEmpty() && rawEmpId.isEmpty()) continue;
+                    @Override
+                    public void endRow(int rowNum) {
+                        if (rowNum < 5) {
+                            return;
+                        }
 
-                totalRows++;
-                int excelRowNum = i + 1;
-                List<String> rowErrors = new ArrayList<>();
+                        String stt = getValue(0);
+                        String rawEmpId = getValue(1);
+                        if (stt.isEmpty() && rawEmpId.isEmpty()) {
+                            return;
+                        }
 
-                try {
-                    AttendanceDTO dto = new AttendanceDTO();
+                        totalRows[0]++;
+                        int excelRowNum = currentRowNum + 1;
+                        List<String> rowErrors = new ArrayList<>();
+                        AttendanceDTO dto = new AttendanceDTO();
 
-                    // Cột B (index 1): Mã nhân viên (UUID)
-                    if (rawEmpId.isEmpty()) {
-                        rowErrors.add("Mã nhân viên không được để trống");
-                    } else {
-                        try {
-                            // Trim and handle if it's a long UUID string
-                            dto.setEmployeeId(UUID.fromString(rawEmpId.trim()));
-                        } catch (Exception e) {
-                            rowErrors.add("Mã nhân viên (UUID) không hợp lệ: " + rawEmpId);
+                        if (rawEmpId.isEmpty()) {
+                            rowErrors.add("Mã nhân viên không được để trống");
+                        } else {
+                            try {
+                                dto.setEmployeeId(UUID.fromString(rawEmpId.trim()));
+                            } catch (Exception e) {
+                                rowErrors.add("Mã nhân viên (UUID) không hợp lệ: " + rawEmpId);
+                            }
+                        }
+
+                        String dateStr = getValue(4);
+                        LocalDate date = parseDateFlexible(dateStr);
+                        if (date == null) {
+                            rowErrors.add("Ngày không hợp lệ: " + dateStr);
+                        } else {
+                            dto.setDate(date);
+                        }
+
+                        LocalTime checkInTime = parseTimeFlexible(getValue(6));
+                        if (checkInTime != null && date != null) {
+                            dto.setCheckIn(LocalDateTime.of(date, checkInTime));
+                        }
+
+                        LocalTime checkOutTime = parseTimeFlexible(getValue(7));
+                        if (checkOutTime != null && date != null) {
+                            dto.setCheckOut(LocalDateTime.of(date, checkOutTime));
+                        }
+
+                        if (checkInTime == null && checkOutTime == null) {
+                            return;
+                        }
+
+                        if (!rowErrors.isEmpty()) {
+                            errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, String.join("; ", rowErrors)));
+                            return;
+                        }
+
+                        chunkBuffer.add(dto);
+                        successRows[0]++;
+                        if (chunkBuffer.size() >= chunkSize) {
+                            chunkConsumer.accept(new ArrayList<>(chunkBuffer));
+                            chunkBuffer.clear();
                         }
                     }
 
-                    // Cột E (index 4): Ngày (dd/MM/yyyy)
-                    String dateStr = getStringCell(row, 4);
-                    LocalDate date = parseDateFlexible(dateStr);
-                    if (date == null) {
-                        rowErrors.add("Ngày không hợp lệ: " + dateStr);
-                    } else {
-                        dto.setDate(date);
+                    @Override
+                    public void cell(String cellReference, String formattedValue, org.apache.poi.xssf.usermodel.XSSFComment comment) {
+                        if (cellReference == null) {
+                            return;
+                        }
+                        int col = new CellReference(cellReference).getCol();
+                        rowValues.put(col, formattedValue != null ? formattedValue.trim() : "");
                     }
 
-                    // Cột G (index 6): Giờ vào (HH:mm)
-                    LocalTime checkInTime = getTimeCell(row, 6);
-                    if (checkInTime != null && date != null) {
-                        dto.setCheckIn(LocalDateTime.of(date, checkInTime));
+                    @Override
+                    public void headerFooter(String text, boolean isHeader, String tagName) {
+                        // No-op
                     }
 
-                    // Cột H (index 7): Giờ ra (HH:mm)
-                    LocalTime checkOutTime = getTimeCell(row, 7);
-                    if (checkOutTime != null && date != null) {
-                        dto.setCheckOut(LocalDateTime.of(date, checkOutTime));
+                    private String getValue(int col) {
+                        return rowValues.getOrDefault(col, "");
                     }
+                };
 
-                    // SKIP rows with no punches
-                    if (checkInTime == null && checkOutTime == null) {
-                        continue;
-                    }
+                parser.setContentHandler(new XSSFSheetXMLHandler(styles, null, strings, handler, new DataFormatter(), false));
+                parser.parse(new InputSource(sheetStream));
+            }
 
-                    if (rowErrors.isEmpty()) {
-                        validRows.add(dto);
-                    } else {
-                        errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, String.join("; ", rowErrors)));
-                    }
-
-                } catch (Exception e) {
-                    errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, "Lỗi xử lý: " + e.getMessage()));
-                }
+            if (!chunkBuffer.isEmpty()) {
+                chunkConsumer.accept(new ArrayList<>(chunkBuffer));
             }
         }
 
         return ImportResultResponse.<AttendanceDTO>builder()
-                .totalRows(totalRows)
-                .successCount(validRows.size())
+                .totalRows(totalRows[0])
+                .successCount(successRows[0])
                 .failureCount(errors.size())
                 .errors(errors)
-                .data(validRows)
-                .message("Phân tích xong " + totalRows + " dòng, tìm thấy " + validRows.size() + " dòng hợp lệ.")
+                .data(new ArrayList<>())
+                .message("Phân tích xong " + totalRows[0] + " dòng, tìm thấy " + successRows[0] + " dòng hợp lệ.")
                 .build();
     }
 
@@ -840,6 +903,23 @@ public class ImportExportService {
                     return LocalTime.parse(val);
                 }
             } catch (Exception ignored) {}
+            return null;
+        }
+    }
+
+    private LocalTime parseTimeFlexible(String raw) {
+        if (raw == null) return null;
+        String val = raw.trim();
+        if (val.isEmpty() || "0".equals(val)) return null;
+        try {
+            return LocalTime.parse(val, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (Exception e) {
+            try {
+                if (val.length() >= 5 && val.contains(":")) {
+                    return LocalTime.parse(val.substring(0, 5), DateTimeFormatter.ofPattern("HH:mm"));
+                }
+            } catch (Exception ignored) {
+            }
             return null;
         }
     }

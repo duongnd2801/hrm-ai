@@ -298,7 +298,6 @@ export default function AttendancePage() {
                 <div className="bg-white/90 dark:bg-black/30 backdrop-blur-xl p-8 rounded-[40px] border border-black/5 dark:border-white/5 shadow-2xl group hover:bg-black/5 dark:hover:bg-white/10 transition-all">
                    <div className="flex items-center justify-between mb-6">
                       <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Nhân sự</span>
-                      <Avatar name="TEAM" size="sm" />
                    </div>
                    <p className="text-4xl font-black text-slate-900 dark:text-white tabular-nums">{teamSummary.length}</p>
                    <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mt-2">Tổng số thành viên</p>

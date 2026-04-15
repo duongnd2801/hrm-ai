@@ -19,6 +19,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     List<Attendance> findByEmployeeAndDateBetweenOrderByDateAsc(Employee employee, LocalDate fromDate, LocalDate toDate);
 
     List<Attendance> findByEmployeeIdAndDateBetween(UUID employeeId, LocalDate fromDate, LocalDate toDate);
+
+    List<Attendance> findByEmployeeIdInAndDateBetween(Collection<UUID> employeeIds, LocalDate fromDate, LocalDate toDate);
     
     long countByDateAndStatusIn(LocalDate date, Collection<AttendanceStatus> statuses);
 
