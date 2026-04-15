@@ -50,8 +50,8 @@ public class AttendanceService {
     private static final String UPSERT_ON_CONFLICT = """
             ON CONFLICT (employee_id, date)
             DO UPDATE SET
-              check_in = EXCLUDED.check_in,
-              check_out = EXCLUDED.check_out,
+              check_in  = COALESCE(EXCLUDED.check_in,  t.check_in),
+              check_out = COALESCE(EXCLUDED.check_out, t.check_out),
               total_hours = EXCLUDED.total_hours,
               status = EXCLUDED.status,
               note = COALESCE(EXCLUDED.note, t.note),
@@ -378,130 +378,6 @@ public class AttendanceService {
         return parsed;
     }
 
-    @Transactional
-    public ImportResultResponse<AttendanceDTO> importMachineAttendance(ImportResultResponse<AttendanceDTO> result) {
-        List<AttendanceDTO> data = result.getData();
-        if (data == null || data.isEmpty())
-            return result;
-
-        int successCount = 0;
-        List<ImportErrorResponse> processErrors = new ArrayList<>();
-        CompanyConfig config = getCompanyConfig();
-
-        // Prefetch employees (avoid N queries)
-        Set<UUID> employeeIds = data.stream()
-                .map(AttendanceDTO::getEmployeeId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        if (employeeIds.isEmpty()) {
-            processErrors.add(new ImportErrorResponse(0, "N/A", "Không có mã nhân viên hợp lệ trong dữ liệu import."));
-            result.setSuccessCount(0);
-            result.setFailureCount(result.getFailureCount() + processErrors.size());
-            if (result.getErrors() == null)
-                result.setErrors(new ArrayList<>());
-            result.getErrors().addAll(processErrors);
-            result.setMessage("Không có dữ liệu hợp lệ để import.");
-            return result;
-        }
-
-        Map<UUID, Employee> employeeById = employeeRepository.findAllById(employeeIds).stream()
-                .collect(Collectors.toMap(Employee::getId, e -> e));
-
-        // Compute date range to prefetch existing attendance rows
-        LocalDate minDate = null;
-        LocalDate maxDate = null;
-        for (AttendanceDTO dto : data) {
-            LocalDate d = dto.getDate();
-            if (d == null)
-                continue;
-            if (minDate == null || d.isBefore(minDate))
-                minDate = d;
-            if (maxDate == null || d.isAfter(maxDate))
-                maxDate = d;
-        }
-
-        Map<String, Attendance> existingByKey = new HashMap<>();
-        if (minDate != null && maxDate != null) {
-            List<Attendance> existing = attendanceRepository.findByEmployeeIdInAndDateBetween(employeeIds, minDate,
-                    maxDate);
-            for (Attendance a : existing) {
-                if (a.getEmployee() == null || a.getEmployee().getId() == null || a.getDate() == null)
-                    continue;
-                existingByKey.put(a.getEmployee().getId().toString() + "|" + a.getDate(), a);
-            }
-        }
-
-        // Build + save in chunks (avoid per-row save overhead)
-        final int CHUNK_SIZE = 500;
-        List<Attendance> pendingSave = new ArrayList<>(Math.min(CHUNK_SIZE, data.size()));
-
-        for (AttendanceDTO dto : data) {
-            try {
-                if (dto.getEmployeeId() == null) {
-                    processErrors.add(new ImportErrorResponse(0, "N/A", "Mã nhân viên (UUID) bị thiếu."));
-                    continue;
-                }
-                if (dto.getDate() == null) {
-                    processErrors.add(
-                            new ImportErrorResponse(0, dto.getEmployeeId().toString(), "Ngày chấm công bị thiếu."));
-                    continue;
-                }
-
-                Employee employee = employeeById.get(dto.getEmployeeId());
-                if (employee == null) {
-                    processErrors.add(new ImportErrorResponse(0, dto.getEmployeeId().toString(),
-                            "Nhân viên " + dto.getEmployeeId() + " không tồn tại."));
-                    continue;
-                }
-
-                String key = dto.getEmployeeId().toString() + "|" + dto.getDate();
-                Attendance attendance = existingByKey.get(key);
-                if (attendance == null) {
-                    attendance = Attendance.builder()
-                            .employee(employee)
-                            .date(dto.getDate())
-                            .build();
-                    existingByKey.put(key, attendance);
-                } else {
-                    // Ensure attached employee reference is consistent (avoid extra lazy-load)
-                    attendance.setEmployee(employee);
-                }
-
-                if (dto.getCheckIn() != null)
-                    attendance.setCheckIn(dto.getCheckIn());
-                if (dto.getCheckOut() != null)
-                    attendance.setCheckOut(dto.getCheckOut());
-
-                normalizeStatus(attendance, config);
-                pendingSave.add(attendance);
-                successCount++;
-
-                if (pendingSave.size() >= CHUNK_SIZE) {
-                    batchUpsertAttendances(pendingSave);
-                    pendingSave.clear();
-                }
-            } catch (Exception e) {
-                processErrors.add(new ImportErrorResponse(0,
-                        dto.getEmployeeId() != null ? dto.getEmployeeId().toString() : "Unknown", e.getMessage()));
-            }
-        }
-
-        if (!pendingSave.isEmpty()) {
-            batchUpsertAttendances(pendingSave);
-        }
-
-        result.setSuccessCount(successCount);
-        result.setFailureCount(result.getFailureCount() + processErrors.size());
-        if (result.getErrors() == null) {
-            result.setErrors(new java.util.ArrayList<>());
-        }
-        result.getErrors().addAll(processErrors);
-        result.setMessage("Đã xử lý xong dữ liệu máy chấm công. Thành công: " + successCount + ", Lỗi mới: "
-                + processErrors.size());
-        return result;
-    }
-
     private ChunkImportResult upsertChunk(List<AttendanceDTO> chunk, CompanyConfig config) {
         if (chunk == null || chunk.isEmpty()) {
             return new ChunkImportResult(0, List.of());
@@ -534,17 +410,6 @@ public class AttendanceService {
         LocalDate minDate = deduped.stream().map(AttendanceDTO::getDate).min(LocalDate::compareTo).orElse(null);
         LocalDate maxDate = deduped.stream().map(AttendanceDTO::getDate).max(LocalDate::compareTo).orElse(null);
 
-        Map<String, Attendance> existingByKey = new HashMap<>();
-        if (minDate != null && maxDate != null) {
-            List<Attendance> existing = attendanceRepository.findByEmployeeIdInAndDateBetween(employeeIds, minDate,
-                    maxDate);
-            for (Attendance a : existing) {
-                if (a.getEmployee() == null || a.getEmployee().getId() == null || a.getDate() == null)
-                    continue;
-                existingByKey.put(a.getEmployee().getId() + "|" + a.getDate(), a);
-            }
-        }
-
         List<Attendance> pendingSave = new ArrayList<>(deduped.size());
         for (AttendanceDTO dto : deduped) {
             try {
@@ -555,16 +420,10 @@ public class AttendanceService {
                     continue;
                 }
 
-                String key = dto.getEmployeeId() + "|" + dto.getDate();
-                Attendance attendance = existingByKey.get(key);
-                if (attendance == null) {
-                    attendance = Attendance.builder()
-                            .employee(employee)
-                            .date(dto.getDate())
-                            .build();
-                } else {
-                    attendance.setEmployee(employee);
-                }
+                Attendance attendance = Attendance.builder()
+                        .employee(employee)
+                        .date(dto.getDate())
+                        .build();
 
                 if (dto.getCheckIn() != null)
                     attendance.setCheckIn(dto.getCheckIn());
@@ -594,7 +453,7 @@ public class AttendanceService {
         if (rows.isEmpty()) {
             return;
         }
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(APP_ZONE);
         for (Attendance a : rows) {
             if (a.getId() == null) {
                 a.setId(UUID.randomUUID());
