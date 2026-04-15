@@ -784,7 +784,8 @@ public class ImportExportService {
 
     public ImportResultResponse<AttendanceDTO> parseMachineAttendanceExcel(MultipartFile file) throws Exception {
         List<AttendanceDTO> allRecords = new ArrayList<>();
-        ImportResultResponse<AttendanceDTO> result = parseAndProcessMachineAttendanceExcel(file, Integer.MAX_VALUE, allRecords::addAll);
+        ImportResultResponse<AttendanceDTO> result = parseAndProcessMachineAttendanceExcel(file, Integer.MAX_VALUE,
+                allRecords::addAll);
         result.setData(allRecords);
         return result;
     }
@@ -799,6 +800,7 @@ public class ImportExportService {
 
         List<AttendanceDTO> currentChunk = new ArrayList<>();
         List<ImportErrorResponse> errors = new ArrayList<>();
+
         int totalRows = 0;
         int successCount = 0;
 
@@ -807,63 +809,60 @@ public class ImportExportService {
 
             Sheet sheet = workbook.getSheetAt(0);
 
-            // Bắt đầu đọc từ dòng index 5 (Dòng 6 trong Excel máy chấm công)
             for (int i = 5; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null)
                     continue;
 
-                // Kiểm tra nếu dòng trống (STT hoặc Mã NV trống)
                 String stt = getStringCell(row, 0);
                 String rawEmpId = getStringCell(row, 1);
+
+                // skip empty row
                 if (stt.isEmpty() && rawEmpId.isEmpty())
                     continue;
 
-                totalRows++;
                 int excelRowNum = i + 1;
                 List<String> rowErrors = new ArrayList<>();
 
                 try {
                     AttendanceDTO dto = new AttendanceDTO();
 
-                    // Cột B (index 1): Mã nhân viên (UUID)
-                    if (rawEmpId.isEmpty()) {
-                        rowErrors.add("Mã nhân viên không được để trống");
-                    } else {
-                        try {
-                            // Trim and handle if it's a long UUID string
-                            dto.setEmployeeId(UUID.fromString(rawEmpId.trim()));
-                        } catch (Exception e) {
-                            rowErrors.add("Mã nhân viên (UUID) không hợp lệ: " + rawEmpId);
-                        }
-                    }
+                    // ===== 1. Employee ID =====
+                    UUID employeeId = parseEmployeeId(rawEmpId, rowErrors);
+                    dto.setEmployeeId(employeeId);
 
-                    // Cột E (index 4): Ngày (dd/MM/yyyy)
-                    String dateStr = getStringCell(row, 4);
-                    LocalDate date = parseDateFlexible(dateStr);
+                    // ===== 2. Date =====
+                    LocalDate date = parseDateFlexible(getStringCell(row, 4));
                     if (date == null) {
-                        rowErrors.add("Ngày không hợp lệ: " + dateStr);
+                        rowErrors.add("Ngày không hợp lệ");
                     } else {
                         dto.setDate(date);
                     }
 
-                    // Cột G (index 6): Giờ vào (HH:mm)
-                    LocalTime checkInTime = getTimeCell(row, 6);
-                    if (checkInTime != null && date != null) {
-                        dto.setCheckIn(LocalDateTime.of(date, checkInTime));
-                    }
+                    // ===== 3. Time =====
+                    LocalTime checkInTime = getTimeCellSafe(row, 6);
+                    LocalTime checkOutTime = getTimeCellSafe(row, 7);
 
-                    // Cột H (index 7): Giờ ra (HH:mm)
-                    LocalTime checkOutTime = getTimeCell(row, 7);
-                    if (checkOutTime != null && date != null) {
-                        dto.setCheckOut(LocalDateTime.of(date, checkOutTime));
-                    }
-
-                    // SKIP rows with no punches
+                    // skip dòng không có dữ liệu chấm công
                     if (checkInTime == null && checkOutTime == null) {
                         continue;
                     }
 
+                    totalRows++; // ✅ fix: chỉ count dòng hợp lệ
+
+                    // ===== 4. Build datetime =====
+                    if (checkInTime != null && date != null) {
+                        dto.setCheckIn(LocalDateTime.of(date, checkInTime));
+                    }
+
+                    if (checkOutTime != null && date != null) {
+                        dto.setCheckOut(LocalDateTime.of(date, checkOutTime));
+                    }
+
+                    // ===== 5. Validate logic =====
+                    validateAttendanceLogic(dto, rowErrors);
+
+                    // ===== 6. Result =====
                     if (rowErrors.isEmpty()) {
                         currentChunk.add(dto);
                         successCount++;
@@ -873,15 +872,20 @@ public class ImportExportService {
                             currentChunk.clear();
                         }
                     } else {
-                        errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, String.join("; ", rowErrors)));
+                        errors.add(new ImportErrorResponse(
+                                excelRowNum,
+                                rawEmpId,
+                                String.join("; ", rowErrors)));
                     }
 
                 } catch (Exception e) {
-                    errors.add(new ImportErrorResponse(excelRowNum, rawEmpId, "Lỗi xử lý: " + e.getMessage()));
+                    errors.add(new ImportErrorResponse(
+                            excelRowNum,
+                            rawEmpId,
+                            "Lỗi xử lý: " + e.getMessage()));
                 }
             }
 
-            // Process final chunk
             if (!currentChunk.isEmpty()) {
                 chunkConsumer.accept(currentChunk);
             }
@@ -893,33 +897,67 @@ public class ImportExportService {
                 .failureCount(errors.size())
                 .errors(errors)
                 .data(new ArrayList<>())
-                .message("Phân tích xong " + totalRows + " dòng, thành công " + successCount + " dòng.")
+                .message("Import hoàn tất: " + successCount + "/" + totalRows)
                 .build();
     }
 
-    private LocalTime getTimeCell(Row row, int colIdx) {
+    private UUID parseEmployeeId(String rawEmpId, List<String> errors) {
+        if (rawEmpId == null || rawEmpId.trim().isEmpty()) {
+            errors.add("Mã nhân viên không được để trống");
+            return null;
+        }
+
+        try {
+            return UUID.fromString(rawEmpId.trim());
+        } catch (Exception e) {
+            errors.add("Mã nhân viên không hợp lệ (UUID): " + rawEmpId);
+            return null;
+        }
+    }
+
+    private void validateAttendanceLogic(AttendanceDTO dto, List<String> errors) {
+        if (dto.getEmployeeId() == null) {
+            errors.add("EmployeeId null");
+        }
+
+        if (dto.getDate() == null) {
+            errors.add("Ngày null");
+        }
+
+        if (dto.getCheckIn() != null && dto.getCheckOut() != null) {
+            if (dto.getCheckOut().isBefore(dto.getCheckIn())) {
+                errors.add("Giờ ra nhỏ hơn giờ vào");
+            }
+        }
+    }
+
+    private LocalTime getTimeCellSafe(Row row, int colIdx) {
         Cell cell = row.getCell(colIdx);
         if (cell == null)
             return null;
+
         try {
+            // Excel numeric (date)
             if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
                 return cell.getLocalDateTimeCellValue().toLocalTime();
             }
+
             String val = getStringCell(row, colIdx);
             if (val.isEmpty() || val.equals("0"))
                 return null;
 
-            // Handle HH:mm format
-            return LocalTime.parse(val, DateTimeFormatter.ofPattern("HH:mm"));
-        } catch (Exception e) {
-            // Try fallback one more time for mixed formats
+            // try multiple formats
             try {
-                String val = cell.toString().trim();
-                if (val.length() == 5 && val.contains(":")) {
-                    return LocalTime.parse(val);
+                return LocalTime.parse(val); // 08:30 hoặc 08:30:00
+            } catch (Exception e1) {
+                try {
+                    return LocalTime.parse(val, DateTimeFormatter.ofPattern("H:mm"));
+                } catch (Exception e2) {
+                    return null;
                 }
-            } catch (Exception ignored) {
             }
+
+        } catch (Exception e) {
             return null;
         }
     }
