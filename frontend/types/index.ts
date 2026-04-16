@@ -111,7 +111,21 @@ export interface AttendanceSummary {
   absentCount: number;
   approvedCount: number;
   dayOffCount: number;
+  totalWorkHours: number;
   totalWorkDays: number;
+}
+
+export interface TeamMatrix {
+  employeeId: string;
+  employeeName: string;
+  departmentName: string;
+  dailyStatus: Record<number, AttendanceStatus>;
+  dailyHours: Record<number, number>;
+  totalWorkHours: number;
+  totalWorkDays: number;
+  paidDays: number;
+  lateCount: number;
+  absentCount: number;
 }
 
 export interface Payroll {

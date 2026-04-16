@@ -28,6 +28,7 @@ export default function PayrollPage() {
 
   const canView = session?.permissions.includes('PAY_VIEW') ?? false;
   const canManage = session?.permissions.includes('PAY_CALC') ?? false;
+  const canExport = session?.permissions.includes('PAY_EXPORT') ?? false;
 
   async function fetchPayrolls() {
     if (!session) return;
@@ -131,7 +132,7 @@ export default function PayrollPage() {
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
          <div>
-            <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Bảng lương</h1>
+            <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Bảng lương</h1>
             <p className="text-lg font-bold uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Thu nhập & Chế độ đãi ngộ</p>
          </div>
 
@@ -160,14 +161,16 @@ export default function PayrollPage() {
                >
                   {calculating ? 'ĐANG TÍNH...' : 'TÍNH LƯƠNG'}
                </button>
-               <button
-                  onClick={handleExport}
-                  className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
-               >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-               </button>
+               {canExport && (
+                 <button
+                    onClick={handleExport}
+                    className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
+                 >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                 </button>
+               )}
             </div>
          )}
       </div>

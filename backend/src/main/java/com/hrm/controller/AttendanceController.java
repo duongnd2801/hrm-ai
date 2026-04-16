@@ -3,6 +3,7 @@ package com.hrm.controller;
 import com.hrm.dto.ImportResultResponse;
 import com.hrm.dto.AttendanceDTO;
 import com.hrm.dto.AttendanceSummaryDTO;
+import com.hrm.dto.TeamMatrixDTO;
 import com.hrm.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -44,16 +45,6 @@ public class AttendanceController {
         return ResponseEntity.ok(attendanceService.getMyAttendance(month, year, authentication));
     }
 
-    @GetMapping("/{employeeId}")
-    @PreAuthorize("hasAuthority('ATT_TEAM_VIEW')")
-    public ResponseEntity<List<AttendanceDTO>> getEmployeeAttendance(
-            @PathVariable UUID employeeId,
-            @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) Integer year,
-            Authentication authentication) {
-        return ResponseEntity.ok(attendanceService.getAttendanceForEmployee(employeeId, month, year, authentication));
-    }
-
     @GetMapping("/summary")
     @PreAuthorize("hasAuthority('ATT_TEAM_VIEW')")
     public ResponseEntity<List<AttendanceSummaryDTO>> getTeamSummary(
@@ -61,6 +52,15 @@ public class AttendanceController {
             @RequestParam(required = false) Integer year,
             Authentication authentication) {
         return ResponseEntity.ok(attendanceService.getTeamSummary(month, year, authentication));
+    }
+
+    @GetMapping("/matrix")
+    @PreAuthorize("hasAuthority('ATT_TEAM_VIEW')")
+    public ResponseEntity<List<TeamMatrixDTO>> getTeamMatrix(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication) {
+        return ResponseEntity.ok(attendanceService.getTeamMatrix(month, year, authentication));
     }
 
     @PostMapping("/import-machine")
@@ -71,6 +71,35 @@ public class AttendanceController {
             throw new IllegalArgumentException("Vui lòng chọn file Excel.");
         }
         return ResponseEntity.ok(attendanceService.importMachineAttendance(file));
+    }
+
+    @PostMapping("/recalculate")
+    @PreAuthorize("hasAuthority('ATT_IMPORT')")
+    public ResponseEntity<Void> recalculate(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication) {
+        attendanceService.recalculateMonthlyAttendance(month, year, authentication);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('ATT_EXPORT')")
+    public ResponseEntity<byte[]> exportAttendanceMatrix(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication) throws Exception {
+        return attendanceService.exportAttendanceMatrix(month, year, authentication);
+    }
+
+    @GetMapping("/{employeeId:[a-f0-9\\\\-]{36}}")
+    @PreAuthorize("hasAuthority('ATT_TEAM_VIEW')")
+    public ResponseEntity<List<AttendanceDTO>> getEmployeeAttendance(
+            @PathVariable UUID employeeId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication) {
+        return ResponseEntity.ok(attendanceService.getAttendanceForEmployee(employeeId, month, year, authentication));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

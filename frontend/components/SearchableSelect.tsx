@@ -32,13 +32,20 @@ export default function SearchableSelect({
   const [query, setQuery] = useState('');
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
 
     function onDocumentClick(e: MouseEvent) {
       if (!boxRef.current) return;
-      if (!boxRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const isInsideBox = boxRef.current.contains(target);
+      const isInsideDropdown = dropdownRef.current?.contains(target);
+      
+      if (!isInsideBox && !isInsideDropdown) {
+        setOpen(false);
+      }
     }
 
     document.addEventListener('mousedown', onDocumentClick);
@@ -89,6 +96,7 @@ export default function SearchableSelect({
     open && !disabled && dropdownStyle && typeof document !== 'undefined'
       ? createPortal(
           <div
+            ref={dropdownRef}
             style={dropdownStyle}
             className="z-[1000] rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800"
           >

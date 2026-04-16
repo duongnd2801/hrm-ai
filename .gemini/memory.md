@@ -258,3 +258,15 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Device Mapping:** Cấp phát một chuỗi UUID riêng biệt thông qua Cookie `hrm_device_id` (Max-Age: 1 năm) đồng bộ với JWT. Trích xuất IP và `User-Agent` tại `AuthController.login`.
   - **Security Filter:** Validate blacklist thời gian thực thông qua `JwtBlacklistService` gắn trực tiếp vào `JwtAuthFilter`.
   - **API:** Thêm `GET /api/auth/sessions` (xem danh sách thiết bị) và `DELETE /api/auth/sessions/{deviceId}` (thu hồi quyền truy cập của một thiết bị cụ thể từ xa).
+- [2026-04-16T13:40:00+07:00] **Attendance Service Optimization & Hardening**:
+  - **Performance & Decoupling:** Tách biệt logic `recalculateMonthlyAttendance` khỏi các lệnh GET (`getTeamMatrix`, `getTeamSummary`). Loại bỏ tình trạng 403 Forbidden cho Manager/HR khi xem thống kê do thiếu quyền `ATT_IMPORT`.
+  - **Optimization:** Trong `getTeamMatrix`, chuyển sang chỉ lấy nhân viên `ACTIVE` thay vì `findAll()`. Sử dụng `batchUpsertAttendances` (JdbcTemplate multi-row) thay cho `saveAll` trong quá trình tính toán lại, giảm đáng kể round-trip DB.
+  - **Logic Fix:** Sửa lỗi `lateCount` luôn bằng 0 trong bảng Matrix; Bổ sung `lateCount++` vào case `LATE`.
+  - **Import Processing:** Chuẩn hóa `totalRows` trong `ImportExportService` (D14): Đảm bảo `totalRows = successCount + failureCount`, chỉ skip các dòng hoàn toàn không có dữ liệu punch. Cấu trúc lại thứ tự parse để bắt lỗi UUID/Date chính xác vào `ImportErrorResponse`.
+  - **Verification:** Backend compile pass, logic batch upsert hoạt động ổn định trên local.
+- [2026-04-16T14:22:00+07:00] **Bugfix: EmployeeService Compilation Error**:
+  - **Fix:** Bổ sung `ArrayList` và `Map` imports bị thiếu trong `EmployeeService.java`.
+  - **Verification:** `mvnw clean compile` passed thành công.
+- [2026-04-16T14:33:00+07:00] **Employee List Sorting Adjustment**:
+  - **Backend:** Cập nhật `@PageableDefault` trong `EmployeeController` để sắp xếp mặc định theo `startDate` ASC.
+  - **Logic:** Đảm bảo nhân viên cũ ở trên, nhân viên mới (newcomers) ở cuối danh sách.

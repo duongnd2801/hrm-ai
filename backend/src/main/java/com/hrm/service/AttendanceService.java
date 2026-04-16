@@ -28,6 +28,9 @@ import java.sql.Types;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -89,7 +92,7 @@ public class AttendanceService {
         }
 
         attendance.setCheckIn(now);
-        normalizeStatus(attendance, config);
+        normalizeStatus(attendance, config, today);
         try {
             return toDto(attendanceRepository.saveAndFlush(attendance));
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -117,7 +120,7 @@ public class AttendanceService {
         }
 
         attendance.setCheckOut(now);
-        normalizeStatus(attendance, getCompanyConfig());
+        normalizeStatus(attendance, getCompanyConfig(), today);
         return toDto(attendanceRepository.save(attendance));
     }
 
@@ -155,13 +158,95 @@ public class AttendanceService {
         }
 
         CompanyConfig config = getCompanyConfig();
+        LocalDate today = LocalDate.now(APP_ZONE);
         List<Attendance> records = attendanceRepository.findByEmployeeAndDateBetweenOrderByDateAsc(target, fromDate,
                 toDate);
-        records.forEach(record -> normalizeStatus(record, config));
+        records.forEach(record -> normalizeStatus(record, config, today));
         return records.stream().map(this::toDto).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    public List<com.hrm.dto.TeamMatrixDTO> getTeamMatrix(Integer month, Integer year,
+            Authentication authentication) {
+        if (!hasAuthority(authentication, "ATT_TEAM_VIEW")) {
+            throw new AccessDeniedException("Bạn không có quyền xem thống kê đội ngũ.");
+        }
+
+        int resolvedYear = year == null ? LocalDate.now(APP_ZONE).getYear() : year;
+        int resolvedMonth = month == null ? LocalDate.now(APP_ZONE).getMonthValue() : month;
+
+        LocalDate fromDate = LocalDate.of(resolvedYear, resolvedMonth, 1);
+        LocalDate toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+
+        // Get all active employees (including probation, contract, collaborator)
+        List<Employee> employees = employeeRepository.findByStatusNot(com.hrm.entity.EmpStatus.INACTIVE);
+        List<Attendance> allAttendance = attendanceRepository.findByDateBetween(fromDate, toDate);
+
+        // Group attendance by employee
+        Map<UUID, List<Attendance>> attMap = allAttendance.stream()
+                .collect(java.util.stream.Collectors.groupingBy(a -> a.getEmployee().getId()));
+
+        BigDecimal stdHours = companyConfigRepository.findById("default")
+                .map(com.hrm.entity.CompanyConfig::getStandardHours)
+                .orElse(BigDecimal.valueOf(8.0));
+
+        List<com.hrm.dto.TeamMatrixDTO> results = new ArrayList<>();
+
+        for (Employee e : employees) {
+            List<Attendance> records = attMap.getOrDefault(e.getId(), new ArrayList<>());
+            Map<Integer, AttendanceStatus> dailyStatus = new java.util.HashMap<>();
+            Map<Integer, Double> dailyHours = new java.util.HashMap<>();
+            double totalHours = 0;
+            double totalDays = 0;
+            double paidDays = 0;
+            long lateCount = 0;
+            long absentCount = 0;
+
+            for (Attendance a : records) {
+                int day = a.getDate().getDayOfMonth();
+                dailyStatus.put(day, a.getStatus());
+                
+                double h = a.getTotalHours() != null ? a.getTotalHours().doubleValue() : 0.0;
+                dailyHours.put(day, h);
+                totalHours += h;
+
+                switch (a.getStatus()) {
+                    case ON_TIME, APPROVED -> {
+                        totalDays += 1.0;
+                        paidDays += 1.0;
+                    }
+                    case LATE -> {
+                        totalDays += 1.0;
+                        paidDays += 1.0;
+                        lateCount++;
+                    }
+                    case INSUFFICIENT -> {
+                        double partial = h / stdHours.doubleValue();
+                        totalDays += partial;
+                        paidDays += partial;
+                    }
+                    case ABSENT -> absentCount++;
+                }
+            }
+
+            results.add(com.hrm.dto.TeamMatrixDTO.builder()
+                    .employeeId(e.getId())
+                    .employeeName(e.getFullName())
+                    .departmentName(e.getDepartment() != null ? e.getDepartment().getName() : "N/A")
+                    .dailyStatus(dailyStatus)
+                    .dailyHours(dailyHours)
+                    .totalWorkHours(totalHours)
+                    .totalWorkDays(totalDays)
+                    .paidDays(paidDays)
+                    .lateCount(lateCount)
+                    .absentCount(absentCount)
+                    .build());
+        }
+
+        return results;
+    }
+
+    @Transactional
     public List<com.hrm.dto.AttendanceSummaryDTO> getTeamSummary(Integer month, Integer year,
             Authentication authentication) {
         if (!hasAuthority(authentication, "ATT_TEAM_VIEW")) {
@@ -179,12 +264,18 @@ public class AttendanceService {
         // Map to group by Employee ID
         Map<UUID, com.hrm.dto.AttendanceSummaryDTO> summaryMap = new LinkedHashMap<>();
 
+        BigDecimal stdHours = companyConfigRepository.findById("default")
+                .map(com.hrm.entity.CompanyConfig::getStandardHours)
+                .orElse(BigDecimal.valueOf(8.0));
+
         for (Object[] row : stats) {
             UUID empId = (UUID) row[0];
             String name = (String) row[1];
             String dept = (String) row[2];
             AttendanceStatus status = (AttendanceStatus) row[3];
             long count = (long) row[4];
+            BigDecimal hours = (BigDecimal) row[5];
+            double hoursVal = hours != null ? hours.doubleValue() : 0.0;
 
             com.hrm.dto.AttendanceSummaryDTO dto = summaryMap.computeIfAbsent(empId,
                     id -> com.hrm.dto.AttendanceSummaryDTO.builder()
@@ -193,31 +284,37 @@ public class AttendanceService {
                             .departmentName(dept != null ? dept : "N/A")
                             .build());
 
+            dto.setTotalWorkHours(dto.getTotalWorkHours() + hoursVal);
+
             switch (status) {
-                case ON_TIME -> dto.setOnTimeCount(count);
-                case LATE -> dto.setLateCount(count);
-                case INSUFFICIENT -> dto.setInsufficientCount(count);
+                case ON_TIME -> {
+                    dto.setOnTimeCount(count);
+                    dto.setTotalWorkDays(dto.getTotalWorkDays() + count);
+                }
+                case LATE -> {
+                    dto.setLateCount(count);
+                    dto.setTotalWorkDays(dto.getTotalWorkDays() + count);
+                }
+                case INSUFFICIENT -> {
+                    dto.setInsufficientCount(count);
+                    double partialDays = hoursVal / stdHours.doubleValue();
+                    dto.setTotalWorkDays(dto.getTotalWorkDays() + partialDays);
+                }
                 case ABSENT -> dto.setAbsentCount(count);
-                case APPROVED -> dto.setApprovedCount(count);
+                case APPROVED -> {
+                    dto.setApprovedCount(count);
+                    dto.setTotalWorkDays(dto.getTotalWorkDays() + count);
+                }
                 case DAY_OFF -> dto.setDayOffCount(count);
             }
         }
 
-        // Compute total work days
-        for (com.hrm.dto.AttendanceSummaryDTO dto : summaryMap.values()) {
-            dto.setTotalWorkDays(
-                    dto.getOnTimeCount() + dto.getLateCount() + dto.getInsufficientCount() + dto.getApprovedCount());
-        }
-
         return new ArrayList<>(summaryMap.values());
     }
-
-    private void normalizeStatus(Attendance attendance, CompanyConfig config) {
+    private void normalizeStatus(Attendance attendance, CompanyConfig config, LocalDate today) {
         if (attendance.getStatus() == AttendanceStatus.APPROVED || attendance.getStatus() == AttendanceStatus.DAY_OFF) {
             return;
         }
-
-        LocalDate today = LocalDate.now(APP_ZONE);
 
         // Case: No check-in and no check-out
         if (attendance.getCheckIn() == null && attendance.getCheckOut() == null) {
@@ -407,9 +504,7 @@ public class AttendanceService {
         Map<UUID, Employee> employeeById = employeeRepository.findAllById(employeeIds).stream()
                 .collect(Collectors.toMap(Employee::getId, e -> e));
 
-        LocalDate minDate = deduped.stream().map(AttendanceDTO::getDate).min(LocalDate::compareTo).orElse(null);
-        LocalDate maxDate = deduped.stream().map(AttendanceDTO::getDate).max(LocalDate::compareTo).orElse(null);
-
+        LocalDate today = LocalDate.now(APP_ZONE);
         List<Attendance> pendingSave = new ArrayList<>(deduped.size());
         for (AttendanceDTO dto : deduped) {
             try {
@@ -429,7 +524,7 @@ public class AttendanceService {
                     attendance.setCheckIn(dto.getCheckIn());
                 if (dto.getCheckOut() != null)
                     attendance.setCheckOut(dto.getCheckOut());
-                normalizeStatus(attendance, config);
+                normalizeStatus(attendance, config, today);
                 pendingSave.add(attendance);
                 successCount++;
             } catch (Exception e) {
@@ -527,6 +622,33 @@ public class AttendanceService {
     private record ChunkImportResult(int successCount, List<ImportErrorResponse> errors) {
     }
 
+    @Transactional
+    public void recalculateMonthlyAttendance(Integer month, Integer year, Authentication authentication) {
+        if (!hasAuthority(authentication, "ATT_IMPORT")) {
+            throw new AccessDeniedException("Bạn không có quyền tính toán lại dữ liệu chuyên cần.");
+        }
+
+        int resolvedYear = year == null ? LocalDate.now(APP_ZONE).getYear() : year;
+        int resolvedMonth = month == null ? LocalDate.now(APP_ZONE).getMonthValue() : month;
+
+        LocalDate fromDate = LocalDate.of(resolvedYear, resolvedMonth, 1);
+        LocalDate toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+
+        CompanyConfig config = getCompanyConfig();
+        LocalDate today = LocalDate.now(APP_ZONE);
+
+        // Fetch all attendances for the month
+        List<Attendance> allAttendances = attendanceRepository.findByDateBetween(fromDate, toDate);
+
+        log.info("Recalculating attendance for {}/{} - {} records", resolvedMonth, resolvedYear, allAttendances.size());
+
+        for (Attendance attendance : allAttendances) {
+            normalizeStatus(attendance, config, today);
+        }
+
+        batchUpsertAttendances(allAttendances);
+    }
+
     private AttendanceDTO toDto(Attendance attendance) {
         AttendanceDTO dto = new AttendanceDTO();
         dto.setId(attendance.getId());
@@ -542,5 +664,22 @@ public class AttendanceService {
         dto.setStatus(attendance.getStatus());
         dto.setNote(attendance.getNote());
         return dto;
+    }
+    @Transactional
+    public ResponseEntity<byte[]> exportAttendanceMatrix(Integer month, Integer year, Authentication authentication) throws Exception {
+        int m = (month != null) ? month : LocalDate.now().getMonthValue();
+        int y = (year != null) ? year : LocalDate.now().getYear();
+
+        CompanyConfig config = getCompanyConfig();
+        double stdHours = config.getStandardHours() != null ? config.getStandardHours().doubleValue() : 8.0;
+
+        List<com.hrm.dto.TeamMatrixDTO> data = getTeamMatrix(m, y, authentication);
+        byte[] bytes = importExportService.exportAttendanceMatrixToExcel(m, y, data, stdHours);
+
+        String filename = "Bang_cham_cong_" + m + "_" + y + ".xlsx";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(bytes);
     }
 }

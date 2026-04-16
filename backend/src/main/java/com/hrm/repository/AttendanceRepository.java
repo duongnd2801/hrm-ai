@@ -22,9 +22,11 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
 
     List<Attendance> findByEmployeeIdInAndDateBetween(Collection<UUID> employeeIds, LocalDate fromDate, LocalDate toDate);
     
+    List<Attendance> findByDateBetween(LocalDate fromDate, LocalDate toDate);
+
     long countByDateAndStatusIn(LocalDate date, Collection<AttendanceStatus> statuses);
 
-    @org.springframework.data.jpa.repository.Query("SELECT e.id, e.fullName, d.name, a.status, COUNT(a.status) " +
+    @org.springframework.data.jpa.repository.Query("SELECT e.id, e.fullName, d.name, a.status, COUNT(a.status), SUM(a.totalHours) " +
            "FROM Attendance a " +
            "JOIN a.employee e " +
            "LEFT JOIN e.department d " +

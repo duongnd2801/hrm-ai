@@ -218,7 +218,7 @@ export default function UserManagementPage() {
       {/* Main Title Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
         <div>
-          <h1 className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Quản lý TK</h1>
+          <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Quản lý TK</h1>
           <p className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Hệ thống định danh & Phân quyền truy cập</p>
         </div>
       </div>

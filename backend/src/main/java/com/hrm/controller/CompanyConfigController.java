@@ -16,7 +16,7 @@ public class CompanyConfigController {
     private final CompanyService companyService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('COMP_VIEW')")
+    @PreAuthorize("hasAnyAuthority('COMP_VIEW', 'ATT_VIEW')")
     public ResponseEntity<CompanyConfigDTO> getConfig() {
         return ResponseEntity.ok(companyService.getConfig());
     }

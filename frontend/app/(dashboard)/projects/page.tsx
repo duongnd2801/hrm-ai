@@ -114,7 +114,7 @@ export default function ProjectsPage() {
       {/* Hero Section - Synced with Payroll style */}
       <div className="flex flex-col xl:flex-row xl:items-end justify-between pt-10 gap-8 px-2">
          <div>
-            <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>Dự án</h1>
+            <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>Dự án</h1>
             <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>Điều phối nhân sự & tiến độ tập trung</p>
          </div>
 

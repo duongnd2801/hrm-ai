@@ -50,7 +50,7 @@ public class PayrollController {
     }
 
     @GetMapping("/export")
-    @PreAuthorize("hasAuthority('PAY_VIEW')")
+    @PreAuthorize("hasAuthority('PAY_EXPORT')")
     public ResponseEntity<byte[]> export(@RequestParam Integer month, @RequestParam Integer year, Authentication authentication) throws Exception {
         byte[] data = payrollService.exportPayroll(month, year, authentication);
         return ResponseEntity.ok()

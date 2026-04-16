@@ -18,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -136,6 +138,45 @@ public class EmployeeService {
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("Dữ liệu không hợp lệ hoặc email đã tồn tại");
         }
+    }
+
+    @Transactional
+    public int createEmployeesBatch(List<EmployeeDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) return 0;
+
+        String defaultEncodedPassword = passwordEncoder.encode("Emp@123");
+        List<Role> allRoles = roleRepository.findAll();
+        
+        // 1. Prepare Users
+        List<User> usersToSave = new ArrayList<>();
+        for (EmployeeDTO dto : dtos) {
+            String roleName = (dto.getRole() != null && !dto.getRole().isEmpty()) ? dto.getRole().toUpperCase() : "EMPLOYEE";
+            Role targetRole = allRoles.stream()
+                .filter(r -> r.getName().equalsIgnoreCase(roleName))
+                .findFirst()
+                .orElse(allRoles.stream().filter(r -> r.getName().equals("EMPLOYEE")).findFirst().get());
+            
+            User user = new User();
+            user.setEmail(dto.getEmail().trim().toLowerCase());
+            user.setPassword(defaultEncodedPassword);
+            user.setRole(targetRole);
+            usersToSave.add(user);
+        }
+        
+        List<User> savedUsers = userRepository.saveAll(usersToSave);
+        Map<String, User> userMap = savedUsers.stream().collect(Collectors.toMap(User::getEmail, u -> u));
+        
+        // 2. Prepare Employees
+        List<Employee> employeesToSave = new ArrayList<>();
+        for (EmployeeDTO dto : dtos) {
+            Employee emp = new Employee();
+            mapToEntity(dto, emp);
+            emp.setUser(userMap.get(dto.getEmail().trim().toLowerCase()));
+            employeesToSave.add(emp);
+        }
+        
+        employeeRepository.saveAll(employeesToSave);
+        return dtos.size();
     }
 
     @Transactional

@@ -20,5 +20,6 @@ public class AttendanceSummaryDTO {
     private long absentCount;
     private long approvedCount;
     private long dayOffCount;
-    private long totalWorkDays;
+    private double totalWorkHours;
+    private double totalWorkDays;
 }

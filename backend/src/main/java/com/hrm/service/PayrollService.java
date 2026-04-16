@@ -125,7 +125,8 @@ public class PayrollService {
                 || att.getStatus() == AttendanceStatus.APPROVED) {
                 actualDays += 1.0;
             } else if (att.getStatus() == AttendanceStatus.INSUFFICIENT) {
-                actualDays += (att.getTotalHours() != null ? att.getTotalHours().doubleValue() / 8.0 : 0);
+                double std = config.getStandardHours() != null ? config.getStandardHours().doubleValue() : 8.0;
+                actualDays += (att.getTotalHours() != null ? att.getTotalHours().doubleValue() / std : 0);
             }
             
             if (att.getTotalHours() != null) {
@@ -134,11 +135,15 @@ public class PayrollService {
             }
         }
 
+        // Chỉ làm tròn khi đếm tính lương thực tế
+        actualDays = Math.ceil(actualDays * 2) / 2.0;
+
         double dailyRate = (double)baseSalary / standardDays;
         long attendanceSalary = (long)(actualDays * dailyRate);
         
         double otRate = config.getOtRateWeekday() != null ? config.getOtRateWeekday().doubleValue() : 1.5;
-        long otAmount = (long)(otHours * (dailyRate / 8.0) * otRate);
+        double std = config.getStandardHours() != null ? config.getStandardHours().doubleValue() : 8.0;
+        long otAmount = (long)(otHours * (dailyRate / std) * otRate);
         long allowance = 0; // Can expand from employee entity if needed
         long grossSalary = attendanceSalary + otAmount + allowance;
 

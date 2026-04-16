@@ -1,23 +1,26 @@
-### 📋 Plan — [Phase 4: Import dữ liệu máy chấm công (D14)]
+### 📋 Plan — [Phase Hardening: Optimizing Attendance Service]
 
-**Mục tiêu:** Xây dựng tính năng Import file Excel xuất trực tiếp từ máy chấm công. Sử dụng file `cham_cong_nhan_vien.xlsx` đã chuẩn hóa (377 dòng, dùng Full UUID) làm chuẩn. Sau đó nâng cấp UI để quản lý dễ dàng kiểm soát ai chưa chấm công đủ.
+**Mục tiêu:** Khắc phục các lỗi nghiêm trọng về hiệu năng, phân quyền và logic trong AttendanceService và ImportExportService.
 
 **Các bước thực hiện:**
 | # | File tạo/sửa | Việc cần làm |
 |---|---|---|
-| 1 | `ImportExportService.java` | [IN PROGRESS] Viết hàm `parseMachineAttendanceExcel()`. Đọc file Excel từ dòng 6. Map Cột B (Full ID UUID) với `id` trong DB. Lấy "Ngày", "Giờ vào", "Giờ ra". Xử lý format Date/Time. |
-| 2 | `AttendanceService.java` | Xử lý lưu dữ liệu: Cập nhật hoặc ghi đè `check_in`/`check_out`. Tự động tính `total_hours` và `status` (ON_TIME/LATE/INSUFFICIENT). |
-| 3 | `AttendanceController.java` | Bổ sung API `POST /api/attendances/import-machine`. |
-| 4 | `ImportMachineModal.tsx` | UI kéo thả file Excel máy chấm công tại màn hình Attendance. |
-| 5 | `Attendance Supervision View` | (Yêu cầu mới) Thêm giao diện Dashboard/Filter cho HR/Manager để phát hiện nhanh: "Thiếu chấm công", "Quên checkout", "Nghỉ không phép". |
+| 1 | `AttendanceService.java` | **[4] [7]** Xoá dòng gọi `recalculateMonthlyAttendance` trong `getTeamMatrix` và `getTeamSummary`. [x] |
+| 2 | `AttendanceService.java` | **[5]** Trong `getTeamMatrix`, thay `findAll()` bằng `findAllActiveEmployees()` (hoặc query filter `ACTIVE`). [x] |
+| 3 | `AttendanceService.java` | **[9]** Trong `getTeamMatrix`, thêm `lateCount++` vào case `LATE`. [x] |
+| 4 | `AttendanceService.java` | **[8]** Trong `recalculateMonthlyAttendance`, thay `attendanceRepository.saveAll()` bằng `batchUpsertAttendances()`. [x] |
+| 5 | `ImportExportService.java` | **[10]** Chỉnh lại vị trí `totalRows++` để đảm bảo `totalRows = successCount + failureCount` (trừ các dòng skip do không có punch). [x] |
 
-**Thứ tự thực hiện:**
-1. BE: Xây dựng logic Parsing & API.
-2. FE: UI Import & Preview.
-3. FE: UI Giám sát (Supervision Dashboard).
+**Thứ tự:** BE trước (logic lõi).
 
-**Ghi chú:**
-- Đã dọn dẹp "Final Test 4" và đã map toàn bộ 377 nhân viên trong file Excel với UUID thật trong DB.
-- Logic mapping hiện tại là 100% khớp UUID.
+**Rủi ro / cần chú ý:**
+- User cần biết là sau khi import hoặc cấu hình thay đổi, họ phải chủ động bấm "Tính toán lại" (recalculate) nếu muốn data preview cập nhật ngay (thực tế máy chấm công import xong cũng đã tự gọi normalize rồi).
+- Đảm bảo `EmpStatus.ACTIVE` được import đúng enum.
 
-⏳ Chờ bạn xác nhận 'ok' trên implementation_plan.md để tôi bắt đầu thực hiện Phase 4.
+**Verify bằng cách:**
+- Login bằng user chỉ có quyền `ATT_TEAM_VIEW` (Manager) -> xem Matrix/Summary không bị 403.
+- Kiểm tra log SQL: `getTeamMatrix` không sinh ra hàng nghìn câu lệnh UPDATE/INSERT.
+- Kiểm tra `lateCount` trên UI sau khi fix.
+- Import file Excel: check `totalRows` có khớp với tổng thành công + lỗi không.
+
+⏳ Đã tạo plan. Bạn vui lòng review. Chờ bạn xác nhận 'ok / làm đi' trước khi bắt đầu.

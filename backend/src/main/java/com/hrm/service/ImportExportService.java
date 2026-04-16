@@ -176,8 +176,17 @@ public class ImportExportService {
 
             // --- 3. ĐỔ DỮ LIỆU ---
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now(java.time.ZoneId.systemDefault());
             int rIdx = 3;
+
+            // Pre-create data styles to reuse (Fix [6])
+            CellStyle dataStyleCenter = workbook.createCellStyle();
+            dataStyleCenter.cloneStyleFrom(baseStyle);
+            dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
+
+            CellStyle dataStyleLeft = workbook.createCellStyle();
+            dataStyleLeft.cloneStyleFrom(baseStyle);
+            dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
 
             for (int i = 0; i < employees.size(); i++) {
                 EmployeeDTO e = employees.get(i);
@@ -266,15 +275,11 @@ public class ImportExportService {
                 // Style borders for data row
                 for (int j = 0; j < c; j++) {
                     Cell cell = row.getCell(j);
-                    CellStyle dataStyle = workbook.createCellStyle();
-                    dataStyle.setBorderBottom(BorderStyle.THIN);
-                    dataStyle.setBorderTop(BorderStyle.THIN);
-                    dataStyle.setBorderLeft(BorderStyle.THIN);
-                    dataStyle.setBorderRight(BorderStyle.THIN);
                     if (j == 0 || j == 7 || j == 28) {
-                        dataStyle.setAlignment(HorizontalAlignment.CENTER);
+                        cell.setCellStyle(dataStyleCenter);
+                    } else {
+                        cell.setCellStyle(dataStyleLeft);
                     }
-                    cell.setCellStyle(dataStyle);
                 }
             }
 
@@ -778,9 +783,6 @@ public class ImportExportService {
                 .build();
     }
 
-    private void parseExtendedFields(Row row, EmployeeDTO dto, int startCol) {
-        // Obsolete as we merged this into the main parser method
-    }
 
     public ImportResultResponse<AttendanceDTO> parseMachineAttendanceExcel(MultipartFile file) throws Exception {
         List<AttendanceDTO> allRecords = new ArrayList<>();
@@ -827,6 +829,15 @@ public class ImportExportService {
                 try {
                     AttendanceDTO dto = new AttendanceDTO();
 
+                    // skip dòng không có dữ liệu chấm công
+                    LocalTime checkInTime = getTimeCellSafe(row, 6);
+                    LocalTime checkOutTime = getTimeCellSafe(row, 7);
+                    if (checkInTime == null && checkOutTime == null) {
+                        continue;
+                    }
+
+                    totalRows++; // Record starts here
+
                     // ===== 1. Employee ID =====
                     UUID employeeId = parseEmployeeId(rawEmpId, rowErrors);
                     dto.setEmployeeId(employeeId);
@@ -838,17 +849,6 @@ public class ImportExportService {
                     } else {
                         dto.setDate(date);
                     }
-
-                    // ===== 3. Time =====
-                    LocalTime checkInTime = getTimeCellSafe(row, 6);
-                    LocalTime checkOutTime = getTimeCellSafe(row, 7);
-
-                    // skip dòng không có dữ liệu chấm công
-                    if (checkInTime == null && checkOutTime == null) {
-                        continue;
-                    }
-
-                    totalRows++; // ✅ fix: chỉ count dòng hợp lệ
 
                     // ===== 4. Build datetime =====
                     if (checkInTime != null && date != null) {
@@ -937,9 +937,17 @@ public class ImportExportService {
             return null;
 
         try {
-            // Excel numeric (date)
-            if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
-                return cell.getLocalDateTimeCellValue().toLocalTime();
+            // Excel numeric (date or numeric fraction)
+            if (cell.getCellType() == CellType.NUMERIC) {
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toLocalTime();
+                }
+                // Fix [5]: Numeric fraction (e.g., 0.347 = 8:20)
+                double raw = cell.getNumericCellValue();
+                if (raw > 0 && raw < 1) {
+                    long totalSeconds = Math.round(raw * 86400);
+                    return LocalTime.ofSecondOfDay(totalSeconds);
+                }
             }
 
             String val = getStringCell(row, colIdx);
@@ -985,6 +993,153 @@ public class ImportExportService {
             return cell.toString().trim();
         } catch (Exception e) {
             return "";
+        }
+    }
+
+    public byte[] exportAttendanceMatrixToExcel(int month, int year, List<com.hrm.dto.TeamMatrixDTO> matrixData, double stdHours) throws Exception {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Bảng chấm công");
+
+            // --- 1. STYLES ---
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 16);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            headerStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            CellStyle weekendStyle = workbook.createCellStyle();
+            weekendStyle.cloneStyleFrom(headerStyle);
+            weekendStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+
+            CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setBorderTop(BorderStyle.THIN);
+            dataStyle.setBorderBottom(BorderStyle.THIN);
+            dataStyle.setBorderLeft(BorderStyle.THIN);
+            dataStyle.setBorderRight(BorderStyle.THIN);
+            dataStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            CellStyle nameStyle = workbook.createCellStyle();
+            nameStyle.cloneStyleFrom(dataStyle);
+            nameStyle.setAlignment(HorizontalAlignment.LEFT);
+
+            // --- 2. HEADER ROWS ---
+            Row row0 = sheet.createRow(0);
+            Cell cell0 = row0.createCell(0);
+            cell0.setCellValue("BẢNG CHẤM CÔNG");
+            cell0.setCellStyle(titleStyle);
+
+            Row row1 = sheet.createRow(1);
+            Cell cell1 = row1.createCell(0);
+            cell1.setCellValue("Tháng " + month + " năm " + year);
+
+            Row row3 = sheet.createRow(3);
+            Row row4 = sheet.createRow(4);
+
+            String[] staticHeaders = {"STT", "Họ tên"};
+            for (int i = 0; i < staticHeaders.length; i++) {
+                Cell c = row3.createCell(i);
+                c.setCellValue(staticHeaders[i]);
+                c.setCellStyle(headerStyle);
+                sheet.addMergedRegion(new CellRangeAddress(3, 4, i, i));
+            }
+
+            // Ngày trong tháng
+            int daysInMonth = LocalDate.of(year, month, 1).lengthOfMonth();
+            Cell dayHeader = row3.createCell(2);
+            dayHeader.setCellValue("Ngày trong tháng");
+            dayHeader.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(3, 3, 2, 2 + daysInMonth - 1));
+
+            for (int i = 1; i <= daysInMonth; i++) {
+                Cell c = row4.createCell(i + 1);
+                c.setCellValue(i);
+                
+                // Color weekend headers
+                try {
+                    LocalDate d = LocalDate.of(year, month, i);
+                    if (d.getDayOfWeek().getValue() >= 6) {
+                        c.setCellStyle(weekendStyle);
+                    } else {
+                        c.setCellStyle(headerStyle);
+                    }
+                } catch (Exception e) {
+                    c.setCellStyle(headerStyle);
+                }
+            }
+
+            // Ngày công
+            int côngHeaderCol = 2 + daysInMonth;
+            Cell côngHeader = row3.createCell(côngHeaderCol);
+            côngHeader.setCellValue("Ngày công");
+            côngHeader.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(3, 3, côngHeaderCol, côngHeaderCol + 1));
+
+            String[] côngSubHeaders = {"Thực tế", "Hưởng lương"};
+            for (int i = 0; i < côngSubHeaders.length; i++) {
+                Cell c = row4.createCell(i + côngHeaderCol);
+                c.setCellValue( côngSubHeaders[i]);
+                c.setCellStyle(headerStyle);
+            }
+
+            // --- 3. DATA ROWS ---
+            int rowIndex = 5;
+            for (int i = 0; i < matrixData.size(); i++) {
+                com.hrm.dto.TeamMatrixDTO dto = matrixData.get(i);
+                Row row = sheet.createRow(rowIndex++);
+                
+                row.createCell(0).setCellValue(i + 1);
+                row.getCell(0).setCellStyle(dataStyle);
+                
+                row.createCell(1).setCellValue(dto.getEmployeeName());
+                row.getCell(1).setCellStyle(nameStyle);
+
+                for (int day = 1; day <= daysInMonth; day++) {
+                    Cell c = row.createCell(day + 1);
+                    c.setCellStyle(dataStyle);
+                    
+                    com.hrm.entity.AttendanceStatus status = dto.getDailyStatus().get(day);
+                    Double hours = dto.getDailyHours().get(day);
+                    
+                    if (status != null) {
+                        if (List.of(com.hrm.entity.AttendanceStatus.ON_TIME, com.hrm.entity.AttendanceStatus.LATE, com.hrm.entity.AttendanceStatus.APPROVED).contains(status)) {
+                            c.setCellValue(1);
+                        } else if (status == com.hrm.entity.AttendanceStatus.INSUFFICIENT && hours != null) {
+                            c.setCellValue(hours / stdHours);
+                        } else if (status == com.hrm.entity.AttendanceStatus.ABSENT) {
+                            c.setCellValue(0);
+                        }
+                    }
+                }
+
+                Cell ct = row.createCell(2 + daysInMonth);
+                ct.setCellValue(dto.getTotalWorkDays());
+                ct.setCellStyle(dataStyle);
+
+                Cell hl = row.createCell(2 + daysInMonth + 1);
+                hl.setCellValue(dto.getPaidDays());
+                hl.setCellStyle(dataStyle);
+            }
+
+            // Auto size
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+            for(int i=2; i<= 2 + daysInMonth + 1; i++) sheet.setColumnWidth(i, 4 * 256);
+
+            workbook.write(bos);
+            return bos.toByteArray();
         }
     }
 }

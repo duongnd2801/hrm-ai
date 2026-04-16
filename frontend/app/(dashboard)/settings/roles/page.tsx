@@ -132,14 +132,14 @@ export default function RolesPage() {
               <div className="absolute inset-0 bg-indigo-400 blur-2xl opacity-0 dark:opacity-20" />
             </div>
             <h1
-              className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white px-1 tracking-tight leading-none"
-              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.15)' }}
+              className="text-5xl md:text-6xl font-black text-white px-1 tracking-tight leading-none mix-blend-overlay"
+              style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
             >
               Roles
             </h1>
           </div>
-          <p className="text-sm font-bold text-slate-500 dark:text-white/50 tracking-[0.08em] ml-1.5 flex items-center gap-3">
-            <span className="w-8 h-[1px] bg-slate-300 dark:bg-white/20" />
+          <p className="text-sm font-bold text-white dark:text-white/50 tracking-[0.08em] ml-1.5 flex items-center gap-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <span className="w-8 h-[1px] bg-white/40 dark:bg-white/20" />
             Quản lý nhóm quyền cho từng loại người dùng
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function RolesPage() {
         <div className="flex items-center gap-4 flex-wrap">
           <Link
             href="/settings/roles/matrix"
-            className="group relative h-16 px-10 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-[24px] border border-slate-200 dark:border-white/5 transition-all duration-500 flex items-center gap-4 active:scale-95"
+            className="group relative h-16 px-10 bg-black/20 hover:bg-black/30 dark:bg-white/5 dark:hover:bg-white/10 text-white dark:text-white/60 dark:hover:text-white rounded-[24px] border border-white/20 dark:border-white/5 transition-all duration-500 flex items-center gap-4 active:scale-95 shadow-xl backdrop-blur-xl"
           >
             <LayoutGrid className="w-5 h-5 group-hover:rotate-180 transition-transform duration-700" />
             <span className="text-[11px] font-black uppercase tracking-[0.2em]">Ma trận phân quyền</span>
@@ -155,7 +155,7 @@ export default function RolesPage() {
 
           <Link
             href="/settings/permissions"
-            className="group relative h-16 px-10 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-[24px] border border-slate-200 dark:border-white/5 transition-all duration-500 flex items-center gap-4 active:scale-95"
+            className="group relative h-16 px-10 bg-black/20 hover:bg-black/30 dark:bg-white/5 dark:hover:bg-white/10 text-white dark:text-white/60 dark:hover:text-white rounded-[24px] border border-white/20 dark:border-white/5 transition-all duration-500 flex items-center gap-4 active:scale-95 shadow-xl backdrop-blur-xl"
           >
             <KeyRound className="w-5 h-5 group-hover:rotate-12 transition-transform duration-700" />
             <span className="text-[11px] font-black uppercase tracking-[0.2em]">Danh mục quyền</span>

@@ -153,7 +153,7 @@ export default function ApologiesPage() {
       {/* Hero Header - Synced with Payroll Style */}
       <div className="pt-10 mb-8 relative flex flex-col xl:flex-row xl:items-end justify-between gap-8">
         <div>
-          <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
+          <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
             Trung tâm<br />giải trình
           </h1>
           <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90 uppercase" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>

@@ -362,7 +362,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                   </div>
                   <div>
                     <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">📍 Nơi cấp</label>
-                    <input type="text" value={emp.citizenIdPlace || ''} placeholder="CA TP. Hồ Chí Minh"
+                    <input type="text" value={emp.citizenIdPlace || ''} placeholder="Công an TP. Hà Nội"
                       onChange={(e) => setEmp({ ...emp, citizenIdPlace: e.target.value })}
                       disabled={!canEditStructure}
                       className="w-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-amber-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
@@ -412,7 +412,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
                   <div>
                     <label className="block text-slate-500 dark:text-white/40 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">🏫 Trường đào tạo</label>
-                    <input type="text" value={emp.university || ''} placeholder="ĐH Bách Khoa TP.HCM"
+                    <input type="text" value={emp.university || ''} placeholder="ĐH Bách Khoa Hà Nội"
                       onChange={(e) => setEmp({ ...emp, university: e.target.value })}
                       disabled={!canEditStructure}
                       className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-2xl py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 font-bold focus:ring-4 focus:ring-emerald-500/30 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed" />

@@ -76,14 +76,14 @@ export default function PermissionsPage() {
               <div className="absolute inset-0 bg-indigo-400 blur-2xl opacity-0 dark:opacity-20" />
             </div>
             <h1
-              className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white px-1 tracking-tighter uppercase leading-none"
-              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.15)' }}
+              className="text-5xl md:text-6xl font-black text-white px-1 tracking-tighter uppercase leading-none mix-blend-overlay"
+              style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
             >
               Permissions
             </h1>
           </div>
-          <p className="text-sm font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.25em] ml-1.5 flex items-center gap-3">
-            <span className="w-8 h-[1px] bg-slate-300 dark:bg-white/20" />
+          <p className="text-sm font-black text-white dark:text-white/40 uppercase tracking-[0.25em] ml-1.5 flex items-center gap-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <span className="w-8 h-[1px] bg-white/40 dark:bg-white/20" />
             Danh mục quyền hạn trong hệ thống
           </p>
         </div>

@@ -54,7 +54,7 @@ export default function CompanyPage() {
     <div className="space-y-12 pb-20 px-2 lg:px-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
         <div>
-          <h1 className="text-[clamp(3rem,8vw,6rem)] font-black text-white dark:text-white dark:mix-blend-overlay uppercase leading-none tracking-tighter" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>CẤU HÌNH</h1>
+          <h1 className="text-5xl md:text-7xl font-black text-white dark:text-white dark:mix-blend-overlay uppercase leading-none tracking-tighter" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>CẤU HÌNH</h1>
           <p className="text-lg font-bold text-white uppercase tracking-widest mt-6 ml-1" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Tổ chức & Thiết lập hệ thống</p>
         </div>
 

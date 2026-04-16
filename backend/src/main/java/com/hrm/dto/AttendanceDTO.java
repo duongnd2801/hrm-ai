@@ -19,4 +19,5 @@ public class AttendanceDTO {
     private BigDecimal totalHours;
     private AttendanceStatus status;
     private String note;
+    private String departmentName;
 }

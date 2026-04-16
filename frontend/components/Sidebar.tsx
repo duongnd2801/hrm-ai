@@ -84,30 +84,30 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
       )}
 
-      <div className={`h-32 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'px-8'}`}>
+      <div className={`h-24 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'px-8'}`}>
          <div className="flex items-center gap-5 group cursor-pointer">
-            <div className="w-14 h-14 rounded-[22px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
+            <div className="w-12 h-12 rounded-[20px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
                <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
-               <span className="text-white font-black text-3xl tracking-tighter drop-shadow-lg relative z-10">H</span>
+               <span className="text-white font-black text-2xl tracking-tighter drop-shadow-lg relative z-10">H</span>
             </div>
             {!collapsed && (
                <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-500 delay-150">
-                  <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-widest leading-none uppercase">HRM SYSTEM</h1>
-                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400/50 uppercase tracking-[0.35em] mt-2 ml-0.5 leading-none">Premium Suite</p>
+                  <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-widest leading-none uppercase">HRM SYSTEM</h1>
+                  <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400/50 uppercase tracking-[0.35em] mt-2 ml-0.5 leading-none">Premium Suite</p>
                </div>
             )}
          </div>
       </div>
 
-      <div className={`flex-1 py-4 flex flex-col gap-2.5 overflow-y-auto scrollbar-none scroll-smooth ${collapsed ? 'items-center px-4' : 'px-6'}`}>
+      <div className={`flex-1 py-2 flex flex-col gap-1 overflow-y-auto scrollbar-none scroll-smooth ${collapsed ? 'items-center px-4' : 'px-6'}`}>
          {visibleItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
             return (
                <Link 
                  key={item.href} 
                  href={item.href} 
-                 className={`flex items-center rounded-[20px] transition-all duration-500 relative group overflow-hidden ${
-                   collapsed ? 'p-4 justify-center w-full' : 'p-4 px-5 justify-start gap-4'
+                 className={`flex items-center rounded-[18px] transition-all duration-500 relative group overflow-hidden ${
+                   collapsed ? 'p-3 justify-center w-full' : 'p-3 px-5 justify-start gap-4'
                  } ${
                    isActive 
                      ? 'bg-indigo-600 text-white shadow-[0_10px_30px_rgba(79,70,229,0.3)] ring-1 ring-white/10' 

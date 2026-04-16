@@ -43,7 +43,7 @@ public class EmployeeController {
     public ResponseEntity<PageResponse<EmployeeDTO>> getAllEmployees(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
-            @PageableDefault(size = 10, sort = "fullName", direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable,
             Authentication authentication) {
         return ResponseEntity.ok(employeeService.getAllEmployees(search, status, pageable, authentication));
     }
@@ -120,29 +120,9 @@ public class EmployeeController {
                 return ResponseEntity.ok(result); 
             }
             
-            int successCount = 0;
-            List<String> errors = new ArrayList<>();
-            
-            for (int i = 0; i < parsed.size(); i++) {
-                try {
-                    employeeService.createEmployee(parsed.get(i));
-                    successCount++;
-                } catch (IllegalArgumentException e) {
-                    errors.add("Dòng " + (i + 2) + ": " + e.getMessage());
-                } catch (Exception e) {
-                    errors.add("Dòng " + (i + 2) + ": Lỗi không xác định - " + e.getMessage());
-                }
-            }
-            
-            if (successCount == 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Không import được nhân viên nào. Lỗi: " + String.join("; ", errors));
-            }
+            int successCount = employeeService.createEmployeesBatch(parsed);
             
             String message = "Import thành công " + successCount + " nhân viên.";
-            if (!errors.isEmpty()) {
-                message += " " + errors.size() + " dòng bị lỗi: " + String.join("; ", errors);
-            }
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

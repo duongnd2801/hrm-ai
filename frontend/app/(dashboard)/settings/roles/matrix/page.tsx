@@ -110,14 +110,14 @@ export default function PermissionMatrixPage() {
               <div className="absolute inset-0 bg-indigo-400 blur-2xl opacity-0 dark:opacity-20" />
             </div>
             <h1
-              className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white px-1 tracking-tighter uppercase leading-none"
-              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.15)' }}
+              className="text-5xl md:text-6xl font-black text-white px-1 tracking-tighter uppercase leading-none mix-blend-overlay"
+              style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
             >
               Ma trận
             </h1>
           </div>
-          <p className="text-sm font-black text-slate-500 dark:text-white/40 uppercase tracking-[0.25em] ml-1.5 flex items-center gap-3">
-            <span className="w-8 h-[1px] bg-slate-300 dark:bg-white/20" />
+          <p className="text-sm font-black text-white dark:text-white/40 uppercase tracking-[0.25em] ml-1.5 flex items-center gap-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <span className="w-8 h-[1px] bg-white/40 dark:bg-white/20" />
             Gán permission trực tiếp theo role
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function PermissionMatrixPage() {
         <div className="flex items-center gap-4 flex-wrap">
           <Link
             href="/settings/permissions"
-            className="h-16 px-8 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-[24px] border border-slate-200 dark:border-white/5 transition-all duration-300 flex items-center gap-3"
+            className="h-16 px-8 bg-black/20 hover:bg-black/30 dark:bg-white/5 dark:hover:bg-white/10 text-white dark:text-white/60 dark:hover:text-white rounded-[24px] border border-white/20 dark:border-white/5 transition-all duration-300 flex items-center gap-3 shadow-xl backdrop-blur-xl"
           >
             <Shield className="w-5 h-5" />
             <span className="text-[11px] font-black uppercase tracking-[0.2em]">Danh mục quyền</span>
@@ -144,7 +144,7 @@ export default function PermissionMatrixPage() {
 
           <button
             onClick={() => void fetchData()}
-            className="p-4 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:text-white/40 dark:hover:text-white rounded-[24px] border border-slate-200 dark:border-white/5 transition-all active:scale-90"
+            className="p-4 bg-black/20 hover:bg-black/30 dark:bg-white/5 dark:hover:bg-white/10 text-white dark:text-white/40 dark:hover:text-white rounded-[24px] border border-white/20 dark:border-white/5 transition-all active:scale-90 shadow-xl backdrop-blur-xl"
           >
             <RefreshCcw className="w-6 h-6" />
           </button>

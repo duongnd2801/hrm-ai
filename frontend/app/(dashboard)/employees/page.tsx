@@ -79,7 +79,7 @@ export default function EmployeesPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
             <div>
               <h1
-                className="text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none"
+                className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none"
                 style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
                 Nhân viên
