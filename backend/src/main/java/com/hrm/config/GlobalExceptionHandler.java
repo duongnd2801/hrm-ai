@@ -107,6 +107,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
     /**
+     * Handle IllegalArgumentException - business logic errors
+     * Status: 400 (Bad Request)
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
+            IllegalArgumentException ex) {
+        log.warn("IllegalArgumentException: {}", ex.getMessage());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage() != null ? ex.getMessage() : "Dữ liệu không hợp lệ");
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * D29: Handle general RuntimeException
      * Status: 500 (Internal Server Error)
      */

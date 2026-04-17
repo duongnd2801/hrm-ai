@@ -29,6 +29,7 @@ public class PayrollService {
     private final CompanyConfigRepository companyConfigRepository;
     private final UserRepository userRepository;
     private final ImportExportService importExportService;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public byte[] exportPayroll(Integer month, Integer year, Authentication authentication) throws Exception {
@@ -54,7 +55,22 @@ public class PayrollService {
         }
 
         try {
-            return payrollRepository.saveAllAndFlush(results).stream()
+            List<Payroll> savedPayrolls = payrollRepository.saveAllAndFlush(results);
+            
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user != null) {
+                auditService.log(
+                    user.getId(), 
+                    user.getEmail(), 
+                    "CALCULATE_PAYROLL", 
+                    "payrolls", 
+                    month + "-" + year, 
+                    null, 
+                    "Calculated " + savedPayrolls.size() + " payrolls"
+                );
+            }
+
+            return savedPayrolls.stream()
                     .map(this::toDto)
                     .collect(Collectors.toList());
         } catch (org.springframework.dao.DataIntegrityViolationException e) {

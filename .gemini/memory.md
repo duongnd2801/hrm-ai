@@ -275,3 +275,15 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Plan Created:** Khởi tạo kế hoạch cho Phase Security: Rate Limiting (Redis) và Audit Log cho các business process nhạy cảm.
 
 - [2026-04-17T09:05:00+07:00] **Permission-Based Employee Access Control**: Them permission EMP_VIEW_ALL cho MANAGER/HR/ADMIN. EMPLOYEE chi xem ban than (EMP_VIEW). V31 migration, EmployeeController, EmployeeService da duoc cap nhat. FE tu redirect EMPLOYEE ve profile ca nhan.
+
+- [2026-04-17T09:35:08+07:00] **Code Quality Patch**:
+  - **GlobalExceptionHandler**: Them @ControllerAdvice bat cac error chung va format ra JSON, ko leak stack trace.
+  - **DB Indexes**: V32 them index tren attendances (employee_id, date) va partial index cho query nhieu ban ghi theo thang.
+  - **Audit Logging**: Mo rong coverage sang PayrollService (calculate), ApologyService (review), AttendanceService (recalculate).
+  - **Verification**: Compilation passed (mvn clean compile). BE hien da fix xong cac loi tu audit roi.
+
+- [2026-04-17T09:43:49+07:00] **Phase Refinement (UX & Testing)**:
+  - **Cancel Soft Delete**: Bo qua yeu cau Soft Delete theo chi thi cua User.
+  - **Error Boundary & Loading Skeleton**: Da them \error.tsx\ va \loading.tsx\ vao \rontend/app/(dashboard)\ de de phong trang bi crash toan bo va hien UI skeleton khi doi route.
+  - **Unit Test**: Da them \AttendanceServiceTest\ su dung Mockito de test nhanh luong CheckIn.
+  - **CORS Config**: �� refactor \CorsConfig.java\ cho ph�p n?p danh s�ch URL t? file \pplication.yml\ thay v� hardcode trong code Java, thu?n ti?n cho vi?c deploy.

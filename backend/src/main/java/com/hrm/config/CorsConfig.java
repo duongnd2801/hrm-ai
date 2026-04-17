@@ -6,22 +6,23 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class CorsConfig {
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Cho phép localhost và mọi IP trong mạng LAN truy cập frontend port 3000
-        config.setAllowedOriginPatterns(List.of(
-            "http://localhost:3000", 
-            "http://127.0.0.1:3000",
-            "http://192.168.*.*:3000",
-            "http://10.*.*.*:3000",
-            "http://172.*.*.*:3000"
-        ));
+        
+        List<String> origins = Arrays.asList(allowedOrigins.split("\\s*,\\s*"));
+        config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

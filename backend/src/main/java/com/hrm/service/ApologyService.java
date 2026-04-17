@@ -27,6 +27,7 @@ public class ApologyService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditService auditService;
 
     @Transactional
     public ApologyDTO createMyApology(ApologyCreateRequest request, Authentication authentication) {
@@ -114,6 +115,16 @@ public class ApologyService {
             apology.getEmployee().getUser().getId(),
             note
         ));
+
+        auditService.log(
+            reviewer.getId(),
+            reviewer.getEmail(),
+            approved ? "REVIEW_APOLOGY_APPROVED" : "REVIEW_APOLOGY_REJECTED",
+            "apologies",
+            saved.getId().toString(),
+            null,
+            note
+        );
 
         return toDto(saved);
     }

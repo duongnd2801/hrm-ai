@@ -69,6 +69,8 @@ logging:
     org.flywaydb: INFO
 
 app:
+  cors:
+    allowed-origins: "http://localhost:3000,http://127.0.0.1:3000,http://192.168.*.*:3000,http://10.*.*.*:3000,http://172.*.*.*:3000"
   attendance:
     import:
       chunk-size: 1000

@@ -47,6 +47,7 @@ public class AttendanceService {
     private final ImportExportService importExportService;
     private final TransactionTemplate transactionTemplate;
     private final JdbcTemplate jdbcTemplate;
+    private final AuditService auditService;
 
     private static final String UPSERT_VALUE_ROW = "(?, ?, ?, ?, ?, ?, CAST(? AS hrm.attendance_status), ?, ?, ?)";
 
@@ -647,6 +648,19 @@ public class AttendanceService {
         }
 
         batchUpsertAttendances(allAttendances);
+
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user != null) {
+            auditService.log(
+                user.getId(),
+                user.getEmail(),
+                "RECALCULATE_ATTENDANCE",
+                "attendances",
+                resolvedMonth + "-" + resolvedYear,
+                null,
+                "Recalculated " + allAttendances.size() + " records"
+            );
+        }
     }
 
     private AttendanceDTO toDto(Attendance attendance) {

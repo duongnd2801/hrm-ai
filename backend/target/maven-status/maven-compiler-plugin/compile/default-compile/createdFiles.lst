@@ -1,5 +1,6 @@
 com\hrm\service\AttendanceService$ChunkImportResult.class
 com\hrm\controller\NotificationController.class
+com\hrm\repository\AuditLogRepository.class
 com\hrm\dto\UpdateUserRoleRequest.class
 com\hrm\repository\PositionRepository.class
 com\hrm\repository\AttendanceRepository.class
@@ -8,6 +9,7 @@ com\hrm\dto\LeaveRequestDTO.class
 com\hrm\dto\DeviceSession.class
 com\hrm\entity\EmpStatus.class
 com\hrm\repository\NotificationRepository.class
+com\hrm\security\CachedBodyHttpServletRequest$CachedBodyServletInputStream.class
 com\hrm\service\ProjectService.class
 com\hrm\entity\Department$DepartmentBuilder.class
 com\hrm\dto\ChangePasswordRequest.class
@@ -17,6 +19,7 @@ com\hrm\entity\Role$RoleBuilder.class
 com\hrm\dto\PageResponse.class
 com\hrm\config\CookieUtil.class
 com\hrm\dto\ProjectCreateRequest.class
+com\hrm\security\CachedBodyHttpServletRequest.class
 com\hrm\service\ChatService$PlanDecision.class
 com\hrm\entity\ContractType.class
 com\hrm\entity\Employee.class
@@ -55,6 +58,7 @@ com\hrm\entity\CompanyConfig.class
 com\hrm\config\SecurityHeadersFilter.class
 com\hrm\dto\RefreshTokenRequest.class
 com\hrm\dto\ChatHistoryItemDto.class
+com\hrm\service\AuditService.class
 com\hrm\service\AttendanceService.class
 com\hrm\entity\Permission.class
 com\hrm\event\RequestStatusChangedEvent.class
@@ -65,6 +69,7 @@ com\hrm\dto\TeamMatrixDTO$TeamMatrixDTOBuilder.class
 com\hrm\dto\NotificationDTO.class
 com\hrm\entity\CompanyConfig$CompanyConfigBuilder.class
 com\hrm\entity\Department.class
+com\hrm\security\RateLimitFilter.class
 com\hrm\service\ChatService$ChatIntent.class
 com\hrm\dto\ChangePasswordResponse.class
 com\hrm\dto\PayrollDTO.class
@@ -85,6 +90,7 @@ com\hrm\repository\UserRepository.class
 com\hrm\service\UserManagementService.class
 com\hrm\service\AuthService.class
 com\hrm\dto\DeviceSession$DeviceSessionBuilder.class
+com\hrm\HrmApplication.class
 com\hrm\dto\UserStatsDTO.class
 com\hrm\repository\EmployeeRepository.class
 com\hrm\entity\OTRequest.class
@@ -94,6 +100,7 @@ com\hrm\repository\ChatMessageRepository.class
 com\hrm\security\JwtAuthFilter.class
 com\hrm\repository\ProjectMemberRepository.class
 com\hrm\service\ChatService$InteractionMode.class
+com\hrm\entity\AuditLog$AuditLogBuilder.class
 com\hrm\dto\ChatRequestDto.class
 com\hrm\config\CorsConfig.class
 com\hrm\service\ApologyService.class
@@ -119,8 +126,10 @@ com\hrm\entity\User$UserBuilder.class
 com\hrm\dto\ProjectMemberResponse$ProjectMemberResponseBuilder.class
 com\hrm\dto\ReviewRequest.class
 com\hrm\dto\LeaveCreateRequest.class
+com\hrm\entity\AuditLog.class
 com\hrm\entity\GenderType.class
 com\hrm\entity\Apology.class
+com\hrm\service\RateLimitService.class
 com\hrm\dto\ApologyCreateRequest.class
 com\hrm\entity\Attendance.class
 com\hrm\service\ChatToolService$HolidayDto.class
