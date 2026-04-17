@@ -22,7 +22,7 @@
 
 | Module | Mô tả |
 |---|---|
-| 🔐 **Xác thực** | JWT (RS256) + HttpOnly Cookie, refresh token, quản lý session đa thiết bị (Redis) |
+| 🔐 **Xác thực** | JWT (HS256) + HttpOnly Cookie, refresh token, quản lý session đa thiết bị, Rate Limiting chống Brute Force (Redis) |
 | 👥 **Nhân viên** | CRUD, Import/Export Excel, avatar tự động, thông tin mở rộng (CCCD, người thân...) |
 | 🕐 **Chấm công** | Check-in/out, Calendar view, chuẩn hóa giờ tự động, Import từ máy chấm công |
 | 📝 **Giải trình** | Nhân viên tạo đơn xin giải trình → Manager/HR duyệt → tự động tính đủ công |
@@ -30,7 +30,8 @@
 | 💰 **Tính lương** | Công thức chuẩn VN: BHXH 8%, BHYT 1.5%, BHTN 1%, Thuế TNCN lũy tiến 7 bậc |
 | 📊 **Dashboard** | Widget thời tiết, check-in nhanh, thống kê tổng quan |
 | 🏗️ **Dự án** | Quản lý project, gán nhân sự & role (PM, Dev, QA...) |
-| 🛡️ **RBAC** | Phân quyền động theo Permission + Role, giao diện quản lý matrix |
+| 🛡️ **RBAC & Security** | Phân quyền động, giao diện quản lý matrix, Audit Log theo dõi rủi ro nghiệp vụ lớn |
+| 🛡️ **UX & Resilience** | Cơ chế Next.js Loading Skeleton, Global Error Boundary và Spring Boot ControllerAdvice |
 | 🤖 **AI Chatbot** | Trợ lý HRM tích hợp Gemini AI — hỏi lương, chấm công, đơn chờ duyệt |
 
 ---
@@ -42,9 +43,9 @@
 | Frontend | Next.js 16 (App Router, TypeScript) + TailwindCSS + shadcn/ui |
 | Backend | Java 21 + Spring Boot 3.2.3 |
 | Database | PostgreSQL (local service) |
-| Cache / Session | Redis 7 (Docker) |
+| Cache / Session | Redis 7 (Docker) — Rate limit & block brute force |
 | ORM | Spring Data JPA + Hibernate |
-| Auth | Spring Security + JWT RS256 + Dynamic RBAC |
+| Auth | Spring Security + JWT HS256 + Dynamic RBAC |
 | Migration | Flyway |
 | API Docs | Springdoc OpenAPI (Swagger UI) |
 | Import/Export FE | SheetJS (xlsx) + Papa Parse + pdf-lib |
