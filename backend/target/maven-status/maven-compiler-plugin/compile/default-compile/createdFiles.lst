@@ -10,6 +10,7 @@ com\hrm\dto\DeviceSession.class
 com\hrm\entity\EmpStatus.class
 com\hrm\repository\NotificationRepository.class
 com\hrm\security\CachedBodyHttpServletRequest$CachedBodyServletInputStream.class
+com\hrm\entity\Holiday$HolidayBuilder.class
 com\hrm\service\ProjectService.class
 com\hrm\entity\Department$DepartmentBuilder.class
 com\hrm\dto\ChangePasswordRequest.class
@@ -36,6 +37,7 @@ com\hrm\dto\DepartmentDTO.class
 com\hrm\dto\ImportErrorResponse.class
 com\hrm\dto\OTRequestDTO$OTRequestDTOBuilder.class
 com\hrm\dto\ProjectResponse$ProjectResponseBuilder.class
+com\hrm\service\HolidayService.class
 com\hrm\dto\OTRequestDTO.class
 com\hrm\controller\EmployeeController.class
 com\hrm\event\RequestStatusChangedEventListener.class
@@ -43,9 +45,11 @@ com\hrm\security\JwtTokenProvider.class
 com\hrm\controller\AuthController.class
 com\hrm\dto\DashboardSummaryDTO.class
 com\hrm\entity\Payroll.class
+com\hrm\controller\HolidayController.class
 com\hrm\entity\ApologyStatus.class
 com\hrm\controller\ApologyController.class
 com\hrm\dto\AttendanceSummaryDTO$AttendanceSummaryDTOBuilder.class
+com\hrm\repository\HolidayRepository.class
 com\hrm\repository\RoleRepository.class
 com\hrm\dto\ChatRequestDto$HistoryMessage.class
 com\hrm\entity\Attendance$AttendanceBuilder.class
@@ -85,6 +89,7 @@ com\hrm\dto\ImportResultResponse$ImportResultResponseBuilder.class
 com\hrm\dto\EmployeeStatsDTO$EmployeeStatsDTOBuilder.class
 com\hrm\dto\AttendanceSummaryDTO.class
 com\hrm\dto\CompanyConfigDTO.class
+com\hrm\dto\HolidayDTO.class
 com\hrm\repository\PermissionRepository.class
 com\hrm\repository\UserRepository.class
 com\hrm\service\UserManagementService.class
@@ -153,6 +158,7 @@ com\hrm\service\LeaveRequestService.class
 com\hrm\entity\LeaveRequest.class
 com\hrm\dto\UserStatsDTO$UserStatsDTOBuilder.class
 com\hrm\dto\ImportResultResponse.class
+com\hrm\entity\Holiday.class
 com\hrm\dto\PermissionDTO.class
 com\hrm\dto\AttendanceDTO.class
 com\hrm\entity\ProjectMember.class

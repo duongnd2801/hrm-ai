@@ -407,6 +407,8 @@ CREATE TABLE payrolls (
 | CRUD nhân viên | ❌ | ❌ | ✅ | ✅ |
 | Import nhân viên từ Excel | ❌ | ❌ | ✅ | ✅ |
 | Tạo tài khoản mới | ❌ | ❌ | ❌ | ✅ |
+| Xem lịch nghỉ lễ (HOLIDAY_VIEW) | ✅ | ✅ | ✅ | ✅ |
+| Cấu hình ngày lễ (HOLIDAY_MANAGE) | ❌ | ❌ | ✅ | ✅ |
 | Cấu hình công ty / phòng ban / vị trí | ❌ | ❌ | ❌ | ✅ |
 | Khoá/mở vị trí (Position locked) | ❌ | ❌ | ❌ | ✅ |
 
