@@ -33,6 +33,7 @@ public class AuthController {
     private final AuthService authService;
     private final EmployeeRepository employeeRepository;
     private final com.hrm.service.JwtBlacklistService jwtBlacklistService;
+    private final com.hrm.service.RateLimitService rateLimitService;
 
     @PostMapping("/login")
     @Operation(summary = "Đăng nhập", description = "Trả về JWT token qua HttpOnly cookie + session metadata trong body")
@@ -41,30 +42,43 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response) {
 
-        String deviceId = CookieUtil.extractCookie(servletRequest.getCookies(), CookieUtil.DEVICE_COOKIE);
-        if (deviceId == null || deviceId.isBlank()) {
-            deviceId = java.util.UUID.randomUUID().toString();
-        }
-
-        String userAgent = servletRequest.getHeader("User-Agent");
         String ipAddress = servletRequest.getRemoteAddr();
+        String key = ipAddress + ":" + request.getEmail();
 
-        AuthResponse authResponse = authService.login(request, deviceId, userAgent, ipAddress);
+        try {
+            String deviceId = CookieUtil.extractCookie(servletRequest.getCookies(), CookieUtil.DEVICE_COOKIE);
+            if (deviceId == null || deviceId.isBlank()) {
+                deviceId = java.util.UUID.randomUUID().toString();
+            }
 
-        // Set HttpOnly cookies
-        CookieUtil.setAuthCookies(response, authResponse.getToken(), authResponse.getRefreshToken());
-        CookieUtil.setDeviceCookie(response, deviceId);
+            String userAgent = servletRequest.getHeader("User-Agent");
 
-        // Return only non-sensitive metadata in response body
-        Map<String, Object> body = new HashMap<>();
-        body.put("email", authResponse.getEmail());
-        body.put("role", authResponse.getRole());
-        body.put("employeeId", authResponse.getEmployeeId());
-        body.put("profileCompleted", authResponse.isProfileCompleted());
-        body.put("permissions", authResponse.getPermissions());
-        body.put("message", "Đăng nhập thành công");
+            AuthResponse authResponse = authService.login(request, deviceId, userAgent, ipAddress);
 
-        return ResponseEntity.ok(body);
+            // Record success
+            rateLimitService.recordSuccess(key);
+
+            // Set HttpOnly cookies
+            CookieUtil.setAuthCookies(response, authResponse.getToken(), authResponse.getRefreshToken());
+            CookieUtil.setDeviceCookie(response, deviceId);
+
+            // Return only non-sensitive metadata in response body
+            Map<String, Object> body = new HashMap<>();
+            body.put("email", authResponse.getEmail());
+            body.put("role", authResponse.getRole());
+            body.put("employeeId", authResponse.getEmployeeId());
+            body.put("profileCompleted", authResponse.isProfileCompleted());
+            body.put("permissions", authResponse.getPermissions());
+            body.put("message", "Đăng nhập thành công");
+
+            return ResponseEntity.ok(body);
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            rateLimitService.recordFailure(key);
+            throw e; // Rethrow to let global handler handle it (or handle it here)
+        } catch (Exception e) {
+            rateLimitService.recordFailure(key);
+            throw e;
+        }
     }
 
     @PostMapping("/refresh")

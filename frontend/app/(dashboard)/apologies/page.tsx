@@ -46,6 +46,10 @@ export default function ApologiesPage() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
   const [myViewMode, setMyViewMode] = useState<'card' | 'table'>('card');
+  const [personalPage, setPersonalPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [reviewedPage, setReviewedPage] = useState(1);
+  const itemsPerPage = 8;
 
   const permissions = session?.permissions ?? [];
   const canView = permissions.includes('APOLOGY_VIEW');
@@ -299,7 +303,10 @@ export default function ApologiesPage() {
                         </td>
                       </tr>
                     )}
-                    {currentDisplayItems.map(item => (
+                    {(activeTab === 'pending' 
+                        ? pendingItems.slice((pendingPage - 1) * itemsPerPage, pendingPage * itemsPerPage)
+                        : reviewedItems.slice((reviewedPage - 1) * itemsPerPage, reviewedPage * itemsPerPage)
+                     ).map(item => (
                       <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
@@ -349,6 +356,31 @@ export default function ApologiesPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination for Manager */}
+              {((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) > itemsPerPage) && (
+                 <div className="mt-auto pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <div className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">
+                       Trang {(activeTab === 'pending' ? pendingPage : reviewedPage)} / {Math.ceil((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) / itemsPerPage)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button 
+                         disabled={(activeTab === 'pending' ? pendingPage : reviewedPage) === 1}
+                         onClick={() => activeTab === 'pending' ? setPendingPage(p => p - 1) : setReviewedPage(p => p - 1)}
+                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20"
+                       >
+                         &larr;
+                       </button>
+                       <button 
+                         disabled={(activeTab === 'pending' ? pendingPage : reviewedPage) === Math.ceil((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) / itemsPerPage)}
+                         onClick={() => activeTab === 'pending' ? setPendingPage(p => p + 1) : setReviewedPage(p => p + 1)}
+                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20"
+                       >
+                         &rarr;
+                       </button>
+                    </div>
+                 </div>
+               )}
             </div>
           ) : (
             /* ── EMPLOYEE: My Apologies with Card/Table toggle ── */
@@ -393,7 +425,7 @@ export default function ApologiesPage() {
               ) : myViewMode === 'card' ? (
                 /* Card view */
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {myItems.map(item => (
+                  {myItems.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage).map(item => (
                     <div key={item.id} className="bg-white/90 dark:bg-white/5 backdrop-blur-sm rounded-[28px] border border-slate-200 dark:border-white/5 p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all duration-500 group relative overflow-hidden shadow-sm dark:shadow-none">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-2xl -mr-10 -mt-10 group-hover:bg-indigo-500/10 transition-all duration-700" />
                       <div className="flex justify-between items-start mb-4">
@@ -427,7 +459,7 @@ export default function ApologiesPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                        {myItems.map(item => (
+                        {myItems.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage).map(item => (
                           <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                             <td className="px-8 py-5">
                               <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">
@@ -452,6 +484,29 @@ export default function ApologiesPage() {
                   </div>
                 </div>
               )}
+
+              {/* Personal Pagination */}
+              {myItems.length > itemsPerPage && (
+                  <div className="mt-8 flex justify-center items-center gap-4">
+                     <button 
+                       disabled={personalPage === 1}
+                       onClick={() => setPersonalPage(p => p - 1)}
+                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white disabled:opacity-20"
+                     >
+                        &larr;
+                     </button>
+                     <div className="px-6 py-2 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest">
+                        Trang {personalPage} / {Math.ceil(myItems.length / itemsPerPage)}
+                     </div>
+                     <button 
+                       disabled={personalPage === Math.ceil(myItems.length / itemsPerPage)}
+                       onClick={() => setPersonalPage(p => p + 1)}
+                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white disabled:opacity-20"
+                     >
+                        &rarr;
+                     </button>
+                  </div>
+               )}
             </div>
           )}
         </div>

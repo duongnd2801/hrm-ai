@@ -17,6 +17,8 @@ export default function LeavePage() {
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table'); // Ưu tiên bảng
   const [activeSubTab, setActiveSubTab] = useState<'pending' | 'history'>('pending');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
   const permissions = session?.permissions ?? [];
@@ -183,6 +185,34 @@ export default function LeavePage() {
             </button>
           )}
         </div>
+        
+        {/* Pagination Controls */}
+        {filteredDisplayLeaves.length > itemsPerPage && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">
+                Kết quả {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDisplayLeaves.length)} / {filteredDisplayLeaves.length}
+            </div>
+            <div className="flex items-center gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 disabled:opacity-20 text-white transition-all active:scale-95"
+                >
+                  &larr;
+                </button>
+                <div className="bg-indigo-600 px-6 py-2.5 rounded-full text-[10px] font-black tracking-widest text-white shadow-xl shadow-indigo-600/30">
+                    TRANG {currentPage} / {Math.ceil(filteredDisplayLeaves.length / itemsPerPage)}
+                </div>
+                <button 
+                  disabled={currentPage === Math.ceil(filteredDisplayLeaves.length / itemsPerPage)}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 disabled:opacity-20 text-white transition-all active:scale-95"
+                >
+                  &rarr;
+                </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Control Console */}
@@ -205,6 +235,7 @@ export default function LeavePage() {
         </div>
 
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-black/20 p-1 rounded-2xl border border-slate-200 dark:border-white/5">
+          <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest border-r border-slate-200 dark:border-white/10 mr-1">View Mode</div>
           <button onClick={() => setViewMode('table')} className={`p-2.5 rounded-xl transition-all ${viewMode === 'table' ? 'bg-white dark:bg-white/10 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-white/30'}`}><List className="w-4 h-4" /></button>
           <button onClick={() => setViewMode('card')} className={`p-2.5 rounded-xl transition-all ${viewMode === 'card' ? 'bg-white dark:bg-white/10 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-white/30'}`}><LayoutGrid className="w-4 h-4" /></button>
         </div>
@@ -236,7 +267,7 @@ export default function LeavePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                  {filteredDisplayLeaves.map((leave) => (
+                  {filteredDisplayLeaves.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((leave) => (
                     <tr key={leave.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                       <td className="px-10 py-5">
                         <div className="flex items-center gap-3">
@@ -273,7 +304,7 @@ export default function LeavePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {filteredDisplayLeaves.map((leave) => (
+            {filteredDisplayLeaves.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((leave) => (
               <div key={leave.id} className="bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[32px] p-8 group transition-all hover:bg-white dark:hover:bg-white/[0.08] shadow-sm">
                 <div className="flex justify-between items-start mb-6">
                   <div>

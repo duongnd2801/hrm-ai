@@ -267,6 +267,11 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 - [2026-04-16T14:22:00+07:00] **Bugfix: EmployeeService Compilation Error**:
   - **Fix:** Bổ sung `ArrayList` và `Map` imports bị thiếu trong `EmployeeService.java`.
   - **Verification:** `mvnw clean compile` passed thành công.
-- [2026-04-16T14:33:00+07:00] **Employee List Sorting Adjustment**:
-  - **Backend:** Cập nhật `@PageableDefault` trong `EmployeeController` để sắp xếp mặc định theo `startDate` ASC.
-  - **Logic:** Đảm bảo nhân viên cũ ở trên, nhân viên mới (newcomers) ở cuối danh sách.
+- [2026-04-16T15:00:00+07:00] **Attendance Matrix UX Hardening**:
+  - **Feature:** Thêm thông tin chi tiết (Tooltip) khi hover vào các ô trong ma trận chấm công.
+  - **Logic:** Sử dụng `formatDate` và `formatTime` từ `utils.ts` để hiển thị Ngày, Trạng thái, Giờ Vào, Giờ Ra và Tổng công.
+- [2026-04-16T15:30:00+07:00] **Documentation & Security Planning**:
+  - **GEMINI.md Overhaul:** Đồng bộ hóa schema DB thực tế (RBAC tables, Extended Employee Fields), Tech Stack (Redis), và đính chính mô tả Docker.
+  - **Plan Created:** Khởi tạo kế hoạch cho Phase Security: Rate Limiting (Redis) và Audit Log cho các business process nhạy cảm.
+
+- [2026-04-17T09:05:00+07:00] **Permission-Based Employee Access Control**: Them permission EMP_VIEW_ALL cho MANAGER/HR/ADMIN. EMPLOYEE chi xem ban than (EMP_VIEW). V31 migration, EmployeeController, EmployeeService da duoc cap nhat. FE tu redirect EMPLOYEE ve profile ca nhan.

@@ -33,13 +33,13 @@ public class EmployeeController {
     private final ImportExportService importExportService;
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAuthority('EMP_VIEW')")
+    @PreAuthorize("hasAuthority('EMP_VIEW_ALL')")
     public ResponseEntity<EmployeeStatsDTO> getStats() {
         return ResponseEntity.ok(employeeService.getStats());
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('EMP_VIEW')")
+    @PreAuthorize("hasAuthority('EMP_VIEW_ALL')")
     public ResponseEntity<PageResponse<EmployeeDTO>> getAllEmployees(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,

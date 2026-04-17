@@ -6,7 +6,7 @@ import { useSession } from '@/components/AuthProvider';
 import type { Attendance, AttendanceSummary, TeamMatrix, CompanyConfig } from '@/types';
 import Toast, { ToastState } from '@/components/Toast';
 import Avatar from '@/components/Avatar';
-import { ChevronLeft, ChevronRight, Eye, Table as TableIcon, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Table as TableIcon, Info, CheckCircle2, AlertCircle, LayoutList, Grid3X3 } from 'lucide-react';
 import ImportMachineModal from './components/ImportMachineModal';
 import { formatDate, formatTime } from '@/lib/utils';
 
@@ -43,6 +43,12 @@ export default function AttendancePage() {
   const [year] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [viewMode, setViewMode] = useState<'calendar' | 'supervision'>('calendar');
+  const [personalViewType, setPersonalViewType] = useState<'matrix' | 'list'>('matrix');
+  const [detailViewType, setDetailViewType] = useState<'matrix' | 'list'>('matrix');
+  const [personalPage, setPersonalPage] = useState(1);
+  const [superPage, setSuperPage] = useState(1);
+  const itemsPerPage = 15;
+  const itemsPerSuperPage = 10;
   
   const [myRecords, setMyRecords] = useState<Attendance[]>([]);
   const [teamSummary, setTeamSummary] = useState<AttendanceSummary[]>([]);
@@ -188,6 +194,128 @@ export default function AttendancePage() {
     );
   };
 
+  const renderListRecords = (recordsList: Attendance[]) => {
+    // Lọc theo tháng năm đang chọn
+    const currentMonthData = recordsList.filter(r => {
+      const d = new Date(r.date);
+      return d.getMonth() + 1 === month && d.getFullYear() === year;
+    }).sort((a,b) => a.date.localeCompare(b.date)); // Đổi sang ASC: Ngày 1 lên dầu
+
+    const totalPages = Math.ceil(currentMonthData.length / itemsPerPage);
+    const paginatedData = currentMonthData.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage);
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Month Selector for List View */}
+        <div className="flex items-center justify-between bg-white/5 backdrop-blur-3xl rounded-[30px] p-4 border border-white/10 shadow-xl">
+           <div className="flex items-center gap-4">
+              <button 
+                onClick={() => { setMonth(m => m > 1 ? m - 1 : 12); setPersonalPage(1); }} 
+                className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-all text-white/50"
+              >
+                <ChevronLeft size={20}/>
+              </button>
+              <span className="text-[14px] font-black text-white uppercase tracking-widest min-w-[120px] text-center">Tháng {month} / {year}</span>
+              <button 
+                onClick={() => { setMonth(m => m < 12 ? m + 1 : 1); setPersonalPage(1); }} 
+                className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-all text-white/50"
+              >
+                <ChevronRight size={20}/>
+              </button>
+           </div>
+           
+           <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mr-4">
+              {currentMonthData.length} bản ghi
+           </div>
+        </div>
+
+        <div className="bg-white/95 dark:bg-black/40 backdrop-blur-3xl rounded-[40px] p-6 border border-white dark:border-white/5 shadow-xl">
+          <div className="overflow-x-auto min-h-[480px]">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-white/30 border-b border-white/10">
+                  <th className="px-6 py-5">Ngày</th>
+                  <th className="px-6 py-5">Giờ vào</th>
+                  <th className="px-6 py-5">Giờ ra</th>
+                  <th className="px-6 py-5 text-center">Tổng giờ</th>
+                  <th className="px-6 py-5 text-right">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {paginatedData.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center text-slate-300 dark:text-white/10 font-black uppercase tracking-widest italic">
+                      Không có dữ liệu trong tháng {month}/{year}
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedData.map((record) => (
+                    <tr key={record.id} className="hover:bg-white/5 transition-all group/row">
+                      <td className="px-6 py-5">
+                        <span className="text-[14px] font-bold text-slate-900 dark:text-white">{formatDate(record.date)}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 tabular-nums">
+                          {record.checkIn ? formatTime(record.checkIn) : '--:--'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 tabular-nums">
+                          {record.checkOut ? formatTime(record.checkOut) : '--:--'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        <span className="px-3 py-1 bg-white/5 rounded-lg text-[13px] font-black text-indigo-400 tabular-nums lowercase border border-white/5">
+                          {record.totalHours ? record.totalHours.toFixed(1) + 'h' : '0h'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColorMap[record.status]}`}>
+                          {statusLabelMap[record.status]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center gap-4">
+               <button 
+                  disabled={personalPage === 1}
+                  onClick={() => setPersonalPage(p => p - 1)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white disabled:opacity-20 hover:bg-white/10 transition-all border border-white/5 shadow-lg"
+               >
+                  <ChevronLeft size={18} />
+               </button>
+               <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPersonalPage(i + 1)}
+                      className={`w-10 h-10 rounded-xl text-[12px] font-black transition-all border ${personalPage === i + 1 ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-white/50 border-white/5 hover:bg-white/10'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+               </div>
+               <button 
+                  disabled={personalPage === totalPages}
+                  onClick={() => setPersonalPage(p => p + 1)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white disabled:opacity-20 hover:bg-white/10 transition-all border border-white/5 shadow-lg"
+               >
+                  <ChevronRight size={18} />
+               </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (!session) return null;
   if (!canView) return <div className="py-20 text-center font-black uppercase text-white/30 tracking-widest">Không có quyền truy cập.</div>;
 
@@ -225,6 +353,24 @@ export default function AttendancePage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
+            {viewMode === 'calendar' && (
+              <div className="flex bg-white/5 backdrop-blur-xl rounded-[24px] p-1.5 border border-white/10 shadow-2xl mr-4">
+                <button 
+                  onClick={() => setPersonalViewType('matrix')}
+                  className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${personalViewType === 'matrix' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                  title="Dạng ma trận"
+                >
+                  <Grid3X3 size={20} />
+                </button>
+                <button 
+                  onClick={() => setPersonalViewType('list')}
+                  className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${personalViewType === 'list' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                  title="Dạng danh sách"
+                >
+                  <LayoutList size={20} />
+                </button>
+              </div>
+            )}
             {canSupervise && (
               <button 
                 onClick={() => {
@@ -291,7 +437,7 @@ export default function AttendancePage() {
       {viewMode === 'calendar' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in duration-1000">
           <div className="lg:col-span-9 space-y-8">
-            {renderMatrixRecords(myRecords)}
+            {personalViewType === 'matrix' ? renderMatrixRecords(myRecords) : renderListRecords(myRecords)}
           </div>
 
           <div className="lg:col-span-3">
@@ -333,32 +479,44 @@ export default function AttendancePage() {
                         <Avatar name={selectedUserMatrix.name} size="xl" />
                         <div>
                            <h2 className="text-5xl font-black text-white uppercase tracking-tighter">{selectedUserMatrix.name}</h2>
-                           <p className="text-[12px] font-black text-indigo-500 uppercase tracking-[0.5em] mt-4">{selectedUserMatrix.dept} — MA TRẬN CHUYÊN CẦN</p>
+                           <p className="text-[12px] font-black text-indigo-500 uppercase tracking-[0.5em] mt-4">{selectedUserMatrix.dept} — CHI TIẾT CHẤM CÔNG</p>
                         </div>
                      </div>
-                     <button onClick={() => setSelectedUserMatrix(null)} className="px-10 py-5 bg-white/10 text-white text-[12px] font-black rounded-2xl uppercase tracking-widest hover:bg-white/20 transition-all">
-                       Quay lại
-                     </button>
+                     <div className="flex items-center gap-6">
+                        <div className="flex bg-white/5 backdrop-blur-xl rounded-[24px] p-1.5 border border-white/10">
+                            <button 
+                                onClick={() => setDetailViewType('matrix')}
+                                className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${detailViewType === 'matrix' ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+                                title="Dạng ma trận"
+                            >
+                                <Grid3X3 size={20} />
+                            </button>
+                            <button 
+                                onClick={() => { setDetailViewType('list'); setPersonalPage(1); }}
+                                className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${detailViewType === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+                                title="Dạng danh sách"
+                            >
+                                <LayoutList size={20} />
+                            </button>
+                        </div>
+                        <button onClick={() => setSelectedUserMatrix(null)} className="px-10 py-5 bg-white/10 text-white text-[12px] font-black rounded-2xl uppercase tracking-widest hover:bg-white/20 transition-all">
+                            Quay lại
+                        </button>
+                     </div>
                   </div>
-                  {renderMatrixRecords(selectedUserMatrix.records)}
+                  {detailViewType === 'matrix' ? renderMatrixRecords(selectedUserMatrix.records) : renderListRecords(selectedUserMatrix.records)}
                </div>
             ) : (
                  <div className="bg-white/80 dark:bg-black/20 backdrop-blur-3xl rounded-[40px] p-12 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl">
-                   <div className="flex items-center justify-between mb-12">
-                        <div className="flex items-center gap-4 bg-slate-100 dark:bg-white/5 p-2 rounded-[24px] border border-black/5 dark:border-white/10">
-                           <button onClick={() => setMonth(m => m > 1 ? m - 1 : 12)} className="w-12 h-12 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-all text-slate-400 dark:text-white/50"><ChevronLeft size={24}/></button>
-                           <span className="px-8 text-[15px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Tháng {month}</span>
-                           <button onClick={() => setMonth(m => m < 12 ? m + 1 : 1)} className="w-12 h-12 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-all text-slate-400 dark:text-white/50"><ChevronRight size={24}/></button>
-                        </div>
-                        <div className="flex items-center gap-4">
-                           <div className="text-right">
-                              <p className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Tổng nhân sự</p>
-                              <p className="text-3xl font-black text-slate-900 dark:text-white">{teamSummary.length}</p>
-                           </div>
-                        </div>
-                   </div>
-
-                   <div className="overflow-x-auto min-h-[1200px]">
+                    <div className="flex items-center justify-between mb-12">
+                         <div className="flex items-center gap-4 bg-slate-100 dark:bg-white/5 p-2 rounded-[24px] border border-black/5 dark:border-white/10">
+                            <button onClick={() => setMonth(m => m > 1 ? m - 1 : 12)} className="w-12 h-12 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-all text-slate-400 dark:text-white/50"><ChevronLeft size={24}/></button>
+                            <span className="px-8 text-[15px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Tháng {month}</span>
+                            <button onClick={() => setMonth(m => m < 12 ? m + 1 : 1)} className="w-12 h-12 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-all text-slate-400 dark:text-white/50"><ChevronRight size={24}/></button>
+                         </div>
+                    </div>
+ 
+                   <div className="overflow-x-auto min-h-[600px]">
                      <table className="w-full text-left border-collapse">
                        <thead className="text-[11px] uppercase tracking-[0.2em] text-slate-600 dark:text-white/70 font-black border-b border-black/5 dark:border-white/10 sticky top-0 z-20 backdrop-blur-md">
                          <tr>
@@ -374,7 +532,7 @@ export default function AttendancePage() {
                          {teamSummary.length === 0 ? (
                            <tr><td colSpan={6} className="py-40 text-center text-slate-300 dark:text-white/10 font-black uppercase tracking-[1em] italic">Đang tải dữ liệu...</td></tr>
                          ) : (
-                           teamSummary.map((row) => (
+                           teamSummary.slice((superPage - 1) * itemsPerSuperPage, superPage * itemsPerSuperPage).map((row) => (
                              <tr key={row.employeeId} className="group/row hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all duration-200">
                                <td className="px-6 py-5">
                                   <div className="flex items-center gap-4">
@@ -393,7 +551,7 @@ export default function AttendancePage() {
                                <td className="px-6 py-5 text-center font-bold text-rose-600 dark:text-rose-500 text-lg tabular-nums">{row.absentCount}</td>
                                <td className="px-6 py-5 text-right">
                                   <button 
-                                    onClick={() => fetchUserMatrix(row.employeeId, row.employeeName, row.departmentName)}
+                                    onClick={() => { fetchUserMatrix(row.employeeId, row.employeeName, row.departmentName); setSuperPage(1); }}
                                     className="px-4 py-2 bg-indigo-500/10 dark:bg-white/10 text-indigo-600 dark:text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all active:scale-90"
                                   >
                                     Chi tiết
@@ -405,6 +563,34 @@ export default function AttendancePage() {
                        </tbody>
                      </table>
                    </div>
+                   
+                   {/* Pagination for Team Summary */}
+                   {teamSummary.length > itemsPerSuperPage && (
+                     <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
+                        <div className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest font-sans">
+                           Hiển thị {superPage * itemsPerSuperPage - itemsPerSuperPage + 1} - {Math.min(superPage * itemsPerSuperPage, teamSummary.length)} trên tổng số {teamSummary.length} thành viên
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <button 
+                             disabled={superPage === 1}
+                             onClick={() => setSuperPage(p => p - 1)}
+                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                           >
+                             <ChevronLeft size={18} />
+                           </button>
+                           <div className="px-6 py-2 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
+                              Trang {superPage} / {Math.ceil(teamSummary.length / itemsPerSuperPage)}
+                           </div>
+                           <button 
+                             disabled={superPage === Math.ceil(teamSummary.length / itemsPerSuperPage)}
+                             onClick={() => setSuperPage(p => p + 1)}
+                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                           >
+                             <ChevronRight size={18} />
+                           </button>
+                        </div>
+                     </div>
+                   )}
                  </div>
             )}
         </div>

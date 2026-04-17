@@ -38,6 +38,8 @@ export default function PositionTable({ canManage = false, canToggleLock = false
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const pushToast = (kind: ToastState['kind'], message: string) =>
     setToast({ show: true, kind, message });
@@ -192,7 +194,7 @@ export default function PositionTable({ canManage = false, canToggleLock = false
                   <td colSpan={3} className="px-8 py-10 text-center text-slate-500/60 dark:text-white/50 font-bold uppercase text-xs italic tracking-[0.2em] animate-pulse">Hệ thống chưa thiết lập danh mục vị trí</td>
                 </tr>
               ) : (
-                positions.map((position) => (
+                positions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((position) => (
                   <tr key={position.id} className={`group hover:bg-indigo-500/[0.05] dark:bg-slate-900/40 dark:hover:bg-indigo-500/10 transition-all duration-300 ${position.isLocked ? "bg-slate-50 dark:bg-slate-900/60 opacity-60" : ""}`}>
                     <td className="px-8 py-3">
                        <span className={`text-[12px] font-black uppercase tracking-tight ${position.isLocked ? "text-slate-400 dark:text-white/30" : "text-slate-900 dark:text-white"}`}>{position.name}</span>
@@ -236,6 +238,34 @@ export default function PositionTable({ canManage = false, canToggleLock = false
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {positions.length > itemsPerPage && (
+        <div className="flex items-center justify-between px-6 pb-4">
+          <div className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">
+            Tổng {positions.length} vị trí
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+            >
+              &larr;
+            </button>
+            <div className="px-6 py-2 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
+                Trang {currentPage} / {Math.ceil(positions.length / itemsPerPage)}
+            </div>
+            <button 
+              disabled={currentPage === Math.ceil(positions.length / itemsPerPage)}
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+            >
+              &rarr;
+            </button>
+          </div>
         </div>
       )}
 

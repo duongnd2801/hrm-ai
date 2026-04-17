@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final com.hrm.security.RateLimitFilter rateLimitFilter;
     private final CustomUserDetailsService userDetailsService;
     private final CorsConfig corsConfig;
 
@@ -66,6 +67,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

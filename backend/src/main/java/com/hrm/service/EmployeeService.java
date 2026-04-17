@@ -31,6 +31,7 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final AuditService auditService;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final AttendanceRepository attendanceRepository;
@@ -87,6 +88,19 @@ public class EmployeeService {
     public EmployeeDTO getEmployeeById(UUID id, Authentication authentication) {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+
+        // Nếu không có EMP_VIEW_ALL (tức là EMPLOYEE thường), chỉ được xem chính mình
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_ALL"));
+        if (!canViewAll) {
+            User currentUser = userRepository.findByEmail(authentication.getName()).orElse(null);
+            boolean isOwner = currentUser != null && emp.getUser() != null
+                    && emp.getUser().getId().equals(currentUser.getId());
+            if (!isOwner) {
+                throw new AccessDeniedException("Bạn chỉ được xem thông tin cá nhân của chính mình.");
+            }
+        }
+
         return filterSensitiveData(mapToDTO(emp), authentication);
     }
 
@@ -134,6 +148,10 @@ public class EmployeeService {
             emp.setUser(user);
 
             emp = employeeRepository.save(emp);
+
+            // Log Audit
+            auditService.logSystem("CREATE_EMPLOYEE", "employees", emp.getId().toString(), null, emp);
+
             return mapToDTO(emp);
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("Dữ liệu không hợp lệ hoặc email đã tồn tại");
@@ -273,13 +291,14 @@ public class EmployeeService {
         if (authentication == null)
             return dto;
 
-        boolean isElevated = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_HR") || a.getAuthority().equals("ROLE_ADMIN"));
+        // Dùng permission EMP_VIEW_ALL thay vì authority role để nhất quán với RBAC
+        boolean canViewAll = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_ALL"));
 
         User currentUser = userRepository.findByEmail(authentication.getName()).orElse(null);
         boolean isOwner = currentUser != null && dto.getUserId() != null && dto.getUserId().equals(currentUser.getId());
 
-        if (!isElevated && !isOwner) {
+        if (!canViewAll && !isOwner) {
             // Mask sensitive data for other employees
             dto.setBaseSalary(null);
             dto.setTaxDependents(null);

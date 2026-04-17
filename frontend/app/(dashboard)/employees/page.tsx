@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useState } from 'react';
 import { useSession } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
 import EmployeeTable from './components/EmployeeTable';
 import ImportExcelModal from './components/ImportExcelModal';
 import CreateEmployeeModal from './components/CreateEmployeeModal';
@@ -11,6 +12,7 @@ import Toast, { ToastState } from '@/components/Toast';
 
 export default function EmployeesPage() {
   const { session } = useSession();
+  const router = useRouter();
   const [showImport, setShowImport] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
@@ -30,14 +32,45 @@ export default function EmployeesPage() {
   });
 
   useEffect(() => {
+    if (!session) return;
+    // Nếu không có EMP_VIEW_ALL → redirect về profile của chính mình
+    if (!session.permissions.includes('EMP_VIEW_ALL')) {
+      if (session.employeeId) {
+        router.replace(`/employees/${session.employeeId}`);
+      }
+      return;
+    }
     void fetchStats();
-  }, [refreshKey]);
+  }, [refreshKey, session]);
 
   if (!session) return null;
+  const canViewAll = session.permissions.includes('EMP_VIEW_ALL');
   const canView = session.permissions.includes('EMP_VIEW');
   const canCreate = session.permissions.includes('EMP_CREATE');
   const canImport = session.permissions.includes('EMP_IMPORT');
   const canExport = session.permissions.includes('EMP_EXPORT');
+
+  // Nếu không có EMP_VIEW_ALL và chưa redirect (không có employeeId), hiện thông báo
+  if (!canViewAll && !session.employeeId) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 gap-4">
+        <div className="text-5xl">🔒</div>
+        <div className="text-rose-400 font-black uppercase tracking-widest text-center">
+          Tài khoản chưa được gắn hồ sơ nhân viên.
+        </div>
+        <p className="text-white/40 text-sm">Vui lòng liên hệ Admin để được hỗ trợ.</p>
+      </div>
+    );
+  }
+
+  // Nếu EMPLOYEE có employeeId, đang được redirect (showspinner trong khi chờ)
+  if (!canViewAll) {
+    return (
+      <div className="flex items-center justify-center p-20">
+        <div className="w-10 h-10 border-4 border-white/20 border-t-indigo-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
 

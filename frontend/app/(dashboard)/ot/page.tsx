@@ -40,6 +40,10 @@ export default function OTPage() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
   const [myViewMode, setMyViewMode] = useState<'card' | 'table'>('card');
+  const [personalPage, setPersonalPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [reviewedPage, setReviewedPage] = useState(1);
+  const itemsPerPage = 8;
 
   const permissions = session?.permissions ?? [];
   const canView = permissions.includes('OT_VIEW');
@@ -289,54 +293,82 @@ export default function OTPage() {
                         </td>
                       </tr>
                     )}
-                    {currentDisplayItems.map(item => (
-                      <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
-                              {item.employeeName?.charAt(0) || '?'}
-                            </div>
-                            <div>
-                              <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                              <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <p className="text-[11px] text-slate-500 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="space-y-1">
-                            <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.date)}</p>
-                            <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em]">{item.hours} GIỜ</p>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <StatusBadge status={item.status} />
-                        </td>
-                        {activeTab === 'pending' && (
-                          <td className="px-8 py-6 text-right">
-                            <div className="flex items-center justify-end gap-3 transition-all shrink-0">
-                              <button
-                                onClick={() => void review(item.id, true)}
-                                className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
-                              >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                              </button>
-                              <button
-                                onClick={() => void review(item.id, false)}
-                                className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all"
-                              >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
+                    {(activeTab === 'pending' 
+                         ? pendingItems.slice((pendingPage-1)*itemsPerPage, pendingPage*itemsPerPage) 
+                         : reviewedItems.slice((reviewedPage-1)*itemsPerPage, reviewedPage*itemsPerPage)
+                       ).map(item => (
+                       <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                         <td className="px-8 py-6">
+                           <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
+                               {item.employeeName?.charAt(0) || '?'}
+                             </div>
+                             <div>
+                               <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
+                               <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
+                             </div>
+                           </div>
+                         </td>
+                         <td className="px-8 py-6">
+                           <p className="text-[11px] text-slate-500 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                         </td>
+                         <td className="px-8 py-6">
+                           <div className="space-y-1">
+                             <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.date)}</p>
+                             <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em]">{item.hours} GIỜ</p>
+                           </div>
+                         </td>
+                         <td className="px-8 py-6">
+                           <StatusBadge status={item.status} />
+                         </td>
+                         {activeTab === 'pending' && (
+                           <td className="px-8 py-6 text-right">
+                             <div className="flex items-center justify-end gap-3 transition-all shrink-0">
+                               <button
+                                 onClick={() => void review(item.id, true)}
+                                 className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                               >
+                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                               </button>
+                               <button
+                                 onClick={() => void review(item.id, false)}
+                                 className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all"
+                               >
+                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                               </button>
+                             </div>
+                           </td>
+                         )}
+                       </tr>
+                     ))}
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination for Manager */}
+              {((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) > itemsPerPage) && (
+                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <div className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">
+                       Trang {(activeTab === 'pending' ? pendingPage : reviewedPage)} / {Math.ceil((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) / itemsPerPage)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button 
+                         disabled={(activeTab === 'pending' ? pendingPage : reviewedPage) === 1}
+                         onClick={() => activeTab === 'pending' ? setPendingPage(p => p - 1) : setReviewedPage(p => p - 1)}
+                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20"
+                       >
+                         &larr;
+                       </button>
+                       <button 
+                         disabled={(activeTab === 'pending' ? pendingPage : reviewedPage) === Math.ceil((activeTab === 'pending' ? pendingItems.length : reviewedItems.length) / itemsPerPage)}
+                         onClick={() => activeTab === 'pending' ? setPendingPage(p => p + 1) : setReviewedPage(p => p + 1)}
+                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 disabled:opacity-20"
+                       >
+                         &rarr;
+                       </button>
+                    </div>
+                 </div>
+               )}
             </div>
           ) : (
             /* ── EMPLOYEE: My OT with Card/Table toggle ── */
@@ -385,22 +417,22 @@ export default function OTPage() {
               ) : myViewMode === 'card' ? (
                 /* Card view */
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {myItems.map(item => (
-                    <div key={item.id} className="bg-white/90 dark:bg-white/5 backdrop-blur-sm rounded-[28px] border border-slate-200 dark:border-white/5 p-6 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-500 group relative overflow-hidden shadow-sm dark:shadow-none">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 blur-2xl -mr-10 -mt-10 group-hover:bg-rose-500/10 transition-all duration-700" />
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">{formatDate(item.date)}</p>
-                          <p className="text-2xl font-black text-rose-500 dark:text-rose-400">{item.hours}<span className="text-sm ml-1">giờ</span></p>
-                        </div>
-                        <StatusBadge status={item.status} />
-                      </div>
-                      <p className="text-slate-500 dark:text-white/40 text-xs italic font-medium border-l-2 border-rose-400/50 pl-3 line-clamp-2">
-                        "{item.reason || '...'}"
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                   {myItems.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage).map(item => (
+                     <div key={item.id} className="bg-white/90 dark:bg-white/5 backdrop-blur-sm rounded-[28px] border border-slate-200 dark:border-white/5 p-6 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-500 group relative overflow-hidden shadow-sm dark:shadow-none">
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 blur-2xl -mr-10 -mt-10 group-hover:bg-rose-500/10 transition-all duration-700" />
+                       <div className="flex justify-between items-start mb-4">
+                         <div>
+                           <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-1">{formatDate(item.date)}</p>
+                           <p className="text-2xl font-black text-rose-500 dark:text-rose-400">{item.hours}<span className="text-sm ml-1">giờ</span></p>
+                         </div>
+                         <StatusBadge status={item.status} />
+                       </div>
+                       <p className="text-slate-500 dark:text-white/40 text-xs italic font-medium border-l-2 border-rose-400/50 pl-3 line-clamp-2">
+                         "{item.reason || '...'}"
+                       </p>
+                     </div>
+                   ))}
+                 </div>
               ) : (
                 /* Table view */
                 <div className="bg-white/90 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-[32px] overflow-hidden shadow-sm dark:shadow-none">
@@ -415,27 +447,50 @@ export default function OTPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                        {myItems.map(item => (
-                          <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
-                            <td className="px-8 py-5">
-                              <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{formatDate(item.date)}</span>
-                            </td>
-                            <td className="px-8 py-5 text-center">
-                              <span className="text-rose-500 dark:text-rose-400 font-black text-sm">{item.hours}h</span>
-                            </td>
-                            <td className="px-8 py-5 max-w-[300px]">
-                              <p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium line-clamp-2">"{item.reason || '...'}"</p>
-                            </td>
-                            <td className="px-8 py-5 text-center">
-                              <StatusBadge status={item.status} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                         {myItems.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage).map(item => (
+                           <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
+                             <td className="px-8 py-5">
+                               <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{formatDate(item.date)}</span>
+                             </td>
+                             <td className="px-8 py-5 text-center">
+                               <span className="text-rose-500 dark:text-rose-400 font-black text-sm">{item.hours}h</span>
+                             </td>
+                             <td className="px-8 py-5 max-w-[300px]">
+                               <p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium line-clamp-2">"{item.reason || '...'}"</p>
+                             </td>
+                             <td className="px-8 py-5 text-center">
+                               <StatusBadge status={item.status} />
+                             </td>
+                           </tr>
+                         ))}
+                       </tbody>
+                     </table>
+                   </div>
+                 </div>
               )}
+
+              {/* Personal Pagination */}
+               {myItems.length > itemsPerPage && (
+                  <div className="mt-8 flex justify-center items-center gap-4">
+                     <button 
+                       disabled={personalPage === 1}
+                       onClick={() => setPersonalPage(p => p - 1)}
+                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white disabled:opacity-20"
+                     >
+                        &larr;
+                     </button>
+                     <div className="px-6 py-2 bg-rose-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/30">
+                        Trang {personalPage} / {Math.ceil(myItems.length / itemsPerPage)}
+                     </div>
+                     <button 
+                       disabled={personalPage === Math.ceil(myItems.length / itemsPerPage)}
+                       onClick={() => setPersonalPage(p => p + 1)}
+                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white disabled:opacity-20"
+                     >
+                        &rarr;
+                     </button>
+                  </div>
+               )}
             </div>
           )}
         </div>

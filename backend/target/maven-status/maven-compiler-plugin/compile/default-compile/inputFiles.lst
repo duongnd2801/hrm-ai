@@ -30,6 +30,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\EmployeeController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\OTStatus.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\CompanyService.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\AuditLog.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Project.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\DashboardService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\AttendanceController.java
@@ -48,6 +49,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\OTCreateRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserManagementDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\CompanyConfigRepository.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\CachedBodyHttpServletRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserStatsDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\UserManagementService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ProjectRole.java
@@ -57,6 +59,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChangePasswordResponse.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ApologyStatus.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ApologyDTO.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\AuditLogRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\AuthService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ProjectService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\RedisService.java
@@ -69,6 +72,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChangeP
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\AttendanceStatus.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\GenderType.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ContractType.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\RateLimitFilter.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ProjectMember.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChatRequestDto.java
@@ -84,6 +88,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\Project
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\LeaveRequestController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChatResponseDto.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\JwtAuthFilter.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\AuditService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Payroll.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\NotificationRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\AttendanceSummaryDTO.java
@@ -95,6 +100,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChatHistoryItemDto.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\ApologyRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\PermissionService.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\RateLimitService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\DepartmentDTO.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ProjectType.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\DashboardSummaryDTO.java

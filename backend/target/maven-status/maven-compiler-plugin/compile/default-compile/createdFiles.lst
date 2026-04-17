@@ -85,7 +85,6 @@ com\hrm\repository\UserRepository.class
 com\hrm\service\UserManagementService.class
 com\hrm\service\AuthService.class
 com\hrm\dto\DeviceSession$DeviceSessionBuilder.class
-com\hrm\HrmApplication.class
 com\hrm\dto\UserStatsDTO.class
 com\hrm\repository\EmployeeRepository.class
 com\hrm\entity\OTRequest.class
