@@ -104,7 +104,7 @@ async function runHealthCheck() {
     const database = payload.database === 'UP' ? 'UP' : 'DOWN';
     const healthy = response.ok && status === 'READY' && database === 'UP';
 
-    if (!healthy) {
+    if (!healthy && active) {
       logDown(`Backend not ready: status=${status}, database=${database}`);
     }
 
@@ -118,9 +118,19 @@ async function runHealthCheck() {
     });
     scheduleNext(BASE_INTERVAL_MS);
   } catch (error) {
+    // 1. Silent handle AbortError as it is intentional
+    if (error instanceof Error && error.name === 'AbortError') {
+      return;
+    }
+
     const message =
       error instanceof Error ? error.message : 'Health check request failed';
-    logDown(`Health check failed: ${message}`);
+    
+    // 2. Only log if still active to avoid noisy logs on unmount/background
+    if (active) {
+      logDown(`Health check failed: ${message}`);
+    }
+
     currentIntervalMs = Math.min(currentIntervalMs * 2, MAX_INTERVAL_MS);
     setState({
       healthy: false,

@@ -20,7 +20,10 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Refactor:** Tạo `CacheNames.java` quản lý constant. Cấu hình TTL riêng biệt (Stats: 5m, Default: 24h).
   - **DTO Clean:** Loại bỏ `Serializable` không cần thiết khi dùng JSON.
   - **Logic:** Áp dụng Targeted Evict cho Employee (theo ID) và Holiday (theo Year). Gia cố Evict toàn phần cho Role/Permission matrix.
-  - **Status:** ✅ Hoàn tất refactor theo feedback người dùng, hệ thống ổn định và dễ bảo trì hơn.
+  - **Status:** ✅ Hoàn tất refactor theo feedback người dùng.
+- [2026-04-20T10:52:00+07:00] **UX Refinement: Clean Terminal Logs**:
+  - **Frontend:** Xử lý `AbortError` trong `healthService.ts` để loại bỏ log lỗi "signal is aborted" giả mạo. Cải thiện hiệu suất log cho Next.js dev server.
+  - **Status:** ✅ Hoàn tất.
 - Blockers: Không có.
 
 ### Open Backlog (Canonical)
