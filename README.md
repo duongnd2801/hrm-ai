@@ -360,6 +360,6 @@ Download file mẫu: **Nhân viên → Import Excel → Tải template mẫu**
 
 - Windows 11
 - Java 21 (Temurin/Adoptium)
-- Node.js 20 LTS
+- Node.js 24.15.0 LTS
 - PostgreSQL 16
 - Docker Desktop 4.x
