@@ -11,6 +11,7 @@ import com.hrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,6 +71,7 @@ public class AttendanceService {
     private int jdbcMultiRowsPerStatement;
 
     @Transactional
+    @CacheEvict(value = "employee_stats", allEntries = true)
     public AttendanceDTO checkIn(Authentication authentication) {
         Employee employee = resolveCurrentEmployee(authentication);
         LocalDateTime now = LocalDateTime.now(APP_ZONE);
@@ -102,6 +104,7 @@ public class AttendanceService {
     }
 
     @Transactional
+    @CacheEvict(value = "employee_stats", allEntries = true)
     public AttendanceDTO checkOut(Authentication authentication) {
         Employee employee = resolveCurrentEmployee(authentication);
         LocalDateTime now = LocalDateTime.now(APP_ZONE);
@@ -624,6 +627,7 @@ public class AttendanceService {
     }
 
     @Transactional
+    @CacheEvict(value = "employee_stats", allEntries = true)
     public void recalculateMonthlyAttendance(Integer month, Integer year, Authentication authentication) {
         if (!hasAuthority(authentication, "ATT_IMPORT")) {
             throw new AccessDeniedException("Bạn không có quyền tính toán lại dữ liệu chuyên cần.");

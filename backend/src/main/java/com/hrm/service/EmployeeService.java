@@ -1,5 +1,6 @@
 package com.hrm.service;
 
+import com.hrm.config.CacheNames;
 import com.hrm.dto.EmployeeStatsDTO;
 import java.time.LocalDate;
 import com.hrm.dto.PageResponse;
@@ -15,6 +16,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +41,7 @@ public class EmployeeService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.EMPLOYEE_STATS, key = "'summary'")
     public EmployeeStatsDTO getStats() {
         long currentWorking = employeeRepository.countByStatusNot(EmpStatus.INACTIVE);
         return EmployeeStatsDTO.builder()
@@ -85,6 +89,7 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.EMPLOYEE_DETAILS, key = "#id")
     public EmployeeDTO getEmployeeById(UUID id, Authentication authentication) {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
@@ -105,6 +110,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.EMPLOYEE_STATS, allEntries = true)
     public EmployeeDTO createEmployee(EmployeeDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException("Payload không hợp lệ");
@@ -159,6 +165,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.EMPLOYEE_STATS, allEntries = true)
     public int createEmployeesBatch(List<EmployeeDTO> dtos) {
         if (dtos == null || dtos.isEmpty()) return 0;
 
@@ -198,6 +205,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.EMPLOYEE_DETAILS, key = "#id")
     public EmployeeDTO updateEmployee(UUID id, EmployeeDTO dto) {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
@@ -230,6 +238,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.EMPLOYEE_DETAILS, key = "#id")
     public EmployeeDTO updatePersonalInfo(UUID id, EmployeePersonalInfoDTO dto, Authentication authentication) {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));

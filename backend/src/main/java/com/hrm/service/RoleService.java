@@ -1,5 +1,6 @@
 package com.hrm.service;
 
+import com.hrm.config.CacheNames;
 import com.hrm.dto.PermissionDTO;
 import com.hrm.dto.RoleDTO;
 import com.hrm.entity.Permission;
@@ -7,6 +8,9 @@ import com.hrm.entity.Role;
 import com.hrm.repository.PermissionRepository;
 import com.hrm.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +26,14 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
+    @Cacheable(value = CacheNames.ROLES, key = "'all_roles'")
     public List<RoleDTO> getAllRoles() {
         return roleRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = CacheNames.PERMISSIONS, key = "'all_permissions'")
     public List<PermissionDTO> getAllPermissions() {
         return permissionRepository.findAll().stream()
                 .map(this::toPermissionDTO)
@@ -35,6 +41,10 @@ public class RoleService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.ROLES, allEntries = true),
+        @CacheEvict(value = CacheNames.PERMISSIONS, allEntries = true)
+    })
     public RoleDTO createRole(RoleDTO dto) {
         Role role = new Role();
         role.setName(dto.getName());
@@ -44,6 +54,10 @@ public class RoleService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.ROLES, allEntries = true),
+        @CacheEvict(value = CacheNames.PERMISSIONS, allEntries = true)
+    })
     public RoleDTO updateRole(UUID id, RoleDTO dto) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
@@ -70,6 +84,10 @@ public class RoleService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.ROLES, allEntries = true),
+        @CacheEvict(value = CacheNames.PERMISSIONS, allEntries = true)
+    })
     public void deleteRole(UUID id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));

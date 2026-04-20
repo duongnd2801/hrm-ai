@@ -1,5 +1,6 @@
 package com.hrm.service;
 
+import com.hrm.config.CacheNames;
 import com.hrm.dto.CompanyConfigDTO;
 import com.hrm.dto.DepartmentDTO;
 import com.hrm.dto.PositionDTO;
@@ -11,6 +12,8 @@ import com.hrm.repository.DepartmentRepository;
 import com.hrm.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class CompanyService {
 
     // --- Company Config ---
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.COMPANY_CONFIG, key = "'default'")
     public CompanyConfigDTO getConfig() {
         CompanyConfig config = configRepository.findAll().stream()
                 .findFirst()
@@ -42,6 +46,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.COMPANY_CONFIG, key = "'default'")
     public CompanyConfigDTO updateConfig(CompanyConfigDTO dto) {
         CompanyConfig config = configRepository.findAll().stream()
                 .findFirst()
@@ -60,6 +65,7 @@ public class CompanyService {
 
     // --- Departments ---
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.DEPARTMENTS, key = "'all'")
     public List<DepartmentDTO> getAllDepartments() {
         return departmentRepository.findAll().stream().map(dept -> {
             DepartmentDTO dto = new DepartmentDTO();
@@ -69,6 +75,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.DEPARTMENTS, allEntries = true)
     public DepartmentDTO createDepartment(DepartmentDTO dto) {
         if (departmentRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new RuntimeException("Tên phòng ban đã tồn tại");
@@ -81,6 +88,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.DEPARTMENTS, allEntries = true)
     public DepartmentDTO updateDepartment(UUID id, DepartmentDTO dto) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
@@ -94,12 +102,14 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.DEPARTMENTS, allEntries = true)
     public void deleteDepartment(UUID id) {
         departmentRepository.deleteById(id);
     }
 
     // --- Positions ---
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.POSITIONS, key = "'all'")
     public List<PositionDTO> getAllPositions() {
         return positionRepository.findAll().stream().map(pos -> {
             PositionDTO dto = new PositionDTO();
@@ -109,6 +119,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.POSITIONS, allEntries = true)
     public PositionDTO createPosition(PositionDTO dto) {
         if (positionRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new RuntimeException("Tên vị trí đã tồn tại");
@@ -121,6 +132,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.POSITIONS, allEntries = true)
     public PositionDTO updatePosition(UUID id, PositionDTO dto) {
         Position pos = positionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Position not found"));
@@ -137,6 +149,7 @@ public class CompanyService {
     }
     
     @Transactional
+    @CacheEvict(value = CacheNames.POSITIONS, allEntries = true)
     public PositionDTO togglePositionLock(UUID id, boolean locked) {
         Position pos = positionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Position not found"));
@@ -148,6 +161,7 @@ public class CompanyService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.POSITIONS, allEntries = true)
     public void deletePosition(UUID id) {
         Position pos = positionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Position not found"));
