@@ -276,6 +276,7 @@ export interface ProjectMember {
   role: ProjectRole;
   joinedAt?: string;
   leftAt?: string;
+  contributionPercentage?: number;
 }
 
 export interface EmployeeProject {
@@ -288,6 +289,7 @@ export interface EmployeeProject {
   role: ProjectRole;
   joinedAt?: string;
   leftAt?: string;
+  contributionPercentage?: number;
 }
 
 

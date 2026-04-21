@@ -130,6 +130,7 @@ public class ProjectService {
         member.setRole(request.getRole());
         member.setJoinedAt(request.getJoinedAt());
         member.setLeftAt(request.getLeftAt());
+        member.setContributionPercentage(request.getContributionPercentage() != null ? request.getContributionPercentage() : 0);
 
         return mapMemberToResponse(projectMemberRepository.save(member));
     }
@@ -170,6 +171,7 @@ public class ProjectService {
                 .role(member.getRole())
                 .joinedAt(member.getJoinedAt())
                 .leftAt(member.getLeftAt())
+                .contributionPercentage(member.getContributionPercentage())
                 .build();
     }
 
@@ -211,6 +213,7 @@ public class ProjectService {
                 .role(member.getRole())
                 .joinedAt(member.getJoinedAt())
                 .leftAt(member.getLeftAt())
+                .contributionPercentage(member.getContributionPercentage())
                 .build();
     }
 }

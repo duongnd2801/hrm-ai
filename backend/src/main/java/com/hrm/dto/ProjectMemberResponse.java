@@ -19,4 +19,5 @@ public class ProjectMemberResponse {
     private ProjectRole role;
     private LocalDate joinedAt;
     private LocalDate leftAt;
+    private Integer contributionPercentage;
 }

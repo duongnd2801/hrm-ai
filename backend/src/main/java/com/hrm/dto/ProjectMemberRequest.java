@@ -18,4 +18,6 @@ public class ProjectMemberRequest {
     private LocalDate joinedAt;
     
     private LocalDate leftAt;
+    
+    private Integer contributionPercentage;
 }

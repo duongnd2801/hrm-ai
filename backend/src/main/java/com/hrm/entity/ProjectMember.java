@@ -40,6 +40,8 @@ public class ProjectMember {
     private LocalDate joinedAt;
 
     private LocalDate leftAt;
+    
+    private Integer contributionPercentage;
 
     @CreationTimestamp
     @Column(updatable = false)

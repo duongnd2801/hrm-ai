@@ -8,16 +8,18 @@ interface ProjectMemberDialogProps {
   projectId: string;
   currentMemberIds?: string[];
   onClose: () => void;
-  onSave: (data: { employeeId: string; role: string; joinedAt?: string; leftAt?: string }) => Promise<void>;
+  initialData?: { employeeId: string; role: string; joinedAt?: string; leftAt?: string; contributionPercentage?: number };
+  onSave: (data: { employeeId: string; role: string; joinedAt?: string; leftAt?: string; contributionPercentage?: number }) => Promise<void>;
 }
 
-export default function ProjectMemberDialog({ projectId, currentMemberIds = [], onClose, onSave }: ProjectMemberDialogProps) {
+export default function ProjectMemberDialog({ projectId, currentMemberIds = [], onClose, onSave, initialData }: ProjectMemberDialogProps) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [formData, setFormData] = useState({
-    employeeId: '',
-    role: 'DEV',
-    joinedAt: new Date().toISOString().split('T')[0],
-    leftAt: ''
+    employeeId: initialData?.employeeId || '',
+    role: initialData?.role || 'DEV',
+    joinedAt: initialData?.joinedAt || new Date().toISOString().split('T')[0],
+    leftAt: initialData?.leftAt || '',
+    contributionPercentage: initialData?.contributionPercentage ?? 100
   });
   
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function ProjectMemberDialog({ projectId, currentMemberIds = [], 
 
   const employeeOptions = useMemo(() => {
     return employees
-      .filter(emp => !currentMemberIds.includes(emp.id))
+      .filter(emp => !currentMemberIds.includes(emp.id) || emp.id === initialData?.employeeId)
       .map(emp => ({
         id: emp.id,
         label: emp.fullName,
@@ -66,7 +68,8 @@ export default function ProjectMemberDialog({ projectId, currentMemberIds = [], 
     setLoading(true);
     await onSave({
       ...formData,
-      leftAt: formData.leftAt ? formData.leftAt : undefined
+      leftAt: formData.leftAt ? formData.leftAt : undefined,
+      contributionPercentage: Number(formData.contributionPercentage)
     });
     setLoading(false);
   };
@@ -76,7 +79,7 @@ export default function ProjectMemberDialog({ projectId, currentMemberIds = [], 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg flex flex-col pt-2 relative">
         
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 rounded-t-2xl">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Thêm nhân sự vào dự án</h2>
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{initialData ? 'Cập nhật thành sự' : 'Thêm nhân sự vào dự án'}</h2>
           <button 
             onClick={onClose}
             className="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 transition-colors"
@@ -93,6 +96,7 @@ export default function ProjectMemberDialog({ projectId, currentMemberIds = [], 
                 label="Nhân viên"
                 value={formData.employeeId}
                 options={employeeOptions}
+                disabled={!!initialData}
                 placeholder="--- Bấm để tìm kiếm nhân viên ---"
                 onSelect={(id) => setFormData(prev => ({ ...prev, employeeId: id || '' }))}
               />
@@ -130,6 +134,26 @@ export default function ProjectMemberDialog({ projectId, currentMemberIds = [], 
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
                 />
               </div>
+            </div>
+            
+            <div className="space-y-1.5 mt-4">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">% Tham gia dự án</label>
+                <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{formData.contributionPercentage}%</span>
+              </div>
+              <input
+                type="range"
+                name="contributionPercentage"
+                min="0"
+                max="100"
+                step="5"
+                value={formData.contributionPercentage}
+                onChange={handleChange}
+                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                * VD: Nếu NV làm 2 dự án song song thì chia 50-50 hoặc 30-70.
+              </p>
             </div>
 
           </form>

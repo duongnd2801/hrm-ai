@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, UserPlus, Trash2, Calendar, LayoutTemplate } from 'lucide-react';
+import { ArrowLeft, UserPlus, Trash2, Calendar, LayoutTemplate, Pencil } from 'lucide-react';
 import { projectApi } from '@/lib/projectApi';
 import { useSession } from '@/components/AuthProvider';
 import type { Project, ProjectMember, ProjectRole } from '@/types';
@@ -25,6 +25,7 @@ export default function ProjectDetailsPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ show: boolean, id: string, name: string }>({ 
     show: false, id: '', name: '' 
   });
+  const [editingMember, setEditingMember] = useState<ProjectMember | null>(null);
 
   const showToast = (kind: ToastState['kind'], message: string) => 
     setToast({ show: true, kind, message });
@@ -60,8 +61,9 @@ export default function ProjectDetailsPage() {
   const handleAddMember = async (data: { employeeId: string; role: string; joinedAt?: string; leftAt?: string }) => {
     try {
       await projectApi.addOrUpdateMember(projectId, data);
-      showToast('success', 'Đã thêm nhân sự vào dự án thành công');
+      showToast('success', editingMember ? 'Đã cập nhật thông tin thành viên' : 'Đã thêm nhân sự vào dự án thành công');
       setIsMemberDialogOpen(false);
+      setEditingMember(null);
       loadData();
     } catch (err: any) {
       showToast('error', err?.response?.data?.message || 'Lỗi khi thêm thành viên');
@@ -184,7 +186,8 @@ export default function ProjectDetailsPage() {
               <tr className="bg-black/5 dark:bg-white/5">
                 <th className="p-6 pl-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Nhân viên</th>
                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Email liên hệ</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Vị trí trong dự án</th>
+                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30 whitespace-nowrap">Vai trò dự án</th>
+                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30 text-center whitespace-nowrap">% Tham gia</th>
                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Ngày gia nhập</th>
                 {canManage && (
                   <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30 text-right pr-10 whitespace-nowrap shrink-0">Thao tác</th>
@@ -216,10 +219,25 @@ export default function ProjectDetailsPage() {
                     </td>
                     <td className="p-6 text-[12px] font-bold text-slate-500 dark:text-white/40 tracking-widest truncate max-w-[150px]">{member.employeeEmail}</td>
                     <td className="p-6 whitespace-nowrap">{getRoleBadge(member.role)}</td>
+                    <td className="p-6 text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                        <span className="text-[14px] font-black text-indigo-600 dark:text-indigo-400">{member.contributionPercentage || 0}%</span>
+                      </div>
+                    </td>
                     <td className="p-6 text-[12px] font-black text-slate-500 dark:text-emerald-400 tracking-widest uppercase whitespace-nowrap">{member.joinedAt || 'KHÔNG RÕ'}</td>
                     {canManage && (
                       <td className="p-6 text-right pr-10">
                         <div className="flex justify-end shrink-0">
+                          <button
+                            onClick={() => {
+                              setEditingMember(member);
+                              setIsMemberDialogOpen(true);
+                            }}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500/5 border border-indigo-500/10 text-indigo-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95 shrink-0"
+                            title="Chỉnh sửa vai trò / %"
+                          >
+                            <Pencil className="w-4 h-4" strokeWidth={2.5} />
+                          </button>
                           <button
                             onClick={() => initiateRemoveMember(member.employeeId, member.employeeName || '')}
                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 border border-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95 shrink-0"
@@ -242,7 +260,17 @@ export default function ProjectDetailsPage() {
         <ProjectMemberDialog 
           projectId={projectId}
           currentMemberIds={members.map(m => m.employeeId)}
-          onClose={() => setIsMemberDialogOpen(false)}
+          initialData={editingMember ? {
+            employeeId: editingMember.employeeId,
+            role: editingMember.role,
+            joinedAt: editingMember.joinedAt,
+            leftAt: editingMember.leftAt,
+            contributionPercentage: editingMember.contributionPercentage
+          } : undefined}
+          onClose={() => {
+            setIsMemberDialogOpen(false);
+            setEditingMember(null);
+          }}
           onSave={handleAddMember}
         />
       )}

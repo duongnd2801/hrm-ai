@@ -291,8 +291,18 @@ export default function LeavePage() {
                       {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && (
                         <td className="px-10 py-5 text-right min-w-[120px]">
                           <div className="flex items-center justify-end gap-2 shrink-0">
-                             <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-95 transition-all shrink-0">✕</button>
-                             <button onClick={() => handleAction(leave.id, 'approve')} className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl flex items-center justify-center active:scale-95 transition-all shadow-lg shadow-emerald-500/20 shrink-0">✓</button>
+                             <button
+                               onClick={() => handleAction(leave.id, 'approve')}
+                               className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all shrink-0"
+                             >
+                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                             </button>
+                             <button
+                               onClick={() => handleAction(leave.id, 'reject')}
+                               className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-95 transition-all shrink-0"
+                             >
+                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                             </button>
                           </div>
                         </td>
                       )}
@@ -313,8 +323,18 @@ export default function LeavePage() {
                   </div>
                   {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && (
                     <div className="flex gap-2">
-                       <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl">✕</button>
-                       <button onClick={() => handleAction(leave.id, 'approve')} className="w-10 h-10 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20">✓</button>
+                       <button
+                         onClick={() => handleAction(leave.id, 'approve')}
+                         className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all shrink-0"
+                       >
+                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                       </button>
+                       <button
+                         onClick={() => handleAction(leave.id, 'reject')}
+                         className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-95 transition-all shrink-0"
+                       >
+                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                       </button>
                     </div>
                   )}
                 </div>

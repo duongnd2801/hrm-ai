@@ -65,7 +65,7 @@ public class CompanyService {
 
     // --- Departments ---
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheNames.DEPARTMENTS, key = "'all'")
+    @Cacheable(value = "departments", key = "'all'")
     public List<DepartmentDTO> getAllDepartments() {
         return departmentRepository.findAll().stream().map(dept -> {
             DepartmentDTO dto = new DepartmentDTO();
@@ -110,7 +110,7 @@ public class CompanyService {
 
     // --- Positions ---
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheNames.POSITIONS, key = "'all'")
+    @Cacheable(value = "positions", key = "'all'")
     public List<PositionDTO> getAllPositions() {
         return positionRepository.findAll().stream().map(pos -> {
             PositionDTO dto = new PositionDTO();

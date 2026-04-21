@@ -38,7 +38,7 @@ export const projectApi = {
 
   addOrUpdateMember: async (
     projectId: string,
-    data: { employeeId: string; role: string; joinedAt?: string; leftAt?: string }
+    data: { employeeId: string; role: string; joinedAt?: string; leftAt?: string; contributionPercentage?: number }
   ): Promise<ProjectMember> => {
     const response = await api.post(`/api/projects/${projectId}/members`, data);
     return response.data;

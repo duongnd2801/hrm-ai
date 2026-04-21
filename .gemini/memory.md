@@ -323,3 +323,15 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Logic Fix:** Sửa câu lệnh JPQL trong `ProjectMemberRepository` và `EmployeeRepository` để loại bỏ lỗi Hibernate `Not a managed type`. Giới hạn chỉ định PM (Role = PM) mới thấy team của mình, còn lại không thấy.
   - **Verification:** User (Manager) đã kiểm tra giao diện tự động kết hợp nhiều dự án, tự nhận thấy việc nhìn thấy 8 member (khi tham gia 2 dự án) là 100% hợp logic RBAC.
   - **Status:** ✅ Giải quyết hoàn toàn sự cố hiển thị lệch và Crash ứng dụng do lỗi truy vấn. Hệ thống hoạt động stable.
+
+- [2026-04-21T11:30:00+07:00] **Phase Project Enhancement: Project Member Details**:
+  - **Objective:** Add role and contribution percentage per project member.
+  - **Status:** Planning. Added to plan.md. Waiting for confirmation.
+
+- [2026-04-21T11:42:00+07:00] **Phase Project Enhancement: Project Member Details**:
+  - **Status:** Completed.
+  - **Changes:** Added contribution_percentage to project_members. Updated BE/FE to support roles and % split per project.
+
+- [2026-04-21T11:44:00+07:00] **UI Patch - Leave Approval Buttons**:
+  - **Objective:** Redesign Leave approval/rejection buttons to match OT page aesthetics.
+  - **Status:** Completed. Used SVG icons and identical Tailwind classes.
