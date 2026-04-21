@@ -109,17 +109,17 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-8 pt-24 pointer-events-none animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-start justify-end p-4 sm:p-8 pt-20 sm:pt-24 pointer-events-none animate-in fade-in duration-300">
       {/* Overlay for closing */}
       <div className="fixed inset-0 pointer-events-auto" onClick={onClose}></div>
 
       {/* Panel */}
       <div
-        className="glass-dark w-[400px] max-h-[600px] rounded-[32px] shadow-3xl border border-white/5 flex flex-col pointer-events-auto relative animate-in slide-in-from-right-10 duration-500 overflow-hidden"
+        className="glass-dark w-[400px] max-w-full max-h-[80vh] sm:max-h-[600px] rounded-[24px] sm:rounded-[32px] shadow-3xl border border-white/5 flex flex-col pointer-events-auto relative animate-in slide-in-from-right-10 duration-500 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-7 border-b border-white/5 bg-white/5">
+        <div className="flex items-center justify-between p-5 sm:p-7 border-b border-white/5 bg-white/5">
           <div>
             <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">
               Thông báo

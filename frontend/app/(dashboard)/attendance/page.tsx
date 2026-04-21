@@ -63,11 +63,10 @@ export default function AttendancePage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const endpoints = [
+      const [attendanceRes, configRes] = await Promise.all([
         api.get<Attendance[]>('/api/attendance/my', { params: { year } }),
         api.get<CompanyConfig>('/api/company/config')
-      ];
-      const [attendanceRes, configRes] = await Promise.all(endpoints);
+      ]);
       setMyRecords(attendanceRes.data ?? []);
       setConfig(configRes.data);
     } catch {

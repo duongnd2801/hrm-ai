@@ -74,11 +74,11 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
   return (
     <div className="w-full relative">
       <div className={`w-full overflow-x-auto scrollbar-thin scrollbar-thumb-black/10 dark:scrollbar-thumb-white/10 pb-4 bg-transparent border-none transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-        <table className="min-w-[1200px] w-full text-left border-separate border-spacing-0">
-          <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+        <table className="min-w-[1000px] w-full text-left border-separate border-spacing-0">
+          <thead className="text-[11px] uppercase tracking-[0.2em] dark:bg-white/5 text-slate-600 dark:text-white/40 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
             <tr>
-              <th className="px-6 py-5 rounded-tl-3xl whitespace-nowrap">NHÂN VIÊN</th>
-              <th className="px-6 py-5 whitespace-nowrap">LIÊN LẠC</th>
+              <th className="px-6 py-5 rounded-tl-3xl whitespace-nowrap min-w-[200px]">NHÂN VIÊN</th>
+              <th className="px-6 py-5 whitespace-nowrap min-w-[150px]">LIÊN LẠC</th>
               <th className="px-6 py-5 whitespace-nowrap text-center">CƠ CẤU & VỊ TRÍ</th>
               <th className="px-6 py-5 whitespace-nowrap text-center">TRẠNG THÁI</th>
               <th className="px-6 py-5 whitespace-nowrap text-center">NGÀY VÀO</th>
@@ -97,17 +97,16 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
                 employees.map((emp) => {
                     const isSelf = session?.employeeId === emp.id;
                     const canEdit = canManageGlobal || isSelf;
-
                     return (
-                        <tr key={emp.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
+                        <tr key={emp.id} className="group hover:bg-white/5 transition-all duration-300">
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5">
-                                <div className="flex items-center gap-5 min-w-[280px]">
-                                    <div className="relative group/avatar">
+                                <div className="flex items-center gap-5 max-w-[300px]">
+                                    <div className="relative group/avatar shrink-0">
                                        <Avatar name={emp.fullName} size="lg" />
                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
                                     </div>
-                                    <div className="flex-1 min-w-0 relative group/name">
-                                        <Link href={`/employees/${emp.id}`} className="font-black text-slate-900 dark:text-white text-[14px] leading-tight hover:text-indigo-600 block transition-colors uppercase tracking-wider truncate">{emp.fullName || 'N/A'}</Link>
+                                    <div className="flex-1 min-w-0 relative group/name overflow-visible">
+                                        <Link href={`/employees/${emp.id}`} className="font-black text-slate-900 dark:text-white text-[14px] leading-tight hover:text-indigo-600 block transition-colors uppercase tracking-wider whitespace-normal break-words">{emp.fullName || 'N/A'}</Link>
                                         <div className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.2em] mt-1 opacity-60">ID: {emp.id.substring(0, 8).toUpperCase()}</div>
                                         
                                         {/* Hover Info Card - Right Side Fixed */}
@@ -121,7 +120,7 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
                                                    {emp.fullName?.charAt(0)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                   <p className="text-[13px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{emp.fullName}</p>
+                                                   <p className="text-[13px] font-black text-slate-900 dark:text-white uppercase tracking-tight break-words">{emp.fullName}</p>
                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{emp.positionName || 'Nhân sự'}</p>
                                                 </div>
                                              </div>
@@ -135,11 +134,11 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
                                                 <div className="pt-3 border-t border-black/5 dark:border-white/5 space-y-3">
                                                    <div className="flex flex-col gap-1">
                                                       <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">👨‍💼 Quản lý trực tiếp:</span>
-                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
+                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white break-words">
                                                          {emp.managerName || 'Không có'}
                                                       </p>
                                                       {emp.manager2Name && (
-                                                         <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 truncate italic">
+                                                         <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 break-words italic">
                                                             Cấp trên: {emp.manager2Name}
                                                          </p>
                                                       )}
@@ -167,7 +166,7 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
 
                                                    <div className="pt-2 border-t border-black/5 dark:border-white/5">
                                                       <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-1 block">🏠 Địa chỉ:</span>
-                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight italic line-clamp-2">
+                                                      <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight italic line-clamp-3 break-words">
                                                          {emp.address || 'Chưa cập nhật...'}
                                                       </p>
                                                    </div>
@@ -180,9 +179,9 @@ export default function EmployeeTable({ search = '', status = '', refreshKey = 0
                                 </div>
                             </td>
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5">
-                                <div className="space-y-1 min-w-[180px]">
-                                    <div className="text-slate-800 dark:text-white/80 font-bold text-[11px] uppercase tracking-widest truncate">{emp.email}</div>
-                                    <div className="text-slate-400 dark:text-white/50 text-[10px] font-black tracking-[0.2em] uppercase italic">{emp.phone || 'Chuẩn bị dữ liệu...'}</div>
+                                <div className="space-y-1 max-w-[200px]">
+                                    <div className="text-slate-800 dark:text-white/80 font-bold text-[11px] uppercase tracking-widest break-all whitespace-normal leading-tight">{emp.email}</div>
+                                    <div className="text-slate-400 dark:text-white/50 text-[10px] font-black tracking-[0.2em] uppercase italic">{emp.phone || 'Chuẩn bị d.liệu...'}</div>
                                 </div>
                             </td>
                             <td className="px-6 py-3.5 border-b border-black/5 dark:border-white/5 text-center">

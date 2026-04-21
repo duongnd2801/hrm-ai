@@ -58,6 +58,12 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getProjectMembers(id));
     }
 
+    @GetMapping("/employees/{employeeId}/current")
+    @PreAuthorize("hasAuthority('PRJ_VIEW')")
+    public ResponseEntity<List<EmployeeProjectResponse>> getCurrentProjectsForEmployee(@PathVariable UUID employeeId) {
+        return ResponseEntity.ok(projectService.getCurrentProjectsForEmployee(employeeId));
+    }
+
     @PostMapping("/{id}/members")
     @PreAuthorize("hasAuthority('PRJ_UPDATE')")
     public ResponseEntity<ProjectMemberResponse> addOrUpdateMember(

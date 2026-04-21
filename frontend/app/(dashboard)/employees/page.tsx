@@ -33,8 +33,8 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     if (!session) return;
-    // Nếu không có EMP_VIEW_ALL → redirect về profile của chính mình
-    if (!session.permissions.includes('EMP_VIEW_ALL')) {
+    // Nếu không có EMP_VIEW_ALL hoặc EMP_VIEW_TEAM → redirect về profile của chính mình
+    if (!session.permissions.includes('EMP_VIEW_ALL') && !session.permissions.includes('EMP_VIEW_TEAM')) {
       if (session.employeeId) {
         router.replace(`/employees/${session.employeeId}`);
       }
@@ -44,13 +44,16 @@ export default function EmployeesPage() {
   }, [refreshKey, session]);
 
   if (!session) return null;
-  const canViewAll = session.permissions.includes('EMP_VIEW_ALL');
+  const hasViewAll = session.permissions.includes('EMP_VIEW_ALL');
+  const hasViewTeam = session.permissions.includes('EMP_VIEW_TEAM');
+  const canViewAll = hasViewAll || hasViewTeam;
+  const isTeamView = !hasViewAll && hasViewTeam; // MANAGER: chỉ xem thành viên dự án
   const canView = session.permissions.includes('EMP_VIEW');
-  const canCreate = session.permissions.includes('EMP_CREATE');
-  const canImport = session.permissions.includes('EMP_IMPORT');
-  const canExport = session.permissions.includes('EMP_EXPORT');
+  const canCreate = !isTeamView && session.permissions.includes('EMP_CREATE');
+  const canImport = !isTeamView && session.permissions.includes('EMP_IMPORT');
+  const canExport = !isTeamView && session.permissions.includes('EMP_EXPORT');
 
-  // Nếu không có EMP_VIEW_ALL và chưa redirect (không có employeeId), hiện thông báo
+  // Nếu không có EMP_VIEW_ALL/EMP_VIEW_TEAM và chưa redirect (không có employeeId), hiện thông báo
   if (!canViewAll && !session.employeeId) {
     return (
       <div className="flex flex-col items-center justify-center p-20 gap-4">
@@ -109,28 +112,28 @@ export default function EmployeesPage() {
         <div className="text-rose-400 p-20 text-center font-black uppercase tracking-widest">Bạn không có quyền xem danh sách nhân viên.</div>
       ) : (
         <>
-          <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
-            <div>
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between pt-6 md:pt-10 gap-6">
+            <div className="max-w-full overflow-hidden">
               <h1
-                className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none"
+                className="text-4xl sm:text-6xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[1.1] md:leading-none break-words"
                 style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
-                Nhân viên
+                {isTeamView ? 'Thành viên dự án' : 'Nhân viên'}
               </h1>
               <p
-                className="text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-6 ml-1"
+                className="text-sm sm:text-base md:text-lg font-bold text-white dark:text-white/40 uppercase tracking-widest mt-4 md:mt-6 ml-1"
                 style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
               >
-                Cơ sở dữ liệu nhân sự công ty
+                {isTeamView ? 'Nhân sự thuộc dự án bạn đang tham gia' : 'Cơ sở dữ liệu nhân sự công ty'}
               </p>
             </div>
 
             {(canCreate || canImport || canExport) && (
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
+              <div className="flex flex-wrap items-center gap-3 bg-white/10 backdrop-blur-2xl p-2 md:p-3 rounded-[28px] md:rounded-[32px] border border-white/10 shadow-2xl w-fit">
                 {canCreate && (
                   <button
                     onClick={() => setShowCreate(true)}
-                    className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[11px] font-black tracking-widest transition-all shadow-xl shadow-indigo-600/40 active:scale-95 uppercase"
+                    className="px-6 md:px-8 py-3 md:py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black tracking-widest transition-all shadow-xl shadow-indigo-600/40 active:scale-95 uppercase"
                   >
                     THÊM MỚI
                   </button>
@@ -138,7 +141,7 @@ export default function EmployeesPage() {
                 {canImport && (
                   <button
                     onClick={() => setShowImport(true)}
-                    className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[11px] font-black tracking-widest transition-all shadow-xl shadow-emerald-600/40 active:scale-95 uppercase"
+                    className="px-6 md:px-8 py-3 md:py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black tracking-widest transition-all shadow-xl shadow-emerald-600/40 active:scale-95 uppercase"
                   >
                     NHẬP EXCEL
                   </button>
@@ -146,7 +149,7 @@ export default function EmployeesPage() {
                 {canExport && (
                   <button
                     onClick={handleExport}
-                    className="p-3.5 bg-white/10 text-white/60 hover:text-white hover:bg-white/20 rounded-2xl transition-all active:scale-95 shadow-lg border border-white/10"
+                    className="p-3 md:p-3.5 bg-white/10 text-white/60 hover:text-white hover:bg-white/20 rounded-xl md:rounded-2xl transition-all active:scale-95 shadow-lg border border-white/10"
                     title="Xuất Excel"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -158,21 +161,21 @@ export default function EmployeesPage() {
             )}
           </div>
 
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-none">
-            <div className="relative group min-w-[320px] rounded-[40px] overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="relative group rounded-[32px] md:rounded-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 via-purple-500/20 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute -inset-1 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-[32px] md:rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
 
-              <div className="relative background bg-gradient-to-br from-white/90 via-white/70 to-indigo-50 dark:from-white/10 dark:via-indigo-500/10 dark:to-purple-500/10 backdrop-blur-2xl border border-white/40 dark:border-indigo-500/20 p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-indigo-500/30 group-hover:border-indigo-500/40 transition-all duration-300 h-full">
+              <div className="relative background bg-gradient-to-br from-white/90 via-white/70 to-indigo-50 dark:from-white/10 dark:via-indigo-500/10 dark:to-purple-500/10 backdrop-blur-2xl border border-white/40 dark:border-indigo-500/20 p-6 md:p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-indigo-500/30 group-hover:border-indigo-500/40 transition-all duration-300 h-full">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">👥 Toàn công ty</p>
-                    <h3 className="text-5xl font-black text-slate-900 dark:text-white leading-none">{stats.total}</h3>
+                    <p className="text-[10px] md:text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">{isTeamView ? '👥 Trong dự án' : '👥 Toàn công ty'}</p>
+                    <h3 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white leading-none">{stats.total}</h3>
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <div className="relative">
-                      <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 group-hover:shadow-indigo-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
-                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 group-hover:shadow-indigo-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
+                        <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                       </div>
@@ -180,25 +183,25 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-white/20 dark:border-white/10">
-                  <p className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Nhân viên đang làm việc</p>
+                   <p className="text-[9px] md:text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">{isTeamView ? 'Thành viên trong dự án' : 'Nhân viên đang làm việc'}</p>
                 </div>
               </div>
             </div>
 
-            <div className="relative group min-w-[320px] rounded-[40px] overflow-hidden">
+            <div className="relative group rounded-[32px] md:rounded-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 via-teal-500/20 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute -inset-1 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-[32px] md:rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
 
-              <div className="relative bg-gradient-to-br from-white/90 via-white/70 to-emerald-50 dark:from-white/10 dark:via-emerald-500/10 dark:to-teal-500/10 backdrop-blur-2xl border border-white/40 dark:border-emerald-500/20 p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-emerald-500/30 group-hover:border-emerald-500/40 transition-all duration-300 h-full">
+              <div className="relative bg-gradient-to-br from-white/90 via-white/70 to-emerald-50 dark:from-white/10 dark:via-emerald-500/10 dark:to-teal-500/10 backdrop-blur-2xl border border-white/40 dark:border-emerald-500/20 p-6 md:p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-emerald-500/30 group-hover:border-emerald-500/40 transition-all duration-300 h-full">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">✅ Hoạt động</p>
-                    <h3 className="text-5xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{stats.active}</h3>
+                    <p className="text-[10px] md:text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">✅ Hoạt động</p>
+                    <h3 className="text-4xl md:text-5xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{stats.active}</h3>
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <div className="relative">
-                      <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 group-hover:shadow-emerald-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
-                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <div className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 group-hover:shadow-emerald-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
+                        <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
@@ -206,25 +209,25 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-white/20 dark:border-white/10">
-                  <p className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Có thể làm việc</p>
+                   <p className="text-[9px] md:text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Có thể làm việc</p>
                 </div>
               </div>
             </div>
 
-            <div className="relative group min-w-[320px] rounded-[40px] overflow-hidden">
+            <div className="relative group rounded-[32px] md:rounded-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/30 via-red-500/20 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute -inset-1 bg-gradient-to-br from-rose-400 via-red-400 to-orange-400 rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-rose-400 via-red-400 to-orange-400 rounded-[32px] md:rounded-[40px] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-500" />
 
-              <div className="relative bg-gradient-to-br from-white/90 via-white/70 to-rose-50 dark:from-white/10 dark:via-rose-500/10 dark:to-red-500/10 backdrop-blur-2xl border border-white/40 dark:border-rose-500/20 p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-rose-500/30 group-hover:border-rose-500/40 transition-all duration-300 h-full">
+              <div className="relative bg-gradient-to-br from-white/90 via-white/70 to-rose-50 dark:from-white/10 dark:via-rose-500/10 dark:to-red-500/10 backdrop-blur-2xl border border-white/40 dark:border-rose-500/20 p-6 md:p-8 shadow-xl dark:shadow-2xl group-hover:shadow-2xl dark:group-hover:shadow-rose-500/30 group-hover:border-rose-500/40 transition-all duration-300 h-full">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">📋 Nghỉ/Vắng</p>
-                    <h3 className="text-5xl font-black text-rose-600 dark:text-rose-400 leading-none">{stats.absent}</h3>
+                    <p className="text-[10px] md:text-sm font-black text-slate-500 dark:text-white/50 uppercase tracking-widest mb-3">📋 Nghỉ/Vắng</p>
+                    <h3 className="text-4xl md:text-5xl font-black text-rose-600 dark:text-rose-400 leading-none">{stats.absent}</h3>
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <div className="relative">
-                      <div className="w-20 h-20 bg-gradient-to-br from-rose-400 via-red-400 to-orange-400 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-500/40 group-hover:shadow-rose-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
-                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <div className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-rose-400 via-red-400 to-orange-400 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-500/40 group-hover:shadow-emerald-500/60 group-hover:scale-110 transition-all duration-300 group-hover:-translate-y-1">
+                        <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v3.5a4 4 0 100 8H10" />
                         </svg>
                       </div>
@@ -232,7 +235,7 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-white/20 dark:border-white/10">
-                  <p className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Nghỉ phép hoặc vắng mặt</p>
+                   <p className="text-[9px] md:text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Nghỉ phép hoặc vắng mặt</p>
                 </div>
               </div>
             </div>
@@ -240,7 +243,7 @@ export default function EmployeesPage() {
 
           <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
             <div className="flex items-center justify-between mb-10">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest px-1">Danh sách hồ sơ nhân sự</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest px-1">{isTeamView ? 'Nhân sự trong dự án của bạn' : 'Danh sách hồ sơ nhân sự'}</h2>
               <div className="flex flex-wrap items-end gap-4">
                 <div className="w-80">
                   <SearchableSelect

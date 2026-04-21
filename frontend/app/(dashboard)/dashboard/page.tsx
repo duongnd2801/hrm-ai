@@ -253,33 +253,33 @@ export default function DashboardPage() {
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
       {/* Hero Welcome Section - Premium Styling */}
-      <div className="relative pt-10 px-2 lg:px-6">
+      <div className="relative pt-6 md:pt-10 px-2 lg:px-6">
          {/* Gradient background effect */}
          <div className="absolute -z-10 inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl opacity-50 dark:opacity-100" />
          
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-               <h1 className="text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
+         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+            <div className="max-w-full overflow-hidden">
+               <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[1.1] md:leading-none break-words" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
                   Chào {namePrefix}
                </h1>
-               <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+               <p className="text-sm sm:text-base md:text-lg font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mt-4 md:mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
                   ⏰ Hệ thống quản trị nhân sự cao cấp
                </p>
             </div>
 
-            <div className="relative group flex items-center gap-6 p-8 bg-gradient-to-br from-white/90 via-white/70 to-indigo-50 dark:from-white/10 dark:via-indigo-500/10 dark:to-purple-500/10 backdrop-blur-2xl border border-white/40 dark:border-indigo-500/20 rounded-[40px] shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-indigo-500/30 transition-all duration-500">
+            <div className="relative group flex items-center gap-4 md:gap-6 p-6 md:p-8 bg-gradient-to-br from-white/90 via-white/70 to-indigo-50 dark:from-white/10 dark:via-indigo-500/10 dark:to-purple-500/10 backdrop-blur-2xl border border-white/40 dark:border-indigo-500/20 rounded-[32px] md:rounded-[40px] shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-indigo-500/30 transition-all duration-500 w-fit">
                {/* Gradient overlay */}
-               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[40px] transition-all duration-500" />
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[32px] md:rounded-[40px] transition-all duration-500" />
                
-               <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/40 group-hover:shadow-indigo-500/60 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
-                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+               <div className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl md:rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/40 group-hover:shadow-indigo-500/60 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+                  <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                </div>
                <div className="relative z-10 flex flex-col">
-                  <div className="flex items-baseline gap-3 mb-2">
-                     <span className="text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-widest font-mono leading-none">{timeText}</span>
-                     <div className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50" />
+                  <div className="flex items-baseline gap-2 md:gap-3 mb-1 md:mb-2">
+                     <span className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-widest font-mono leading-none">{timeText}</span>
+                     <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50" />
                   </div>
-                  <span className="text-xs font-black text-slate-500 dark:text-white/40 tracking-[0.3em] uppercase">{dateText}</span>
+                  <span className="text-[10px] md:text-xs font-black text-slate-500 dark:text-white/40 tracking-[0.2em] md:tracking-[0.3em] uppercase">{dateText}</span>
                </div>
             </div>
          </div>

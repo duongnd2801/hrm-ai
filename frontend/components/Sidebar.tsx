@@ -86,7 +86,7 @@ export default function Sidebar({ session, collapsed, onToggle }: SidebarProps) 
 
       <div className={`h-24 flex items-center shrink-0 transition-all duration-500 ${collapsed ? 'justify-center' : 'px-8'}`}>
          <div className="flex items-center gap-5 group cursor-pointer">
-            <div className="w-12 h-12 rounded-[20px] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
+            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative overflow-hidden group-hover:scale-105 transition-all duration-500 active:scale-95">
                <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
                <span className="text-white font-black text-2xl tracking-tighter drop-shadow-lg relative z-10">H</span>
             </div>

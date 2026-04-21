@@ -51,19 +51,19 @@ export default function CompanyPage() {
   }
 
   return (
-    <div className="space-y-12 pb-20 px-2 lg:px-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
-        <div>
-          <h1 className="text-5xl md:text-7xl font-black text-white dark:text-white dark:mix-blend-overlay uppercase leading-none tracking-tighter" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>CẤU HÌNH</h1>
-          <p className="text-lg font-bold text-white uppercase tracking-widest mt-6 ml-1" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Tổ chức & Thiết lập hệ thống</p>
+    <div className="space-y-10 md:space-y-12 pb-20 px-2 lg:px-6">
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between pt-6 md:pt-10 gap-6">
+        <div className="max-w-full overflow-hidden">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white dark:text-white dark:mix-blend-overlay uppercase leading-[1.1] md:leading-none tracking-tighter break-words" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>CẤU HÌNH</h1>
+          <p className="text-base md:text-lg font-bold text-white uppercase tracking-[0.2em] sm:tracking-widest mt-4 md:mt-6 ml-1" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Tổ chức & Thiết lập hệ thống</p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl mt-8 md:mt-0 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl md:rounded-[24px] border border-black/5 dark:border-white/5 shadow-xl w-fit">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-8 py-3 rounded-xl text-sm font-black tracking-widest transition-all ${activeTab === tab.key ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
+              className={`px-6 md:px-8 py-2 md:py-3 rounded-xl text-[10px] md:text-sm font-black tracking-widest transition-all ${activeTab === tab.key ? "bg-indigo-600 text-white shadow-xl scale-105" : "text-slate-500 dark:text-white/50 hover:bg-slate-900/5 dark:hover:bg-white/5"}`}
             >
               {tab.label}
             </button>

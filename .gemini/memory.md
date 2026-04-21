@@ -24,6 +24,9 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
 - [2026-04-20T10:52:00+07:00] **UX Refinement: Clean Terminal Logs**:
   - **Frontend:** Xử lý `AbortError` trong `healthService.ts` để loại bỏ log lỗi "signal is aborted" giả mạo. Cải thiện hiệu suất log cho Next.js dev server.
   - **Status:** ✅ Hoàn tất.
+- [2026-04-20T11:12:00+07:00] **UI/UX Fix: Stable Projects Header**:
+  - **Frontend:** Di chuyển Pagination xuống dưới Table để ổn định Layout Header. Cố định vị trí Search bar không bị xê dịch khi kết quả tìm kiếm thay đổi.
+  - **Status:** ✅ Hoàn tất.
 - Blockers: Không có.
 
 ### Open Backlog (Canonical)
@@ -290,3 +293,33 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **DB Indexes**: V32 them index tren attendances (employee_id, date) va partial index cho query nhieu ban ghi theo thang.
   - **Audit Logging**: Mo rong coverage sang PayrollService (calculate), ApologyService (review), AttendanceService (recalculate).
   - **Verification**: Compilation passed (mvn clean compile). BE hien da fix xong cac loi tu audit roi.
+- [2026-04-20T11:45:00+07:00] **Comprehensive Mobile Table Optimization**:
+  - **Status:** Complete
+  - **Tasks:** Fix "broken layout" and horizontal overflow in multiple data tables.
+  - **Details:**
+      - Refactored `EmployeeTable.tsx`, `payroll/page.tsx`, `attendance/page.tsx`, `projects/page.tsx`, `apologies/page.tsx`, `leave/page.tsx`, and `ot/page.tsx`.
+      - **Hotfix:** Fixed `Unterminated string constant` error in `ot/page.tsx` caused by corrupted markup merge.
+      - Replaced generic `truncate` (ellipsis) with `break-words whitespace-normal` for critical data fields (Name, Email, Address, Reason, Description).
+      - Reduced rigid `min-w-[1200px]` constraints to `1000px/800px` and standardized `overflow-x-auto` wrappers.
+      - Added `scrollbar-thin` and optimized mobile typography for better UX.
+  - **Next Task:** Continuous performance monitoring and UX refinement.
+- [2026-04-20T11:45:00+07:00] **Global Responsive Optimization (Mobile-First)**:
+  - **Dashboard:** Thu nhỏ tiêu đề Hero (text-4xl/6xl/7xl), cho phép Clock widget và Welcome section stack linh hoạt, fix overflow typography.
+  - **Employees:** Chuyển đổi Stats Cards từ cuộn ngang sang dạng lưới (grid-cols-1), tối ưu nhóm nút hành động stack/wrap mượt mà.
+  - **Attendance/Payroll/Apologies:** Chuẩn hóa tiêu đề module đồng bộ, thu nhỏ kích thước chữ và padding button trên moble. Cho phép Period Selectors và Action Buttons tự động xuống dòng khi màn hình hẹp.
+  - **Components:** Fix lỗi tràn màn hình (max-width) cho NotificationPanel, tối ưu padding cho màn hình iPhone SE (375px).
+  - **Status:** ✅ Đã phủ toàn bộ module chính. Trải nghiệm di động ổn định và chuyên nghiệp.
+- [2026-04-21T08:58:00+07:00] **PM Scope & Max Project Limit**:
+  - **Permission:** Gỡ `EMP_VIEW_ALL` khỏi role MANAGER (V35 migration). MANAGER chỉ xem bản thân (EMP_VIEW) + thành viên dự án (PRJ_VIEW). HR/ADMIN vẫn giữ EMP_VIEW_ALL.
+  - **Project Limit:** Giảm `MAX_CURRENT_PROJECTS_PER_EMPLOYEE` từ 3 → 2 (BE + FE).
+  - **Status:** ✅ Hoàn tất. Backend restart thành công.
+- [2026-04-21T09:12:00+07:00] **MANAGER Team-Scoped Employee View (EMP_VIEW_TEAM)**:
+  - **Migration V36:** Tạo permission `EMP_VIEW_TEAM` và gán cho MANAGER.
+  - **Backend:** Thêm `findTeammateEmployeeIds` (ProjectMemberRepository), `searchTeamEmployees` (EmployeeRepository). `EmployeeService` lọc nhân viên theo dự án khi user có `EMP_VIEW_TEAM`. `EmployeeController` chấp nhận cả `EMP_VIEW_ALL` lẫn `EMP_VIEW_TEAM`.
+  - **Frontend:** Trang Nhân viên kiểm tra `EMP_VIEW_ALL || EMP_VIEW_TEAM` để hiện bảng thay vì redirect.
+  - **Security:** MANAGER vẫn bị ẩn dữ liệu nhạy cảm (lương, SĐT, CCCD) — chỉ xem tên, email, phòng ban, chức vụ.
+  - **Status:** ✅ Hoàn tất. Backend compile + startup thành công.
+- [2026-04-21T10:45:00+07:00] **Phase EMP Access Scope Polish**:
+  - **Logic Fix:** Sửa câu lệnh JPQL trong `ProjectMemberRepository` và `EmployeeRepository` để loại bỏ lỗi Hibernate `Not a managed type`. Giới hạn chỉ định PM (Role = PM) mới thấy team của mình, còn lại không thấy.
+  - **Verification:** User (Manager) đã kiểm tra giao diện tự động kết hợp nhiều dự án, tự nhận thấy việc nhìn thấy 8 member (khi tham gia 2 dự án) là 100% hợp logic RBAC.
+  - **Status:** ✅ Giải quyết hoàn toàn sự cố hiển thị lệch và Crash ứng dụng do lỗi truy vấn. Hệ thống hoạt động stable.

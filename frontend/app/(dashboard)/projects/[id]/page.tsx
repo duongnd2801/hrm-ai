@@ -127,34 +127,34 @@ export default function ProjectDetailsPage() {
         </button>
 
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left w-full md:w-auto">
             <div 
-              className="w-20 h-20 rounded-[28px] shadow-2xl flex items-center justify-center text-white font-black text-3xl uppercase rotate-3 group-hover:rotate-0 transition-transform duration-500"
+              className="w-20 h-20 shrink-0 rounded-[28px] shadow-2xl flex items-center justify-center text-white font-black text-3xl uppercase rotate-3 group-hover:rotate-0 transition-transform duration-500"
               style={{ backgroundColor: project.color || '#3b82f6', boxShadow: `0 12px 30px -10px ${project.color || '#3b82f6'}` }}
             >
               {project.name.charAt(0)}
             </div>
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-wider">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white uppercase tracking-wider break-words leading-tight">
                   {project.name}
                 </h1>
-                <span className="text-[10px] font-black px-3 py-1 bg-black/5 dark:bg-white/10 text-indigo-500 dark:text-indigo-400 rounded-lg border border-black/5 dark:border-white/5 tracking-[0.2em]">
+                <span className="text-[10px] font-black px-3 py-1 bg-black/5 dark:bg-white/10 text-indigo-500 dark:text-indigo-400 rounded-lg border border-black/5 dark:border-white/5 tracking-[0.2em] shrink-0">
                   {project.code}
                 </span>
               </div>
-              <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-xl leading-relaxed">{project.description || 'Dự án này chưa có mô tả chi tiết từ quản lý.'}</p>
+              <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-xl leading-relaxed break-words">{project.description || 'Dự án này chưa có mô tả chi tiết từ quản lý.'}</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 border-l border-black/5 dark:border-white/5 pl-8">
+          <div className="grid grid-cols-2 lg:flex items-center gap-4 sm:gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 border-t sm:border-t-0 sm:border-l border-black/5 dark:border-white/5 pt-6 sm:pt-0 sm:pl-8 w-full sm:w-auto shrink-0 overflow-hidden">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 opacity-50"><Calendar className="w-4 h-4" /> Bắt đầu</div>
-              <div className="text-slate-900 dark:text-emerald-400 text-sm tracking-widest font-black uppercase">{project.startDate}</div>
+              <div className="text-slate-900 dark:text-emerald-400 text-sm tracking-widest font-black uppercase whitespace-nowrap">{project.startDate}</div>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 opacity-50"><LayoutTemplate className="w-4 h-4" /> Loại hình</div>
-              <div className="text-slate-900 dark:text-indigo-400 text-sm tracking-widest font-black uppercase">{project.type}</div>
+              <div className="text-slate-900 dark:text-indigo-400 text-sm tracking-widest font-black uppercase whitespace-nowrap">{project.type}</div>
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ProjectDetailsPage() {
 
       {/* Members Section */}
       <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-black/5 dark:border-white/10 rounded-[48px] shadow-3xl overflow-hidden relative">
-        <div className="p-8 md:p-10 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-black/[0.02] dark:bg-white/[0.02]">
+        <div className="p-8 md:p-10 border-b border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-black/[0.02] dark:bg-white/[0.02]">
           <div>
             <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Thành viên tham gia</h2>
             <p className="text-[10px] font-black text-indigo-400 tracking-[0.2em] mt-1">{members.length} NHÂN SỰ ĐANG TRONG DỰ ÁN</p>
@@ -170,7 +170,7 @@ export default function ProjectDetailsPage() {
           {canManage && (
             <button
               onClick={() => setIsMemberDialogOpen(true)}
-              className="group flex items-center gap-3 px-6 py-4 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-500/20 active:scale-95 shadow-lg shadow-indigo-500/5"
+              className="group flex items-center gap-3 px-6 py-4 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-500/20 active:scale-95 shadow-lg shadow-indigo-500/5 whitespace-nowrap shrink-0"
             >
               <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
               Thêm nhân sự
@@ -187,7 +187,7 @@ export default function ProjectDetailsPage() {
                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Vị trí trong dự án</th>
                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30">Ngày gia nhập</th>
                 {canManage && (
-                  <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30 text-right pr-10 whitespace-nowrap">Dự án</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/30 text-right pr-10 whitespace-nowrap shrink-0">Thao tác</th>
                 )}
               </tr>
             </thead>
@@ -200,32 +200,34 @@ export default function ProjectDetailsPage() {
                 members.map((member) => (
                   <tr key={member.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 group">
                     <td className="p-6 pl-10">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[1px] shadow-lg group-hover:scale-110 transition-transform duration-500">
+                      <div className="flex items-center gap-4 max-w-[250px]">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[1px] shadow-lg group-hover:scale-110 transition-transform duration-500 shrink-0">
                           <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-indigo-500 font-black text-sm uppercase">
                             {member.employeeName?.charAt(0) || 'U'}
                           </div>
                         </div>
-                        <div>
-                          <span className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-wider block">
+                        <div className="min-w-0">
+                          <span className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-wider block break-words leading-tight">
                             {member.employeeName}
                           </span>
-                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-1 block">MEMBER ID: {member.employeeId.split('-')[0].toUpperCase()}</span>
+                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-1 block truncate">ID: {member.employeeId.split('-')[0].toUpperCase()}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="p-6 text-[12px] font-bold text-slate-500 dark:text-white/40 tracking-widest">{member.employeeEmail}</td>
-                    <td className="p-6">{getRoleBadge(member.role)}</td>
-                    <td className="p-6 text-[12px] font-black text-slate-500 dark:text-emerald-400 tracking-widest uppercase">{member.joinedAt || 'KHÔNG RÕ'}</td>
+                    <td className="p-6 text-[12px] font-bold text-slate-500 dark:text-white/40 tracking-widest truncate max-w-[150px]">{member.employeeEmail}</td>
+                    <td className="p-6 whitespace-nowrap">{getRoleBadge(member.role)}</td>
+                    <td className="p-6 text-[12px] font-black text-slate-500 dark:text-emerald-400 tracking-widest uppercase whitespace-nowrap">{member.joinedAt || 'KHÔNG RÕ'}</td>
                     {canManage && (
                       <td className="p-6 text-right pr-10">
-                        <button
-                          onClick={() => initiateRemoveMember(member.employeeId, member.employeeName || '')}
-                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 border border-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95"
-                          title="Xóa khỏi dự án"
-                        >
-                          <Trash2 className="w-4 h-4" strokeWidth={2.5} />
-                        </button>
+                        <div className="flex justify-end shrink-0">
+                          <button
+                            onClick={() => initiateRemoveMember(member.employeeId, member.employeeName || '')}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 border border-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95 shrink-0"
+                            title="Xóa khỏi dự án"
+                          >
+                            <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>

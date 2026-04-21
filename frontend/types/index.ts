@@ -278,6 +278,18 @@ export interface ProjectMember {
   leftAt?: string;
 }
 
+export interface EmployeeProject {
+  projectId: string;
+  projectName: string;
+  projectCode: string;
+  projectColor?: string;
+  projectStatus: ProjectStatus;
+  projectType: ProjectType;
+  role: ProjectRole;
+  joinedAt?: string;
+  leftAt?: string;
+}
+
 
 export interface RoleDTO {
   id?: string;

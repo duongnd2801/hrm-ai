@@ -4,6 +4,7 @@ import com.hrm.dto.*;
 import com.hrm.entity.Employee;
 import com.hrm.entity.Project;
 import com.hrm.entity.ProjectMember;
+import com.hrm.entity.ProjectStatus;
 import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.ProjectMemberRepository;
 import com.hrm.repository.ProjectRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
+
+    private static final int MAX_CURRENT_PROJECTS_PER_EMPLOYEE = 2;
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
@@ -95,6 +99,19 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<EmployeeProjectResponse> getCurrentProjectsForEmployee(UUID employeeId) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new RuntimeException("Nhân viên không tồn tại");
+        }
+
+        LocalDate today = LocalDate.now();
+        return projectMemberRepository.findByEmployeeId(employeeId).stream()
+                .filter(member -> isCurrentMember(member, today))
+                .map(this::mapEmployeeProjectToResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ProjectMemberResponse addOrUpdateMember(UUID projectId, ProjectMemberRequest request) {
         Project project = projectRepository.findById(projectId)
@@ -107,6 +124,8 @@ public class ProjectService {
                         .project(project)
                         .employee(employee)
                         .build());
+
+        validateCurrentProjectLimit(projectId, request.getEmployeeId(), request.getJoinedAt(), request.getLeftAt(), project);
 
         member.setRole(request.getRole());
         member.setJoinedAt(request.getJoinedAt());
@@ -148,6 +167,47 @@ public class ProjectService {
                 .employeeName(member.getEmployee().getFullName())
                 .employeeEmail(member.getEmployee().getEmail())
                 // Assuming you have no direct avatar field, or derive from name.
+                .role(member.getRole())
+                .joinedAt(member.getJoinedAt())
+                .leftAt(member.getLeftAt())
+                .build();
+    }
+
+    private void validateCurrentProjectLimit(UUID projectId, UUID employeeId, LocalDate requestedJoinedAt, LocalDate requestedLeftAt, Project targetProject) {
+        LocalDate today = LocalDate.now();
+        boolean targetWillBeCurrent = targetProject.getStatus() == ProjectStatus.ACTIVE
+                && (requestedJoinedAt == null || !requestedJoinedAt.isAfter(today))
+                && (requestedLeftAt == null || !requestedLeftAt.isBefore(today));
+
+        if (!targetWillBeCurrent) {
+            return;
+        }
+
+        long currentProjectCount = projectMemberRepository.findByEmployeeId(employeeId).stream()
+                .filter(member -> !member.getProject().getId().equals(projectId))
+                .filter(member -> isCurrentMember(member, today))
+                .count();
+
+        if (currentProjectCount >= MAX_CURRENT_PROJECTS_PER_EMPLOYEE) {
+            throw new RuntimeException("Nhân viên đang tham gia tối đa 3 dự án.");
+        }
+    }
+
+    private boolean isCurrentMember(ProjectMember member, LocalDate today) {
+        return member.getProject().getStatus() == ProjectStatus.ACTIVE
+                && (member.getJoinedAt() == null || !member.getJoinedAt().isAfter(today))
+                && (member.getLeftAt() == null || !member.getLeftAt().isBefore(today));
+    }
+
+    private EmployeeProjectResponse mapEmployeeProjectToResponse(ProjectMember member) {
+        Project project = member.getProject();
+        return EmployeeProjectResponse.builder()
+                .projectId(project.getId())
+                .projectName(project.getName())
+                .projectCode(project.getCode())
+                .projectColor(project.getColor())
+                .projectStatus(project.getStatus())
+                .projectType(project.getType())
                 .role(member.getRole())
                 .joinedAt(member.getJoinedAt())
                 .leftAt(member.getLeftAt())

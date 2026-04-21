@@ -61,7 +61,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        String message = String.format("Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau %d phút %d giây.", minutes, seconds);
+        String message = "Tài khoản tạm thời bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 10 phút.";
         String json = String.format("{\"error\":\"Too Many Requests\",\"message\":\"%s\",\"status\":429}", message);
         
         response.getWriter().write(json);

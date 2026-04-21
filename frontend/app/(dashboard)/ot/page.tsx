@@ -11,9 +11,9 @@ import { LayoutGrid, List } from 'lucide-react';
 
 function StatusBadge({ status }: { status: OTRequest['status'] }) {
   const map: Record<OTRequest['status'], string> = {
-    PENDING: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-200 dark:border-amber-500/20',
-    APPROVED: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20',
-    REJECTED: 'bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20',
+    PENDING: 'bg-amber-500 text-white border-transparent',
+    APPROVED: 'bg-emerald-500 text-white border-transparent',
+    REJECTED: 'bg-rose-500 text-white border-transparent',
   };
   const label: Record<OTRequest['status'], string> = {
     PENDING: 'Chờ duyệt',
@@ -274,13 +274,13 @@ export default function OTPage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-x-auto">
-                <table className="w-full border-collapse">
+              <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-rose-500/10 dark:scrollbar-thumb-white/5 pb-4">
+                <table className="min-w-[1000px] w-full border-collapse">
                   <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/20 text-slate-500 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-slate-100 dark:border-white/5">
                     <tr>
-                      <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">Nhân viên</th>
-                      <th className="px-8 py-6 text-left whitespace-nowrap">Công việc</th>
-                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Định mức</th>
+                      <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap min-w-[200px]">Nhân viên</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap">Công việc / Lý do</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Định mức thời gian</th>
                       <th className="px-8 py-6 text-left whitespace-nowrap text-center">Trạng thái</th>
                       {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">Hành động</th>}
                     </tr>
@@ -299,40 +299,40 @@ export default function OTPage() {
                        ).map(item => (
                        <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                          <td className="px-8 py-6">
-                           <div className="flex items-center gap-4">
+                           <div className="flex items-center gap-4 max-w-[250px]">
                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
                                {item.employeeName?.charAt(0) || '?'}
                              </div>
-                             <div>
-                               <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
-                               <p className="text-[10px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5">Nhân sự cấp dưới</p>
+                             <div className="min-w-0">
+                               <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight break-words whitespace-normal leading-tight">{item.employeeName}</p>
+                               <p className="text-[9px] text-slate-400 dark:text-white/20 font-bold uppercase tracking-widest mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Nhân sự cấp dưới</p>
                              </div>
                            </div>
                          </td>
                          <td className="px-8 py-6">
-                           <p className="text-[11px] text-slate-500 dark:text-white/50 italic font-medium line-clamp-2 max-w-xs uppercase">"{item.reason || '...'}"</p>
+                           <p className="text-[11px] text-slate-500 dark:text-white/50 italic font-medium max-w-xs uppercase break-words whitespace-normal leading-relaxed">"{item.reason || '...'}"</p>
                          </td>
                          <td className="px-8 py-6">
-                           <div className="space-y-1">
-                             <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">{formatDate(item.date)}</p>
-                             <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em]">{item.hours} GIỜ</p>
+                           <div className="space-y-1 text-center">
+                             <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter whitespace-nowrap">{formatDate(item.date)}</p>
+                             <p className="text-[9px] text-rose-500 font-bold uppercase tracking-[0.1em] whitespace-nowrap">{item.hours} GIỜ</p>
                            </div>
                          </td>
-                         <td className="px-8 py-6">
+                         <td className="px-8 py-6 text-center">
                            <StatusBadge status={item.status} />
                          </td>
                          {activeTab === 'pending' && (
-                           <td className="px-8 py-6 text-right">
+                           <td className="px-8 py-6 text-right min-w-[150px]">
                              <div className="flex items-center justify-end gap-3 transition-all shrink-0">
                                <button
                                  onClick={() => void review(item.id, true)}
-                                 className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                                 className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all shrink-0"
                                >
                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                                </button>
                                <button
                                  onClick={() => void review(item.id, false)}
-                                 className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all"
+                                 className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-95 transition-all shrink-0"
                                >
                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                </button>
@@ -427,22 +427,22 @@ export default function OTPage() {
                          </div>
                          <StatusBadge status={item.status} />
                        </div>
-                       <p className="text-slate-500 dark:text-white/40 text-xs italic font-medium border-l-2 border-rose-400/50 pl-3 line-clamp-2">
+                       <p className="text-slate-500 dark:text-white/40 text-xs italic font-medium border-l-2 border-rose-400/50 pl-3 break-words whitespace-normal leading-relaxed">
                          "{item.reason || '...'}"
                        </p>
                      </div>
                    ))}
-                 </div>
+                  </div>
               ) : (
                 /* Table view */
                 <div className="bg-white/90 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-[32px] overflow-hidden shadow-sm dark:shadow-none">
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                  <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-rose-500/10 dark:scrollbar-thumb-white/5">
+                    <table className="min-w-[800px] w-full border-collapse">
                       <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/30 text-slate-500 dark:text-white/50 font-black border-b border-slate-200 dark:border-white/5">
                         <tr>
-                          <th className="px-8 py-5 text-left whitespace-nowrap">Ngày</th>
-                          <th className="px-8 py-5 text-center whitespace-nowrap">Số giờ</th>
-                          <th className="px-8 py-5 text-left whitespace-nowrap">Lý do</th>
+                          <th className="px-8 py-5 text-left whitespace-nowrap">Ngày thực hiện</th>
+                          <th className="px-8 py-5 text-center whitespace-nowrap">Số giờ đã nộp</th>
+                          <th className="px-8 py-5 text-left whitespace-nowrap min-w-[300px]">Chi tiết công việc</th>
                           <th className="px-8 py-5 text-center whitespace-nowrap">Trạng thái</th>
                         </tr>
                       </thead>
@@ -450,13 +450,13 @@ export default function OTPage() {
                          {myItems.slice((personalPage - 1) * itemsPerPage, personalPage * itemsPerPage).map(item => (
                            <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                              <td className="px-8 py-5">
-                               <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{formatDate(item.date)}</span>
+                               <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight whitespace-nowrap">{formatDate(item.date)}</span>
                              </td>
                              <td className="px-8 py-5 text-center">
-                               <span className="text-rose-500 dark:text-rose-400 font-black text-sm">{item.hours}h</span>
+                               <span className="text-rose-500 dark:text-rose-400 font-black text-sm whitespace-nowrap">{item.hours}h</span>
                              </td>
-                             <td className="px-8 py-5 max-w-[300px]">
-                               <p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium line-clamp-2">"{item.reason || '...'}"</p>
+                             <td className="px-8 py-5 max-w-[400px]">
+                               <p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium break-words whitespace-normal leading-relaxed">"{item.reason || '...'}"</p>
                              </td>
                              <td className="px-8 py-5 text-center">
                                <StatusBadge status={item.status} />

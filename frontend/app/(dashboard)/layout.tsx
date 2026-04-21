@@ -55,24 +55,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthProvider>
-      <div className="flex h-screen overflow-hidden relative bg-slate-50 dark:bg-slate-950 transition-colors duration-500 text-slate-900 dark:text-white">
-        {/* Dynamic Background Image */}
+      <div className="flex h-screen overflow-hidden relative bg-[#020617] transition-colors duration-500 text-slate-900 dark:text-white">
+        {/* Background Image */}
         <div 
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ 
             backgroundImage: "url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop')",
-            filter: "brightness(var(--bg-bright, 0.3)) contrast(var(--bg-contrast, 1.1)) saturate(1.2) blur(3px)" 
+            filter: "brightness(0.35) contrast(1.1)" 
           }} 
         />
-        <style jsx>{`
-            :global(.theme-light) { --bg-bright: 0.95; --bg-contrast: 0.85; }
-            :global(.theme-dark) { --bg-bright: 0.3; --bg-contrast: 1.1; }
-        `}</style>
         
-        {/* Main Overlay Gradient */}
-        <div className="fixed inset-0 z-1 bg-gradient-to-tr from-slate-200/40 via-white/10 to-transparent dark:from-slate-950/80 dark:via-indigo-950/20 dark:to-transparent pointer-events-none" />
+        {/* Subtle Overlay */}
+        <div className="fixed inset-0 z-1 bg-gradient-to-tr from-[#020617]/80 via-[#020617]/20 to-transparent pointer-events-none" />
 
-        {/* Floating UI Container */}
         <div className="relative z-10 flex w-full h-full">
            {/* Mobile Drawer Overlay */}
            {!collapsed && (
@@ -99,5 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
     </AuthProvider>
+
+
   );
 }

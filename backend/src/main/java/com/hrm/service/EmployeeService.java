@@ -38,19 +38,48 @@ public class EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final AttendanceRepository attendanceRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheNames.EMPLOYEE_STATS, key = "'summary'")
-    public EmployeeStatsDTO getStats() {
-        long currentWorking = employeeRepository.countByStatusNot(EmpStatus.INACTIVE);
-        return EmployeeStatsDTO.builder()
-                .total(currentWorking)
-                .active(currentWorking)
-                .absent(attendanceRepository.countByDateAndStatusIn(
-                        LocalDate.now(),
-                        List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)))
-                .build();
+    public EmployeeStatsDTO getStats(Authentication authentication) {
+        boolean isAdminOrHr = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("HR") || a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_HR"));
+        
+        boolean hasViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_ALL"));
+        
+        boolean canViewTeam = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_TEAM"));
+
+        // Nếu là MANAGER (hoặc có quyền View Team) và KHÔNG PHẢI Admin/HR -> Thống kê theo Team
+        if (!isAdminOrHr && (canViewTeam || (hasViewAll && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().contains("MANAGER"))))) {
+            // MANAGER: chỉ đếm nhân viên trong dự án mình tham gia
+            java.util.Set<java.util.UUID> teamIds = getTeammateIds(authentication);
+            com.hrm.security.CustomUserDetails userDetails = (com.hrm.security.CustomUserDetails) authentication.getPrincipal();
+            Employee currentEmp = employeeRepository.findByUserId(userDetails.getId()).orElse(null);
+            UUID employeeId = currentEmp != null ? currentEmp.getId() : null;
+            long teamCount = teamIds.isEmpty() ? 0 : employeeRepository.countTeamMembersOrSelf(teamIds, employeeId);
+            return EmployeeStatsDTO.builder()
+                    .total(teamCount)
+                    .active(teamCount)
+                    .absent(0)
+                    .build();
+        }
+
+        // HR/ADMIN: thống kê toàn công ty
+        if (hasViewAll || isAdminOrHr) {
+            long currentWorking = employeeRepository.countByStatusNot(EmpStatus.INACTIVE);
+            return EmployeeStatsDTO.builder()
+                    .total(currentWorking)
+                    .active(currentWorking)
+                    .absent(attendanceRepository.countByDateAndStatusIn(
+                            LocalDate.now(),
+                            List.of(AttendanceStatus.ABSENT, AttendanceStatus.DAY_OFF)))
+                    .build();
+        }
+        
+        return new EmployeeStatsDTO(0, 0, 0);
     }
 
     @Transactional(readOnly = true)
@@ -66,14 +95,42 @@ public class EmployeeService {
             }
         }
 
-        if (search != null && !search.isBlank()) {
-            page = employeeRepository.searchEmployees(search, empStatus, pageable);
-        } else if (empStatus != null) {
-            // Search with status filter but no search terms
-            page = employeeRepository.searchEmployees("", empStatus, pageable);
+        // Kiểm tra quyền: 
+        // 1. ADMIN/HR (EMP_VIEW_ALL) -> Xem toàn bộ
+        // 2. MANAGER (EMP_VIEW_TEAM) -> Chỉ xem nhân viên (Role EMPLOYEE) trong team của mình
+        
+        boolean isAdminOrHr = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("HR") || a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_HR"));
+        
+        boolean hasViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_ALL"));
+        
+        boolean canViewTeam = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_TEAM"));
+
+        // Nếu là MANAGER (hoặc có quyền View Team) và KHÔNG PHẢI Admin/HR -> Ép xem theo Team
+        if (!isAdminOrHr && (canViewTeam || (hasViewAll && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().contains("MANAGER"))))) {
+            // MANAGER: chỉ xem nhân viên trong dự án mình tham gia
+            java.util.Set<java.util.UUID> ids = getTeammateIds(authentication);
+            if (ids == null || ids.isEmpty()) {
+                return new PageResponse<>(java.util.List.of(), 0, 0, pageable.getPageSize(), pageable.getPageNumber());
+            }
+            com.hrm.security.CustomUserDetails userDetails = (com.hrm.security.CustomUserDetails) authentication.getPrincipal();
+            Employee currentEmp = employeeRepository.findByUserId(userDetails.getId()).orElse(null);
+            UUID employeeId = currentEmp != null ? currentEmp.getId() : null;
+            page = employeeRepository.searchTeamEmployees(ids, search, empStatus, employeeId, pageable);
+        } else if (hasViewAll) {
+            // ADMIN/HR hoặc người có quyền View All thực sự
+            if (search != null && !search.isBlank()) {
+                page = employeeRepository.searchEmployees(search, empStatus, pageable);
+            } else if (empStatus != null) {
+                page = employeeRepository.searchEmployees("", empStatus, pageable);
+            } else {
+                page = employeeRepository.findAll(pageable);
+            }
         } else {
-            // No filters, get all employees
-            page = employeeRepository.findAll(pageable);
+            // Trường hợp khác (Employee) -> Thường sẽ bị chặn ở Controller hoặc chỉ thấy chính mình
+            page = Page.empty(pageable);
         }
 
         List<EmployeeDTO> content = page.getContent().stream()
@@ -94,14 +151,24 @@ public class EmployeeService {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
-        // Nếu không có EMP_VIEW_ALL (tức là EMPLOYEE thường), chỉ được xem chính mình
         boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_ALL"));
+        boolean canViewTeam = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EMP_VIEW_TEAM"));
+
         if (!canViewAll) {
             User currentUser = userRepository.findByEmail(authentication.getName()).orElse(null);
             boolean isOwner = currentUser != null && emp.getUser() != null
                     && emp.getUser().getId().equals(currentUser.getId());
-            if (!isOwner) {
+
+            // MANAGER (EMP_VIEW_TEAM): cho phép xem nhân viên cùng dự án
+            boolean isTeammate = false;
+            if (!isOwner && canViewTeam) {
+                java.util.Set<java.util.UUID> teamIds = getTeammateIds(authentication);
+                isTeammate = teamIds.contains(id);
+            }
+
+            if (!isOwner && !isTeammate) {
                 throw new AccessDeniedException("Bạn chỉ được xem thông tin cá nhân của chính mình.");
             }
         }
@@ -308,12 +375,11 @@ public class EmployeeService {
         boolean isOwner = currentUser != null && dto.getUserId() != null && dto.getUserId().equals(currentUser.getId());
 
         if (!canViewAll && !isOwner) {
-            // Mask sensitive data for other employees
+            // MANAGER (EMP_VIEW_TEAM) vẫn bị ẩn dữ liệu nhạy cảm
             dto.setBaseSalary(null);
             dto.setTaxDependents(null);
             dto.setPhone("********");
             dto.setAddress("********");
-            // Ẩn thông tin nhạy cảm mở rộng
             dto.setCitizenId("********");
             dto.setCitizenIdDate(null);
             dto.setCitizenIdPlace(null);
@@ -323,6 +389,17 @@ public class EmployeeService {
             dto.setEmergencyContactPhone(null);
         }
         return dto;
+    }
+
+    /**
+     * Lấy tập hợp employee IDs cùng dự án với user hiện tại.
+     */
+    private java.util.Set<java.util.UUID> getTeammateIds(Authentication authentication) {
+        User currentUser = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (currentUser == null) return java.util.Set.of();
+        Employee currentEmp = employeeRepository.findByUserId(currentUser.getId()).orElse(null);
+        if (currentEmp == null) return java.util.Set.of();
+        return projectMemberRepository.findTeammateEmployeeIds(currentEmp.getId());
     }
 
     private void mapToEntity(EmployeeDTO dto, Employee emp) {

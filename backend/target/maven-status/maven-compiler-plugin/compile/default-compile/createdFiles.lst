@@ -33,6 +33,7 @@ com\hrm\repository\ApologyRepository.class
 com\hrm\dto\ProjectResponse.class
 com\hrm\dto\EmployeePersonalInfoDTO.class
 com\hrm\service\JwtSessionService.class
+com\hrm\config\CacheConfig.class
 com\hrm\dto\DepartmentDTO.class
 com\hrm\dto\ImportErrorResponse.class
 com\hrm\dto\OTRequestDTO$OTRequestDTOBuilder.class
@@ -127,6 +128,7 @@ com\hrm\dto\ChatResponseDto$ChatResponseDtoBuilder.class
 com\hrm\entity\ChatMessage.class
 com\hrm\dto\EmployeeStatsDTO.class
 com\hrm\entity\AttendanceStatus.class
+com\hrm\dto\EmployeeProjectResponse.class
 com\hrm\entity\User$UserBuilder.class
 com\hrm\dto\ProjectMemberResponse$ProjectMemberResponseBuilder.class
 com\hrm\dto\ReviewRequest.class
@@ -137,6 +139,7 @@ com\hrm\entity\Apology.class
 com\hrm\service\RateLimitService.class
 com\hrm\dto\ApologyCreateRequest.class
 com\hrm\entity\Attendance.class
+com\hrm\dto\EmployeeProjectResponse$EmployeeProjectResponseBuilder.class
 com\hrm\service\ChatToolService$HolidayDto.class
 com\hrm\controller\RoleController.class
 com\hrm\dto\AuthResponse.class
@@ -148,6 +151,7 @@ com\hrm\dto\UserManagementDTO.class
 com\hrm\security\CustomUserDetailsService.class
 com\hrm\dto\PositionDTO.class
 com\hrm\service\EmployeeService.class
+com\hrm\config\CacheNames.class
 com\hrm\entity\LeaveRequest$LeaveRequestBuilder.class
 com\hrm\entity\Project.class
 com\hrm\entity\ProjectMember$ProjectMemberBuilder.class

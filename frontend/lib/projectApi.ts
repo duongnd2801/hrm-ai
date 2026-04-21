@@ -1,5 +1,5 @@
 import api from './api';
-import type { Project, ProjectMember } from '@/types';
+import type { EmployeeProject, Project, ProjectMember } from '@/types';
 
 export const projectApi = {
   getProjects: async (): Promise<Project[]> => {
@@ -28,6 +28,11 @@ export const projectApi = {
 
   getProjectMembers: async (projectId: string): Promise<ProjectMember[]> => {
     const response = await api.get(`/api/projects/${projectId}/members`);
+    return response.data;
+  },
+
+  getEmployeeCurrentProjects: async (employeeId: string): Promise<EmployeeProject[]> => {
+    const response = await api.get(`/api/projects/employees/${employeeId}/current`);
     return response.data;
   },
 

@@ -2,14 +2,16 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios, { type AxiosResponse } from 'axios';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import Toast, { ToastState } from '@/components/Toast';
-import { Department, Employee, Position } from '@/types';
+import { Department, Employee, EmployeeProject, Position, ProjectRole } from '@/types';
 import { formatVND } from '@/lib/utils';
 import { useSession } from '@/components/AuthProvider';
 import SearchableSelect from '@/components/SearchableSelect';
+import { projectApi } from '@/lib/projectApi';
 
 type EmployeePageProps = {
   params: Promise<{ id: string }>;
@@ -43,6 +45,17 @@ function getPositionRank(positionName?: string): number {
   return 15;
 }
 
+const projectRoleLabelMap: Record<ProjectRole, string> = {
+  PM: 'PM',
+  DEV: 'DEV',
+  QA: 'QA',
+  TESTER: 'Tester',
+  BA: 'BA',
+  DESIGNER: 'Designer',
+  COMTER: 'Comter',
+  GUEST: 'Guest',
+};
+
 export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   const { id } = React.use(params);
   const router = useRouter();
@@ -54,6 +67,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [managerOptions, setManagerOptions] = useState<Employee[]>([]);
+  const [currentProjects, setCurrentProjects] = useState<EmployeeProject[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -65,6 +79,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   const canView = permissions.includes('EMP_VIEW');
   const canEditPersonal = isSelf || permissions.includes('EMP_UPDATE');
   const canEditStructure = permissions.includes('EMP_UPDATE');
+  const canViewProjects = permissions.includes('PRJ_VIEW');
   const forceCompleteProfile = searchParams.get('completeProfile') === '1';
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
@@ -101,6 +116,17 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
         if (canEditStructure) tasks.push(fetchMeta(id));
         const [res] = await Promise.all(tasks);
         setEmp((res as AxiosResponse<Employee>).data);
+
+        if (canViewProjects) {
+          try {
+            setCurrentProjects(await projectApi.getEmployeeCurrentProjects(id));
+          } catch {
+            setCurrentProjects([]);
+            pushToast('error', 'Không thể tải danh sách dự án hiện tại của nhân viên.');
+          }
+        } else {
+          setCurrentProjects([]);
+        }
         
         if (forceCompleteProfile) {
           pushToast('error', 'Vui lòng bổ sung đầy đủ: Số điện thoại, Ngày sinh và Địa chỉ để hoàn tất hồ sơ!');
@@ -113,7 +139,7 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
     };
 
     void run();
-  }, [mounted, id, canEditStructure, fetchMeta, forceCompleteProfile]);
+  }, [mounted, id, canEditStructure, canViewProjects, fetchMeta, forceCompleteProfile]);
 
   const departmentSelectOptions = useMemo<SelectOption[]>(
     () => departments.map((d) => ({ id: d.id, label: d.name })),
@@ -183,33 +209,29 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
   if (!emp) return null;
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="relative isolate space-y-10 pb-20">
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
       {/* Title Section with Enhanced Styling */}
-      <div className="pt-10">
-        {/* Gradient Background */}
-        <div className="absolute -z-10 top-0 left-1/2 w-full h-96 bg-gradient-to-b from-indigo-500/5 via-purple-500/5 to-transparent blur-3xl translate-x-0" />
-        
+      <div className="relative pt-10 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="flex items-center gap-6 md:gap-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 md:gap-8 text-center sm:text-left">
             <div className="relative group flex-shrink-0">
               <Avatar name={emp.fullName} size="xl" />
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 blur-xl opacity-0 group-hover:opacity-30 transition-all duration-300" />
-              <div className="absolute inset-2 rounded-full border-2 border-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
             </div>
-            <div className="space-y-4">
-              <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight">
+            <div className="space-y-4 min-w-0">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight break-words">
                 {emp.fullName}
               </h1>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/30">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                <span className="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/30 whitespace-nowrap">
                   {emp.positionName || 'Nhân viên'}
                 </span>
-                <span className="px-4 py-2 rounded-full bg-indigo-500/10 backdrop-blur-sm border border-indigo-500/20 text-slate-900/70 dark:text-white/70 text-xs font-bold uppercase tracking-widest">
+                <span className="px-4 py-2 rounded-full bg-indigo-500/10 backdrop-blur-sm border border-indigo-500/20 text-slate-900/70 dark:text-white/70 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
                   {emp.departmentName || 'Chung'}
                 </span>
-                <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
+                <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap ${
                   emp.status === 'ACTIVE' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' :
                   emp.status === 'INACTIVE' ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' :
                   'bg-amber-500/20 border-amber-500/50 text-amber-300'
@@ -222,11 +244,11 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
             </div>
           </div>
 
-          <div className="flex gap-3 mt-4 md:mt-0">
+          <div className="flex gap-3 mt-4 md:mt-0 self-center md:self-end shrink-0">
             <button
               type="button"
               onClick={() => router.push('/employees')}
-              className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white font-black text-xs uppercase tracking-widest transition-all duration-300 border border-white/10 hover:border-white/20"
+              className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all duration-300 border border-white/10 hover:border-white/20 whitespace-nowrap"
             >
               ← QUAY LẠI
             </button>
@@ -670,6 +692,72 @@ export default function EmployeeDetailPage({ params }: EmployeePageProps) {
                   </button>
                </div>
             </div>
+
+            {canViewProjects && (
+              <div className="relative group glass-dark backdrop-blur-3xl rounded-[40px] p-8 shadow-2xl dark:shadow-3xl transition-all duration-300 overflow-hidden">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br from-cyan-500 via-indigo-500 to-violet-500 rounded-[40px] transition-all duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between gap-4 mb-6">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-[0.22em] mb-2">Dự án hiện tại</p>
+                      <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                        {currentProjects.length}/2 dự án
+                      </h3>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-black">
+                      {currentProjects.length}
+                    </div>
+                  </div>
+
+                  {currentProjects.length === 0 ? (
+                    <div className="rounded-3xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03] p-6 text-center">
+                      <p className="text-[11px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.18em] leading-relaxed">
+                        Chưa tham gia dự án nào
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {currentProjects.slice(0, 2).map((project) => (
+                        <Link
+                          key={project.projectId}
+                          href={`/projects/${project.projectId}`}
+                          className="block rounded-3xl border border-black/5 dark:border-white/10 bg-white/50 dark:bg-white/[0.04] p-4 transition-all hover:bg-white/80 dark:hover:bg-white/[0.08] hover:-translate-y-0.5"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div
+                              className="w-11 h-11 rounded-2xl flex shrink-0 items-center justify-center text-white font-black shadow-lg"
+                              style={{ backgroundColor: project.projectColor || '#6366f1' }}
+                            >
+                              {project.projectName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[13px] font-black text-slate-900 dark:text-white uppercase tracking-tight break-words">
+                                  {project.projectName}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-500 text-[8px] font-black uppercase tracking-widest">
+                                  {projectRoleLabelMap[project.role]}
+                                </span>
+                              </div>
+                              <div className="mt-2 flex flex-wrap items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/35">
+                                <span>{project.projectCode}</span>
+                                <span className="w-1 h-1 rounded-full bg-current" />
+                                <span>{project.projectStatus}</span>
+                              </div>
+                              {project.joinedAt && (
+                                <p className="mt-3 text-[10px] font-bold text-slate-500 dark:text-white/30">
+                                  Tham gia từ {new Date(project.joinedAt).toLocaleDateString('vi-VN')}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Account Status Card */}
             <div className="relative group glass-dark backdrop-blur-3xl rounded-[40px] p-10 shadow-2xl dark:shadow-3xl hover:shadow-3xl dark:hover:shadow-4xl transition-all duration-300 overflow-hidden">

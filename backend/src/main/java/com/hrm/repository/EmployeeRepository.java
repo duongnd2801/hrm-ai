@@ -2,6 +2,7 @@ package com.hrm.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -50,4 +51,40 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     List<Employee> findByManagerId(UUID managerId);
 
     List<Employee> findByUserRoleName(String roleName);
+
+    // --- Team-scoped queries for MANAGER (PM) ---
+    @Query("SELECT e FROM Employee e WHERE e.id IN :ids AND (e.user.role.name = 'EMPLOYEE' OR e.id = :managerId)")
+    Page<Employee> findTeamMembersOrSelf(@Param("ids") Set<UUID> ids, @Param("managerId") UUID managerId, Pageable pageable);
+
+    @Query("SELECT COUNT(e) FROM Employee e WHERE e.id IN :ids AND (e.user.role.name = 'EMPLOYEE' OR e.id = :managerId)")
+    long countTeamMembersOrSelf(@Param("ids") Set<UUID> ids, @Param("managerId") UUID managerId);
+
+    @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.user WHERE e.id IN :ids AND (e.user.role.name = 'EMPLOYEE' OR e.id = :managerId) AND (" +
+           "LOWER(e.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.phone) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Employee> searchTeamEmployeesWithoutStatus(@Param("ids") Set<UUID> ids, @Param("search") String search, @Param("managerId") UUID managerId, Pageable pageable);
+
+    @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.user WHERE e.id IN :ids AND (e.user.role.name = 'EMPLOYEE' OR e.id = :managerId) AND " +
+           "e.status = :status AND (" +
+           "LOWER(e.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.phone) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Employee> searchTeamEmployeesWithStatus(@Param("ids") Set<UUID> ids, @Param("search") String search, @Param("status") EmpStatus status, @Param("managerId") UUID managerId, Pageable pageable);
+
+    default Page<Employee> searchTeamEmployees(Set<UUID> ids, String search, EmpStatus status, UUID managerId, Pageable pageable) {
+        if (ids == null || ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        if (search == null || search.isBlank()) {
+            if (status != null) {
+                return searchTeamEmployeesWithStatus(ids, "", status, managerId, pageable);
+            }
+            return findTeamMembersOrSelf(ids, managerId, pageable);
+        }
+        if (status == null) {
+            return searchTeamEmployeesWithoutStatus(ids, search, managerId, pageable);
+        }
+        return searchTeamEmployeesWithStatus(ids, search, status, managerId, pageable);
+    }
 }

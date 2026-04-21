@@ -64,19 +64,26 @@ export default function LoginPage() {
       }
 
       router.push(nextUrl);
-    } catch (err: unknown) {
-      const status =
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        typeof (err as { response?: { status?: number } }).response?.status === 'number'
-          ? (err as { response?: { status?: number } }).response?.status
-          : undefined;
+    } catch (err: any) {
       let msg = 'Không thể kết nối đến máy chủ';
       
-      if (status === 401) msg = 'Email hoặc mật khẩu không chính xác';
-      else if (status === 403) msg = 'Tài khoản của bạn tạm thời đã bị khóa';
-      else if (status === 400) msg = 'Dữ liệu xác thực không hợp lệ';
+      if (err.response) {
+        const status = err.response.status;
+        const serverMessage = err.response.data?.message;
+
+        if (status === 401) {
+          msg = 'Email hoặc mật khẩu không chính xác';
+        } else if (status === 429) {
+          // Lấy message từ BE (Tài khoản temporarily bị khóa...)
+          msg = serverMessage || 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng quay lại sau.';
+        } else if (status === 403) {
+          msg = 'Tài khoản của bạn không có quyền truy cập';
+        } else if (status === 400) {
+          msg = 'Dữ liệu xác thực không hợp lệ';
+        } else {
+          msg = serverMessage || 'Đã xảy ra lỗi hệ thống';
+        }
+      }
       
       setError(msg);
     } finally {

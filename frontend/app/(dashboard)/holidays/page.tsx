@@ -64,16 +64,18 @@ function MonthCalendar({ month, year, holidays, toggleHoliday, canManage }: { mo
   const isHoliday = (dateStr: string) => {
     return holidays.some(h => {
        const start = h.date || h.start;
+       if (!start) return false;
        const end = h.end || start;
-       return start && dateStr >= start && dateStr <= end;
+       return dateStr >= start && dateStr <= end;
     });
   };
 
   const getHolidayName = (dateStr: string) => {
     const h = holidays.find(h => {
        const start = h.date || h.start;
+       if (!start) return false;
        const end = h.end || start;
-       return start && dateStr >= start && dateStr <= end;
+       return dateStr >= start && dateStr <= end;
     });
     return h?.name;
   };

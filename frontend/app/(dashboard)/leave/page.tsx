@@ -104,9 +104,9 @@ export default function LeavePage() {
 
   const getStatusColor = (status: ApologyStatus) => {
     switch (status) {
-      case 'APPROVED': return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-400/20';
-      case 'REJECTED': return 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-400/10 border-rose-200 dark:border-rose-400/20';
-      default: return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-400/10 border-amber-200 dark:border-amber-400/20';
+      case 'APPROVED': return 'bg-emerald-500 text-white border-transparent';
+      case 'REJECTED': return 'bg-rose-500 text-white border-transparent';
+      default: return 'bg-amber-500 text-white border-transparent';
     }
   };
 
@@ -253,46 +253,46 @@ export default function LeavePage() {
           </div>
         ) : viewMode === 'table' ? (
           <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-black/5 dark:border-white/10 shadow-xl dark:shadow-3xl">
-            <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-0">
+            <div className="overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-indigo-500/10">
+              <table className="min-w-[1000px] w-full border-separate border-spacing-0">
                 <thead className="text-[11px] uppercase tracking-[0.2em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black border-b border-black/5 dark:border-white/5 sticky top-0 z-20 backdrop-blur-md">
                   <tr>
-                    <th className="px-10 py-6 text-left whitespace-nowrap">Nhân viên</th>
+                    <th className="px-10 py-6 text-left whitespace-nowrap min-w-[200px]">Nhân viên</th>
                     <th className="px-8 py-6 text-left whitespace-nowrap">Loại nghỉ</th>
                     <th className="px-8 py-6 text-left whitespace-nowrap">Từ ngày</th>
                     <th className="px-8 py-6 text-left whitespace-nowrap">Đến ngày</th>
-                    <th className="px-8 py-6 text-left whitespace-nowrap">Lý do</th>
+                    <th className="px-8 py-6 text-left whitespace-nowrap">Lý do nghỉ</th>
                     <th className="px-8 py-6 text-center whitespace-nowrap">Trạng thái</th>
-                    {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && <th className="px-10 py-6 text-right whitespace-nowrap">Tác vụ</th>}
+                    {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && <th className="px-10 py-6 text-right whitespace-nowrap min-w-[120px] shrink-0">Tác vụ</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                   {filteredDisplayLeaves.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((leave) => (
                     <tr key={leave.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                       <td className="px-10 py-5">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 max-w-[250px]">
                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-black text-xs uppercase shrink-0">
                             {leave.employeeName?.charAt(0) || '?'}
                           </div>
-                          <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight">{leave.employeeName}</span>
+                          <span className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-tight break-words whitespace-normal leading-tight">{leave.employeeName}</span>
                         </div>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="text-slate-700 dark:text-white/80 font-bold text-xs uppercase tracking-widest">{getLeaveTypeText(leave.type)}</span>
+                        <span className="text-slate-700 dark:text-white/80 font-bold text-xs uppercase tracking-widest whitespace-nowrap">{getLeaveTypeText(leave.type)}</span>
                       </td>
-                      <td className="px-8 py-5 text-slate-900 dark:text-white font-bold text-xs">{format(new Date(leave.startDate), 'dd/MM/yyyy')}</td>
-                      <td className="px-8 py-5 text-slate-900 dark:text-white font-bold text-xs">{format(new Date(leave.endDate), 'dd/MM/yyyy')}</td>
-                      <td className="px-8 py-5 max-w-[200px]"><p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium line-clamp-1">"{leave.reason || '...'}"</p></td>
+                      <td className="px-8 py-5 text-slate-900 dark:text-white font-bold text-xs whitespace-nowrap">{format(new Date(leave.startDate), 'dd/MM/yyyy')}</td>
+                      <td className="px-8 py-5 text-slate-900 dark:text-white font-bold text-xs whitespace-nowrap">{format(new Date(leave.endDate), 'dd/MM/yyyy')}</td>
+                      <td className="px-8 py-5 max-w-[300px]"><p className="text-slate-500 dark:text-white/40 text-[11px] italic font-medium break-words whitespace-normal leading-relaxed">"{leave.reason || '...'}"</p></td>
                       <td className="px-8 py-5 text-center">
                         <span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${getStatusColor(leave.status)}`}>
                           {getStatusText(leave.status)}
                         </span>
                       </td>
                       {canApprove && tab === 'REVIEW' && activeSubTab === 'pending' && (
-                        <td className="px-10 py-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                             <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-90 transition-all">✕</button>
-                             <button onClick={() => handleAction(leave.id, 'approve')} className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl flex items-center justify-center active:scale-90 transition-all shadow-lg shadow-emerald-500/20">✓</button>
+                        <td className="px-10 py-5 text-right min-w-[120px]">
+                          <div className="flex items-center justify-end gap-2 shrink-0">
+                             <button onClick={() => handleAction(leave.id, 'reject')} className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-500/20 active:scale-95 transition-all shrink-0">✕</button>
+                             <button onClick={() => handleAction(leave.id, 'approve')} className="w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl flex items-center justify-center active:scale-95 transition-all shadow-lg shadow-emerald-500/20 shrink-0">✓</button>
                           </div>
                         </td>
                       )}

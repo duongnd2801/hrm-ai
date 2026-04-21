@@ -51,6 +51,29 @@ export default function ImportMachineModal({ onClose, onSuccess }: Props) {
     await processFile(e.dataTransfer.files?.[0]);
   };
 
+  const formatExcelValue = (val: any, type: 'date' | 'time') => {
+    if (!val) return '';
+    if (val instanceof Date) {
+      if (type === 'date') return val.toLocaleDateString('vi-VN');
+      return val.toLocaleTimeString('vi-VN', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    }
+    if (typeof val === 'number') {
+       if (type === 'time') {
+          // Excel time is fraction of day (0.5 = 12:00)
+          const totalSeconds = Math.round(val * 86400);
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+       }
+       if (type === 'date' && val > 25569) {
+          // Excel date (days since 1900-01-01)
+          const date = new Date((val - 25569) * 86400 * 1000);
+          return date.toLocaleDateString('vi-VN');
+       }
+    }
+    return String(val).trim();
+  };
+
   const processFile = async (selectedFile: File | undefined) => {
     if (!selectedFile) return;
     
@@ -63,37 +86,44 @@ export default function ImportMachineModal({ onClose, onSuccess }: Props) {
     setError('');
     try {
       const buffer = await selectedFile.arrayBuffer();
+      // cellDates: false to get raw numbers for easier fraction handling manually if needed, 
+      // but true is usually better for modern sheets. Let's keep true but handle both.
       const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true }) as any[][];
 
       if (jsonData.length < 6) {
         throw new Error('File Excel không có dữ liệu (Bắt đầu từ dòng 6)');
       }
 
-      const rawRows = jsonData.slice(5); // SKIP 5 rows, start from row 6 (index 5)
+      const rawRows = jsonData.slice(5); // SKIP 5 rows
       
       const rowsWithErrors: ExcelRow[] = rawRows.map((rowArr, idx) => {
         const errors: string[] = [];
         
-        // Col B (1): ID
-        // Col E (4): Date
-        // Col G (6): CheckIn
-        // Col H (7): CheckOut
-        
+        // Mapping (Backend: STT index 0, ID index 1, Name 2, Dept 3, Date 4, ... CI 6, CO 7)
         const empId = rowArr[1] ? String(rowArr[1]).trim() : '';
-        const dateStr = rowArr[4] ? String(rowArr[4]).trim() : '';
-        const ci = rowArr[6] ? String(rowArr[6]) : '';
-        const co = rowArr[7] ? String(rowArr[7]) : '';
+        const name = rowArr[2] ? String(rowArr[2]).trim() : '';
+        const dateStr = formatExcelValue(rowArr[4], 'date');
+        const ci = formatExcelValue(rowArr[6], 'time');
+        const co = formatExcelValue(rowArr[7], 'time');
 
         if (!empId) errors.push('Thiếu Mã NV');
         if (!dateStr) errors.push('Thiếu Ngày');
         
+        // Check if ID is UUID-like (simple check)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (empId && !uuidRegex.test(empId)) {
+           // Maybe it's a legacy ID? We still warn about name-in-ID-column which seems to be the case in screenshot
+           if (empId.length > 20 && empId.includes(' ')) {
+              errors.push('Cột ID chứa Tên?');
+           }
+        }
+
         return {
           rowIndex: idx + 6,
           col_id: empId,
-          col_name: rowArr[2],
-          col_dept: rowArr[3],
+          col_name: name || 'N/A',
           col_date: dateStr,
           col_ci: ci,
           col_co: co,
@@ -103,7 +133,7 @@ export default function ImportMachineModal({ onClose, onSuccess }: Props) {
           checkOut: co,
           errors
         };
-      }).filter(r => r.employeeId || r.date); // Filter out empty lines at the end
+      }).filter(r => r.employeeId || r.col_date);
 
       setPreviewData(rowsWithErrors);
       setFile(selectedFile);

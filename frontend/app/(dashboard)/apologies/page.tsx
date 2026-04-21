@@ -17,9 +17,9 @@ const typeOptions = [
 
 function StatusBadge({ status }: { status: Apology['status'] }) {
   const map: Record<Apology['status'], string> = {
-    PENDING: 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-200 dark:border-amber-500/20',
-    APPROVED: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20',
-    REJECTED: 'bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20',
+    PENDING: 'bg-amber-500 text-white border-transparent',
+    APPROVED: 'bg-emerald-500 text-white border-transparent',
+    REJECTED: 'bg-rose-500 text-white border-transparent',
   };
   const label: Record<Apology['status'], string> = {
     PENDING: 'Chờ duyệt',
@@ -155,21 +155,21 @@ export default function ApologiesPage() {
       <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
 
       {/* Hero Header - Synced with Payroll Style */}
-      <div className="pt-10 mb-8 relative flex flex-col xl:flex-row xl:items-end justify-between gap-8">
-        <div>
-          <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
-            Trung tâm<br />giải trình
+      <div className="pt-10 mb-8 relative flex flex-col xl:flex-row xl:items-end justify-between gap-6 md:gap-8">
+        <div className="max-w-full overflow-hidden">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[1.1] md:leading-none break-words" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.4)' }}>
+            Trung tâm<br className="hidden sm:block" />giải trình
           </h1>
-          <p className="text-lg font-bold uppercase tracking-[0.3em] mt-6 ml-1 text-white/90 uppercase" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+          <p className="text-base sm:text-lg font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] mt-4 md:mt-6 ml-1 text-white/90" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
             Duyệt & Quản lý sai lệch chấm công
           </p>
         </div>
 
         {canCreate && isReviewer && (
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-[32px] border border-white/10 shadow-2xl mt-6 md:mt-0">
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-2 md:p-3 rounded-[24px] md:rounded-[32px] border border-white/10 shadow-2xl w-fit">
             <button
               onClick={() => setShowForm(!showForm)}
-              className={`px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${showForm ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40 hover:bg-indigo-500'}`}
+              className={`px-6 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${showForm ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/40 hover:bg-indigo-500'}`}
             >
               {showForm ? 'HỦY' : 'VIẾT ĐƠN CÁ NHÂN'}
             </button>
@@ -284,14 +284,14 @@ export default function ApologiesPage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-x-auto">
-                <table className="w-full border-collapse">
+              <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 dark:scrollbar-thumb-white/5 pb-4">
+                <table className="min-w-[1000px] w-full border-collapse">
                   <thead className="text-[11px] uppercase tracking-[0.2em] bg-slate-50 dark:bg-black/20 text-slate-500 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-slate-100 dark:border-white/5">
                     <tr>
-                      <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap">Nhân viên</th>
+                      <th className="px-8 py-6 text-left rounded-tl-3xl whitespace-nowrap min-w-[200px]">Nhân viên</th>
                       <th className="px-8 py-6 text-left whitespace-nowrap">Sự cố</th>
                       <th className="px-8 py-6 text-left whitespace-nowrap text-center">Ngày ghi nhận</th>
-                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Nội dung</th>
+                      <th className="px-8 py-6 text-left whitespace-nowrap text-center">Nội dung giải trình</th>
                       {activeTab === 'pending' && <th className="px-8 py-6 text-right rounded-tr-3xl whitespace-nowrap">Tác vụ</th>}
                     </tr>
                   </thead>
@@ -309,29 +309,31 @@ export default function ApologiesPage() {
                      ).map(item => (
                       <tr key={item.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                         <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 max-w-[250px]">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-800 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
                               {item.employeeName?.charAt(0) || '?'}
                             </div>
-                            <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">{item.employeeName}</p>
+                            <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight break-words whitespace-normal leading-tight">{item.employeeName}</p>
                           </div>
                         </td>
                         <td className="px-8 py-6">
-                          <span className="text-[10px] font-black bg-slate-100 dark:bg-white/5 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/10 uppercase tracking-widest">
+                          <span className="text-[10px] font-black bg-slate-100 dark:bg-white/5 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/10 uppercase tracking-widest whitespace-nowrap">
                             {typeOptions.find(t => t.value === item.type)?.label}
                           </span>
                         </td>
                         <td className="px-8 py-6 text-center">
-                          <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter">
+                          <p className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-tighter whitespace-nowrap">
                             {new Date(item.attendanceDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
                           </p>
                         </td>
-                        <td className="px-8 py-6 text-center">
-                          {activeTab === 'pending' ? (
-                            <p className="text-[10px] text-slate-500 dark:text-white/50 italic font-medium line-clamp-1 max-w-[200px] uppercase">"{item.reason || '...'}"</p>
-                          ) : (
-                            <StatusBadge status={item.status} />
-                          )}
+                        <td className="px-8 py-6">
+                          <div className="flex justify-center">
+                            {activeTab === 'pending' ? (
+                              <p className="text-[10px] text-slate-500 dark:text-white/50 italic font-medium max-w-[300px] uppercase break-words whitespace-normal leading-relaxed text-center">"{item.reason || '...'}"</p>
+                            ) : (
+                              <StatusBadge status={item.status} />
+                            )}
+                          </div>
                         </td>
                         {activeTab === 'pending' && (
                           <td className="px-8 py-6 text-right">

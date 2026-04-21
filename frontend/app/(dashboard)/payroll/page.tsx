@@ -130,26 +130,26 @@ export default function PayrollPage() {
       <Toast toast={toast} onClose={() => setToast(t => ({ ...t, show: false }))} />
 
       {/* Hero Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pt-10">
-         <div>
-            <h1 className="text-5xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Bảng lương</h1>
-            <p className="text-lg font-bold uppercase tracking-widest mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Thu nhập & Chế độ đãi ngộ</p>
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between pt-6 md:pt-10 gap-6">
+         <div className="max-w-full overflow-hidden">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white px-1 tracking-tighter mix-blend-overlay uppercase leading-[1.1] md:leading-none break-words" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Bảng lương</h1>
+            <p className="text-sm sm:text-base md:text-lg font-bold uppercase tracking-widest mt-4 md:mt-6 ml-1" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>Thu nhập & Chế độ đãi ngộ</p>
          </div>
 
          {canManage && (
-            <div className="flex items-center gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl mt-6 md:mt-0 px-4 py-3">
-               <div className="flex items-center gap-2 mr-4">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl p-3 rounded-[24px] border border-black/5 dark:border-white/5 shadow-xl dark:shadow-2xl w-full sm:w-fit shrink-0">
+               <div className="flex items-center gap-2">
                   <select 
                     value={month} 
                     onChange={e => setMonth(Number(e.target.value))}
-                    className="bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl py-1.5 px-3 text-xs text-slate-900 dark:text-white font-black"
+                    className="bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl py-1.5 px-3 text-[11px] text-slate-900 dark:text-white font-black outline-none"
                   >
-                     {[...Array(12)].map((_, i) => <option key={i+1} value={i+1} className="bg-slate-900 text-white">Tháng {i+1}</option>)}
+                     {[...Array(12)].map((_, i) => <option key={i+1} value={i+1} className="bg-slate-900 text-white">T{i+1}</option>)}
                   </select>
                   <select 
                     value={year} 
                     onChange={e => setYear(Number(e.target.value))}
-                    className="bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl py-1.5 px-3 text-xs text-slate-900 dark:text-white font-black"
+                    className="bg-slate-900/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl py-1.5 px-3 text-[11px] text-slate-900 dark:text-white font-black outline-none"
                   >
                      {[2024, 2025, 2026].map(y => <option key={y} value={y} className="bg-slate-900 text-white">{y}</option>)}
                   </select>
@@ -157,14 +157,14 @@ export default function PayrollPage() {
                <button
                   onClick={handleCalculate}
                   disabled={calculating}
-                  className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-900/5 dark:disabled:bg-white/5 disabled:text-slate-400 dark:disabled:text-white/20 text-white rounded-xl text-xs font-black tracking-widest transition-all shadow-lg active:scale-95"
+                  className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-900/5 dark:disabled:bg-white/5 disabled:text-slate-400 dark:disabled:text-white/20 text-white rounded-xl text-[10px] font-black tracking-widest transition-all shadow-lg active:scale-95 uppercase whitespace-nowrap shrink-0"
                >
-                  {calculating ? 'ĐANG TÍNH...' : 'TÍNH LƯƠNG'}
+                  {calculating ? '...' : 'TÍNH LƯƠNG'}
                </button>
                {canExport && (
                  <button
                     onClick={handleExport}
-                    className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all"
+                    className="p-2.5 bg-white/80 dark:bg-transparent text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 rounded-xl transition-all shrink-0"
                  >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -191,10 +191,10 @@ export default function PayrollPage() {
                 <thead className="text-sm uppercase tracking-[0.15em] bg-white/90 dark:bg-black/20 text-slate-600 dark:text-white/70 font-black sticky top-0 z-20 backdrop-blur-md border-b border-black/5 dark:border-white/5">
                   <tr>
                     <th className="px-2 py-3 rounded-tl-2xl whitespace-nowrap">THỜI ĐIỂM</th>
-                    <th className="px-2 py-3 whitespace-nowrap">NHÂN VIÊN</th>
+                    <th className="px-2 py-3 whitespace-nowrap min-w-[150px]">NHÂN VIÊN</th>
                     <th className="px-2 py-3 whitespace-nowrap">LƯƠNG CB</th>
-                    <th className="px-2 py-3 whitespace-nowrap">CÔNG THỰC</th>
-                    <th className="px-2 py-3 whitespace-nowrap">OT</th>
+                    <th className="px-2 py-3 whitespace-nowrap text-center">CÔNG THỰC</th>
+                    <th className="px-2 py-3 whitespace-nowrap text-center">OT</th>
                     <th className="px-2 py-3 whitespace-nowrap">TỔNG THU NHẬP</th>
                     <th className="px-2 py-3 whitespace-nowrap">BẢO HIỂM</th>
                     <th className="px-2 py-3 whitespace-nowrap text-rose-500">THUẾ TNCN</th>
@@ -210,10 +210,10 @@ export default function PayrollPage() {
                   ) : (
                     payrolls.map((p) => (
                       <tr key={p.id} className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all group animate-in slide-in-from-left-2 duration-300">
-                        <td className="px-2 py-3 font-bold text-slate-500/60 dark:text-white/50 text-sm">{formatMonth(p.month, p.year)}</td>
-                        <td className="px-2 py-3 font-bold text-slate-900 dark:text-white text-sm uppercase">{p.employeeName}</td>
-                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm">{formatVND(p.baseSalary)}</td>
-                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm">{p.actualDays}/{p.standardDays}</td>
+                        <td className="px-2 py-3 font-bold text-slate-500/60 dark:text-white/50 text-sm whitespace-nowrap">{formatMonth(p.month, p.year)}</td>
+                        <td className="px-2 py-3 font-bold text-slate-900 dark:text-white text-[12px] md:text-sm uppercase whitespace-normal break-words max-w-[180px] leading-tight">{p.employeeName}</td>
+                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm whitespace-nowrap">{formatVND(p.baseSalary)}</td>
+                        <td className="px-2 py-3 text-slate-500/60 dark:text-white/60 text-sm text-center whitespace-nowrap">{p.actualDays}/{p.standardDays}</td>
                         <td className="px-2 py-3 text-indigo-700 dark:text-indigo-400 font-bold text-sm">+{formatVND(p.otAmount)}</td>
                         <td className="px-2 py-3 font-black text-slate-900 dark:text-white text-sm">{formatVND(p.grossSalary)}</td>
                         <td className="px-2 py-3 text-rose-600 font-bold text-sm">-{formatVND((p.bhxh||0)+(p.bhyt||0)+(p.bhtn||0))}</td>
@@ -221,13 +221,13 @@ export default function PayrollPage() {
                         <td className="px-2 py-3">
                           <span className="text-sm font-black text-emerald-400 tracking-tight">{formatVND(p.netSalary)}</span>
                         </td>
-                        <td className="px-2 py-3">
-                          <div className="flex items-center gap-1 justify-center">
+                        <td className="px-2 py-3 min-w-[120px]">
+                          <div className="flex items-center gap-1 justify-center shrink-0">
                             <button
                               onClick={() => handleDownloadStatement(p, 'pdf')}
                               disabled={downloading === `${p.id}-pdf`}
                               title="Tải PDF"
-                              className="relative px-2 py-1.5 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-md font-bold text-[9px] tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-0.5 group"
+                              className="w-12 h-8 relative bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-lg font-bold text-[9px] tracking-wider shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1 shrink-0"
                             >
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm3.5 14.5h-1v-3h1v3zm-4-3h1v3h-1v-3zm-4 3h1v-3h-1v3z"/>
@@ -238,7 +238,7 @@ export default function PayrollPage() {
                               onClick={() => handleDownloadStatement(p, 'excel')}
                               disabled={downloading === `${p.id}-excel`}
                               title="Tải Excel"
-                              className="relative px-2 py-1.5 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white dark:text-white disabled:text-white/40 rounded-md font-bold text-[9px] tracking-wider shadow-lg hover:shadow-xl disabled:shadow-none transition-all active:scale-95 flex items-center gap-0.5 group"
+                              className="w-12 h-8 relative bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-lg font-bold text-[9px] tracking-wider shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1 shrink-0"
                             >
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>

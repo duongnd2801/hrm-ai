@@ -50,6 +50,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\Hol
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\UserRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\OTCreateRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserManagementDTO.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\CacheNames.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\CompanyConfigRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\CachedBodyHttpServletRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserStatsDTO.java
@@ -89,6 +90,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ProjectCreateRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\LeaveRequestController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ChatResponseDto.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\EmployeeProjectResponse.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\JwtAuthFilter.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\AuditService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Payroll.java

@@ -57,7 +57,7 @@ public class CompanyService {
         }
         BeanUtils.copyProperties(dto, config, "id");
         config = configRepository.save(config);
-        
+
         CompanyConfigDTO resultDto = new CompanyConfigDTO();
         BeanUtils.copyProperties(config, resultDto);
         return resultDto;
@@ -92,7 +92,8 @@ public class CompanyService {
     public DepartmentDTO updateDepartment(UUID id, DepartmentDTO dto) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
-        if (!dept.getName().equalsIgnoreCase(dto.getName()) && departmentRepository.existsByNameIgnoreCase(dto.getName())) {
+        if (!dept.getName().equalsIgnoreCase(dto.getName())
+                && departmentRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new RuntimeException("Tên phòng ban đã tồn tại");
         }
         dept.setName(dto.getName());
@@ -139,7 +140,8 @@ public class CompanyService {
         if (pos.getIsLocked() != null && pos.getIsLocked()) {
             throw new RuntimeException("Vị trí này đã bị khóa và không thể chỉnh sửa");
         }
-        if (!pos.getName().equalsIgnoreCase(dto.getName()) && positionRepository.existsByNameIgnoreCase(dto.getName())) {
+        if (!pos.getName().equalsIgnoreCase(dto.getName())
+                && positionRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new RuntimeException("Tên vị trí đã tồn tại");
         }
         BeanUtils.copyProperties(dto, pos, "id", "isLocked");
@@ -147,7 +149,7 @@ public class CompanyService {
         dto.setId(pos.getId());
         return dto;
     }
-    
+
     @Transactional
     @CacheEvict(value = CacheNames.POSITIONS, allEntries = true)
     public PositionDTO togglePositionLock(UUID id, boolean locked) {
