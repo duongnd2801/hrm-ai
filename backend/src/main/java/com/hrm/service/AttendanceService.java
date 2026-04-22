@@ -667,6 +667,55 @@ public class AttendanceService {
         }
     }
 
+    @Transactional
+    @CacheEvict(value = "employee_stats", allEntries = true)
+    public AttendanceDTO updateManualAttendance(com.hrm.dto.ManualAttendanceRequest request, Authentication authentication) {
+        if (!hasAuthority(authentication, "ATT_IMPORT")) {
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa chấm công thủ công.");
+        }
+
+        Employee employee = employeeRepository.findById(request.getEmployeeId())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên."));
+        
+        LocalDate date = request.getDate();
+        Attendance attendance = attendanceRepository.findByEmployeeAndDate(employee, date)
+                .orElseGet(() -> Attendance.builder()
+                        .employee(employee)
+                        .date(date)
+                        .createdAt(LocalDateTime.now(APP_ZONE))
+                        .build());
+
+        String oldData = String.format("In: %s, Out: %s, Status: %s", 
+                attendance.getCheckIn(), attendance.getCheckOut(), attendance.getStatus());
+
+        attendance.setCheckIn(request.getCheckIn());
+        attendance.setCheckOut(request.getCheckOut());
+        attendance.setNote(request.getNote());
+        attendance.setUpdatedAt(LocalDateTime.now(APP_ZONE));
+
+        normalizeStatus(attendance, getCompanyConfig(), LocalDate.now(APP_ZONE));
+        
+        Attendance saved = attendanceRepository.save(attendance);
+
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user != null) {
+            String newData = String.format("In: %s, Out: %s, Status: %s, Note: %s", 
+                    saved.getCheckIn(), saved.getCheckOut(), saved.getStatus(), saved.getNote());
+            
+            auditService.log(
+                user.getId(),
+                user.getEmail(),
+                "MANUAL_ATTENDANCE_UPDATE",
+                "attendances",
+                saved.getId().toString(),
+                oldData,
+                "Updated by HR/Admin: " + newData
+            );
+        }
+
+        return toDto(saved);
+    }
+
     private AttendanceDTO toDto(Attendance attendance) {
         AttendanceDTO dto = new AttendanceDTO();
         dto.setId(attendance.getId());

@@ -83,6 +83,14 @@ public class AttendanceController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/manual")
+    @PreAuthorize("hasAuthority('ATT_IMPORT')")
+    public ResponseEntity<AttendanceDTO> updateManual(
+            @RequestBody com.hrm.dto.ManualAttendanceRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(attendanceService.updateManualAttendance(request, authentication));
+    }
+
     @GetMapping("/export")
     @PreAuthorize("hasAuthority('ATT_EXPORT')")
     public ResponseEntity<byte[]> exportAttendanceMatrix(

@@ -8,6 +8,7 @@ import Toast, { ToastState } from '@/components/Toast';
 import Avatar from '@/components/Avatar';
 import { ChevronLeft, ChevronRight, Eye, Table as TableIcon, Info, CheckCircle2, AlertCircle, LayoutList, Grid3X3 } from 'lucide-react';
 import ImportMachineModal from './components/ImportMachineModal';
+import AttendanceEditDialog from './components/AttendanceEditDialog';
 import { formatDate, formatTime } from '@/lib/utils';
 
 type AttendanceStatus = Attendance['status'];
@@ -52,10 +53,20 @@ export default function AttendancePage() {
   
   const [myRecords, setMyRecords] = useState<Attendance[]>([]);
   const [teamSummary, setTeamSummary] = useState<AttendanceSummary[]>([]);
-  const [selectedUserMatrix, setSelectedUserMatrix] = useState<{name: string, dept: string, records: Attendance[]} | null>(null);
+  const [selectedUserMatrix, setSelectedUserMatrix] = useState<{id: string, name: string, dept: string, records: Attendance[]} | null>(null);
   const [config, setConfig] = useState<CompanyConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
+  const [editData, setEditData] = useState<{
+    isOpen: boolean;
+    employeeId: string;
+    employeeName: string;
+    date: string;
+    checkIn?: any;
+    checkOut?: any;
+    note?: string | null;
+    record?: Attendance | null;
+  } | null>(null);
   const [toast, setToast] = useState<ToastState>({ show: false, kind: 'info', message: '' });
 
   const pushToast = (kind: ToastState['kind'], message: string) => setToast({ show: true, kind, message });
@@ -93,7 +104,7 @@ export default function AttendancePage() {
     setLoading(true);
     try {
         const res = await api.get<Attendance[]>(`/api/attendance/${empId}`, { params: { year } });
-        setSelectedUserMatrix({ name, dept, records: res.data ?? [] });
+        setSelectedUserMatrix({ id: empId, name, dept, records: res.data ?? [] });
     } catch {
         pushToast('error', 'Lỗi khi tải ma trận chấm công.');
     } finally {
@@ -168,7 +179,31 @@ export default function AttendancePage() {
                     return (
                       <div
                         key={dayIdx}
-                        className={`w-5 h-10 rounded-full border flex items-center justify-center transition-all cursor-default grow-0 shrink-0 shadow-sm ${cellColor} hover:scale-110 relative group/cell`}
+                        onClick={() => {
+                          if (!canImport) return;
+                          
+                          let empId = '';
+                          let empName = '';
+                          
+                          if (viewMode === 'calendar') {
+                             empId = session?.employeeId || '';
+                             empName = myRecords.find(r => r.employeeName)?.employeeName || session?.email || 'Cá nhân';
+                          } else if (selectedUserMatrix) {
+                             empId = selectedUserMatrix.id;
+                             empName = selectedUserMatrix.name;
+                          }
+
+                          if (!empId) return;
+
+                          setEditData({
+                            isOpen: true,
+                            employeeId: empId,
+                            employeeName: empName,
+                            date: dateStr,
+                            record: record
+                          });
+                        }}
+                        className={`w-5 h-10 rounded-full border flex items-center justify-center transition-all ${canImport ? 'cursor-pointer hover:ring-2 hover:ring-indigo-500' : 'cursor-default'} grow-0 shrink-0 shadow-sm ${cellColor} hover:scale-110 relative group/cell`}
                         title={record ? `Ngày: ${formatDate(record.date)}\nTrạng thái: ${statusLabelMap[record.status]}\nVào: ${formatTime(record.checkIn)}\nRa: ${formatTime(record.checkOut)}\nTổng: ${record.totalHours || 0}h` : (isWeekend ? `Cuối tuần (${day}/${monthIdx+1})` : `Ngày ${day}/${monthIdx+1}: Chưa có dữ liệu`)}
                       >
                         {!record && validDay && <div className={`w-1.5 h-1.5 rounded-full ${isWeekend ? 'bg-rose-500/40' : 'bg-slate-300 dark:bg-white/20'}`} />}
@@ -238,6 +273,7 @@ export default function AttendancePage() {
                   <th className="px-6 py-5">Giờ ra</th>
                   <th className="px-6 py-5 text-center">Tổng giờ</th>
                   <th className="px-6 py-5 text-right">Trạng thái</th>
+                  {canImport && <th className="px-6 py-5 text-right"></th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -273,6 +309,28 @@ export default function AttendancePage() {
                           {statusLabelMap[record.status]}
                         </span>
                       </td>
+                      {canImport && (
+                        <td className="px-6 py-5 text-right">
+                           <button 
+                             onClick={() => {
+                               let empName = '';
+                               if (viewMode === 'calendar') empName = myRecords.find(r => r.employeeName)?.employeeName || session?.email || 'Cá nhân';
+                               else if (selectedUserMatrix) empName = selectedUserMatrix.name;
+
+                               setEditData({
+                                 isOpen: true,
+                                 employeeId: record.employeeId,
+                                 employeeName: empName,
+                                 date: record.date,
+                                 record: record
+                               });
+                             }}
+                             className="p-2 hover:bg-indigo-500/10 text-indigo-500 rounded-lg transition-all"
+                           >
+                             <Eye size={16} />
+                           </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -336,6 +394,18 @@ export default function AttendancePage() {
           onSuccess={() => {
             pushToast('success', 'Import thành công!');
             if (viewMode === 'calendar') fetchData(); else fetchTeamSummary();
+          }}
+        />
+      )}
+
+      {editData?.isOpen && (
+        <AttendanceEditDialog 
+          {...editData} 
+          onClose={() => setEditData(null)}
+          onSuccess={() => {
+            pushToast('success', 'Đã cập nhật chấm công thủ công.');
+            if (viewMode === 'calendar') fetchData();
+            else if (selectedUserMatrix) fetchUserMatrix(selectedUserMatrix.id, selectedUserMatrix.name, selectedUserMatrix.dept);
           }}
         />
       )}
