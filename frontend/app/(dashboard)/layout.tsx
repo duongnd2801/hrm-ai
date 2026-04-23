@@ -55,18 +55,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthProvider>
-      <div className="flex h-screen overflow-hidden relative bg-[#020617] transition-colors duration-500 text-slate-900 dark:text-white">
+      <div className="flex h-screen overflow-hidden relative bg-white dark:bg-[#020617] transition-colors duration-500 text-slate-900 dark:text-white">
         {/* Background Image */}
         <div 
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-700
+                     brightness-[0.35] contrast-[1.1]
+                     theme-light:brightness-[0.6] theme-light:saturate-[1.1]"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop')",
-            filter: "brightness(0.35) contrast(1.1)" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop')"
           }} 
         />
         
         {/* Subtle Overlay */}
-        <div className="fixed inset-0 z-1 bg-gradient-to-tr from-[#020617]/80 via-[#020617]/20 to-transparent pointer-events-none" />
+        <div className="fixed inset-0 z-1 pointer-events-none transition-colors duration-700
+                        bg-gradient-to-tr from-[#020617]/80 via-[#020617]/20 to-transparent
+                        theme-light:from-slate-900/25 theme-light:via-slate-900/5 theme-light:to-transparent" />
 
         <div className="relative z-10 flex w-full h-full">
            {/* Mobile Drawer Overlay */}

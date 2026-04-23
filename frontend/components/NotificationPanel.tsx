@@ -176,7 +176,7 @@ export default function NotificationPanel({ isOpen, onClose, unreadCount, setUnr
                   className={`p-6 cursor-pointer transition-all duration-500 relative group border-l-4 ${
                     !notification.read
                       ? 'bg-indigo-500/[0.07] border-indigo-500 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]'
-                      : 'bg-transparent border-transparent opacity-40 grayscale-[0.8]'
+                      : 'bg-transparent border-transparent opacity-60 grayscale-[0.5]'
                   } hover:bg-white/5 hover:opacity-100 hover:grayscale-0`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -185,19 +185,19 @@ export default function NotificationPanel({ isOpen, onClose, unreadCount, setUnr
                         {!notification.read ? (
                           <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.8)] animate-pulse"></span>
                         ) : (
-                          <div className="w-2.5 h-2.5 border border-white/20 rounded-full"></div>
+                          <div className="w-2.5 h-2.5 border border-slate-300 dark:border-white/20 rounded-full"></div>
                         )}
                         <h4 className={`text-[14px] leading-tight transition-colors ${
                           !notification.read 
                             ? 'font-black text-slate-900 dark:text-white' 
-                            : 'font-medium text-slate-500 dark:text-slate-400'
+                            : 'font-semibold text-slate-600 dark:text-slate-400'
                         }`}>
                           {notification.title}
                         </h4>
                       </div>
                       <p className={`text-[12px] line-clamp-2 mb-3 leading-relaxed ${
                         !notification.read 
-                          ? 'text-slate-700 dark:text-slate-200 font-medium' 
+                          ? 'text-slate-800 dark:text-slate-200 font-medium' 
                           : 'text-slate-500 dark:text-slate-500 font-normal'
                       }`}>
                         {notification.message}
