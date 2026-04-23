@@ -14,6 +14,7 @@ public interface ApologyRepository extends JpaRepository<Apology, UUID> {
     List<Apology> findByEmployeeOrderByCreatedAtDesc(Employee employee);
     List<Apology> findByStatusOrderByCreatedAtAsc(ApologyStatus status);
     List<Apology> findByStatusNotOrderByCreatedAtDesc(ApologyStatus status);
+    java.util.Optional<Apology> findByAttendanceId(UUID attendanceId);
     long countByEmployeeAndStatus(Employee employee, ApologyStatus status);
     long countByStatus(ApologyStatus status);
 }

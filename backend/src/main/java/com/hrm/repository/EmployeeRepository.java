@@ -24,6 +24,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     long countByStatus(EmpStatus status);
 
     long countByStatusNot(EmpStatus status);
+    long countByDepartmentId(UUID departmentId);
+    long countByPositionId(UUID positionId);
     List<Employee> findByStatus(EmpStatus status);
     List<Employee> findByStatusNot(EmpStatus status);
 

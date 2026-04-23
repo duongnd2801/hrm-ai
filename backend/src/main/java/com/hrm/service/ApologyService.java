@@ -53,6 +53,15 @@ public class ApologyService {
             throw new IllegalArgumentException("Dữ liệu check-in đã tồn tại.");
         }
 
+        // Check for existing apology
+        apologyRepository.findByAttendanceId(attendance.getId()).ifPresent(existing -> {
+            if (existing.getStatus() == ApologyStatus.PENDING || existing.getStatus() == ApologyStatus.APPROVED) {
+                throw new IllegalArgumentException("Đã có đơn đang chờ duyệt hoặc đã được duyệt cho ngày này.");
+            }
+            // If REJECTED, we can either update it or delete and create new. Let's delete for simplicity of re-submission.
+            apologyRepository.delete(existing);
+        });
+
         Apology apology = Apology.builder()
                 .employee(employee)
                 .attendance(attendance)
@@ -93,6 +102,11 @@ public class ApologyService {
 
         if (apology.getStatus() != ApologyStatus.PENDING) {
             throw new IllegalArgumentException("Đơn đã được xử lý trước đó.");
+        }
+
+        // Prevent self-approval
+        if (reviewer.getId().equals(apology.getEmployee().getUser().getId())) {
+            throw new AccessDeniedException("Bạn không thể tự duyệt đơn giải trình của chính mình.");
         }
 
         apology.setStatus(approved ? ApologyStatus.APPROVED : ApologyStatus.REJECTED);

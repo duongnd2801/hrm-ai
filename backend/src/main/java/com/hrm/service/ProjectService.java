@@ -126,6 +126,7 @@ public class ProjectService {
                         .build());
 
         validateCurrentProjectLimit(projectId, request.getEmployeeId(), request.getJoinedAt(), request.getLeftAt(), project);
+        validateContributionPercentage(projectId, request.getEmployeeId(), request.getContributionPercentage() != null ? request.getContributionPercentage() : 0);
 
         member.setRole(request.getRole());
         member.setJoinedAt(request.getJoinedAt());
@@ -192,6 +193,19 @@ public class ProjectService {
 
         if (currentProjectCount >= MAX_CURRENT_PROJECTS_PER_EMPLOYEE) {
             throw new RuntimeException("Nhân viên đang tham gia tối đa 3 dự án.");
+        }
+    }
+
+    private void validateContributionPercentage(UUID projectId, UUID employeeId, int newContribution) {
+        LocalDate today = LocalDate.now();
+        int currentTotal = projectMemberRepository.findByEmployeeId(employeeId).stream()
+                .filter(member -> !member.getProject().getId().equals(projectId))
+                .filter(member -> isCurrentMember(member, today))
+                .mapToInt(ProjectMember::getContributionPercentage)
+                .sum();
+
+        if (currentTotal + newContribution > 100) {
+            throw new RuntimeException("Tổng tỷ lệ đóng góp của nhân viên không được vượt quá 100% (Hiện tại: " + currentTotal + "% + Mới: " + newContribution + "%)");
         }
     }
 

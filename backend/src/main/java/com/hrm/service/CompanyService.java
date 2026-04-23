@@ -9,6 +9,7 @@ import com.hrm.entity.Department;
 import com.hrm.entity.Position;
 import com.hrm.repository.CompanyConfigRepository;
 import com.hrm.repository.DepartmentRepository;
+import com.hrm.repository.EmployeeRepository;
 import com.hrm.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ public class CompanyService {
     private final CompanyConfigRepository configRepository;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
+    private final EmployeeRepository employeeRepository;
 
     // --- Company Config ---
     @Transactional(readOnly = true)
@@ -105,6 +107,9 @@ public class CompanyService {
     @Transactional
     @CacheEvict(value = CacheNames.DEPARTMENTS, allEntries = true)
     public void deleteDepartment(UUID id) {
+        if (employeeRepository.countByDepartmentId(id) > 0) {
+            throw new RuntimeException("Không thể xóa phòng ban đang có nhân viên. Vui lòng chuyển nhân viên sang phòng ban khác trước.");
+        }
         departmentRepository.deleteById(id);
     }
 
@@ -169,6 +174,9 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("Position not found"));
         if (pos.getIsLocked() != null && pos.getIsLocked()) {
             throw new RuntimeException("Vị trí này đã bị khóa và không thể xóa");
+        }
+        if (employeeRepository.countByPositionId(id) > 0) {
+            throw new RuntimeException("Không thể xóa vị trí đang có nhân viên. Vui lòng chuyển nhân viên sang vị trí khác trước.");
         }
         positionRepository.deleteById(id);
     }
