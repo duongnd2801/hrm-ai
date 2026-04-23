@@ -15,10 +15,18 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     Page<Notification> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
-    Page<Notification> findByUserAndIsReadFalseOrderByCreatedAtDesc(User user, Pageable pageable);
+    Page<Notification> findByUserAndReadFalseOrderByCreatedAtDesc(User user, Pageable pageable);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.user = :user AND n.isRead = false")
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.user = :user AND n.read = false")
     long countUnreadByUser(User user);
 
-    void deleteByUserAndIsRead(User user, boolean isRead);
+    void deleteByUserAndRead(User user, boolean read);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE Notification n SET n.read = :read, n.readAt = :readAt WHERE n.id = :id")
+    void updateReadStatus(java.util.UUID id, boolean read, java.time.LocalDateTime readAt);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE Notification n SET n.read = true, n.readAt = :readAt WHERE n.user = :user AND n.read = false")
+    void markAllAsReadForUser(User user, java.time.LocalDateTime readAt);
 }

@@ -19,6 +19,16 @@ import java.util.UUID;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final com.hrm.service.SseService sseService;
+    private final com.hrm.repository.UserRepository userRepository;
+
+    @GetMapping("/subscribe")
+    @PreAuthorize("isAuthenticated()")
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter subscribe(java.security.Principal principal) {
+        com.hrm.entity.User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return sseService.subscribe(user.getId());
+    }
 
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")

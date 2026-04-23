@@ -21,7 +21,7 @@ public class NotificationDTO {
 
     private String type;
 
-    private boolean isRead;
+    private boolean read;
 
     private String relatedEntityType;
 

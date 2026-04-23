@@ -54,22 +54,31 @@ public class ApologyService {
         }
 
         // Check for existing apology
-        apologyRepository.findByAttendanceId(attendance.getId()).ifPresent(existing -> {
-            if (existing.getStatus() == ApologyStatus.PENDING || existing.getStatus() == ApologyStatus.APPROVED) {
+        java.util.Optional<Apology> existingOpt = apologyRepository.findByAttendanceId(attendance.getId());
+        Apology apology;
+        
+        if (existingOpt.isPresent()) {
+            apology = existingOpt.get();
+            if (apology.getStatus() == ApologyStatus.PENDING || apology.getStatus() == ApologyStatus.APPROVED) {
                 throw new IllegalArgumentException("Đã có đơn đang chờ duyệt hoặc đã được duyệt cho ngày này.");
             }
-            // If REJECTED, we can either update it or delete and create new. Let's delete for simplicity of re-submission.
-            apologyRepository.delete(existing);
-        });
-
-        Apology apology = Apology.builder()
-                .employee(employee)
-                .attendance(attendance)
-                .type(request.getType())
-                .reason(request.getReason().trim())
-                .fileUrl(request.getFileUrl())
-                .status(ApologyStatus.PENDING)
-                .build();
+            // Reuse the rejected apology
+            apology.setType(request.getType());
+            apology.setReason(request.getReason().trim());
+            apology.setFileUrl(request.getFileUrl());
+            apology.setStatus(ApologyStatus.PENDING);
+            apology.setReviewedBy(null);
+            apology.setReviewNote(null);
+        } else {
+            apology = Apology.builder()
+                    .employee(employee)
+                    .attendance(attendance)
+                    .type(request.getType())
+                    .reason(request.getReason().trim())
+                    .fileUrl(request.getFileUrl())
+                    .status(ApologyStatus.PENDING)
+                    .build();
+        }
 
         return toDto(apologyRepository.save(apology));
     }
@@ -104,8 +113,9 @@ public class ApologyService {
             throw new IllegalArgumentException("Đơn đã được xử lý trước đó.");
         }
 
-        // Prevent self-approval
-        if (reviewer.getId().equals(apology.getEmployee().getUser().getId())) {
+        // Prevent self-approval (Except ADMIN)
+        boolean isAdmin = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (reviewer.getId().equals(apology.getEmployee().getUser().getId()) && !isAdmin) {
             throw new AccessDeniedException("Bạn không thể tự duyệt đơn giải trình của chính mình.");
         }
 

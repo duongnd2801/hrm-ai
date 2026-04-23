@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api, { logout } from '@/lib/api';
@@ -26,6 +26,7 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const manualUpdateRef = useRef(0); 
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -33,17 +34,65 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
   }, []);
 
   useEffect(() => {
-    const fetchUnreadCount = async () => {
+    const fetchUnreadCount = async (isManual = false) => {
       try {
         const response = await api.get('/api/notifications/my/unread-count');
-        setUnreadCount(response.data);
+        // Only update if no manual update recently (within 3 seconds)
+        if (Date.now() - manualUpdateRef.current > 3000 || isManual) {
+          setUnreadCount(response.data);
+        }
       } catch (error) {
         // silently fail
       }
     };
+    
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+
+    // 1. SSE Connection via Proxy (Same-origin to fix 401 cookie issue)
+    const sseUrl = '/api-proxy/notifications/subscribe';
+    const eventSource = new EventSource(sseUrl, { withCredentials: true });
+
+    eventSource.onopen = () => {
+      console.log('SSE: Connection established');
+    };
+
+    eventSource.addEventListener('unread-count', (event) => {
+      const newCount = parseInt(event.data);
+      // Only update if no manual update recently
+      if (Date.now() - manualUpdateRef.current > 3000) {
+        setUnreadCount(newCount);
+      }
+    });
+
+    eventSource.addEventListener('notification', (event) => {
+      console.log('SSE New Notification received');
+      // No need to fetch, unread-count event will follow or arrive simultaneously
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    });
+
+    eventSource.onerror = (err) => {
+      console.error('SSE Error:', err);
+    };
+
+    // 2. Custom Event for local sync (when user marks as read in panel)
+    const handleLocalSync = (e: any) => {
+      manualUpdateRef.current = Date.now();
+      if (e.detail && typeof e.detail.count === 'number') {
+        setUnreadCount(e.detail.count);
+      } else {
+        fetchUnreadCount(true);
+      }
+    };
+    window.addEventListener('notifications-updated', handleLocalSync);
+
+    // Backup polling (faster fallback if SSE fails)
+    const interval = setInterval(fetchUnreadCount, 10000); 
+
+    return () => {
+      eventSource.close();
+      window.removeEventListener('notifications-updated', handleLocalSync);
+      clearInterval(interval);
+    };
   }, [session]);
 
   useEffect(() => {
@@ -199,9 +248,11 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
         onClose={() => setShowChangePasswordModal(false)} 
       />
 
-      <NotificationPanel
-        isOpen={showNotificationPanel}
-        onClose={() => setShowNotificationPanel(false)}
+      <NotificationPanel 
+        isOpen={showNotificationPanel} 
+        onClose={() => setShowNotificationPanel(false)} 
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
       />
     </header>
   );

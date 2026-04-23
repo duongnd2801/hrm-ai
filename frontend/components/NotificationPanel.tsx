@@ -8,7 +8,7 @@ interface Notification {
   title: string;
   message: string;
   type: string;
-  isRead: boolean;
+  read: boolean;
   createdAt: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
@@ -17,12 +17,13 @@ interface Notification {
 interface NotificationPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  unreadCount: number;
+  setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export default function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
+export default function NotificationPanel({ isOpen, onClose, unreadCount, setUnreadCount }: NotificationPanelProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,10 +31,18 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleUpdate = () => {
+      // Logic for external updates if needed
+    };
+    window.addEventListener('notifications-updated', handleUpdate);
+    return () => window.removeEventListener('notifications-updated', handleUpdate);
+  }, []);
+
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/notifications/my?page=0&size=20');
+      const response = await api.get(`/api/notifications/my?page=0&size=20&_t=${Date.now()}`);
       setNotifications(response.data.content || []);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -42,48 +51,56 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     }
   };
 
-  const fetchUnreadCount = async () => {
-    try {
-      const response = await api.get('/api/notifications/my/unread-count');
-      setUnreadCount(response.data);
-    } catch (error) {
-      console.error('Failed to fetch unread count:', error);
-    }
-  };
 
-  const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleMarkAsRead = async (notificationId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const notification = notifications.find(n => n.id === notificationId);
+    if (!notification || notification.read) return;
+
+    const newCount = Math.max(0, unreadCount - 1);
+    setUnreadCount(newCount);
+    setNotifications(prev =>
+      prev.map((n) =>
+        n.id === notificationId ? { ...n, read: true } : n
+      )
+    );
+    window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: newCount } }));
+
     try {
       await api.put(`/api/notifications/${notificationId}/read`);
-      setNotifications(
-        notifications.map((n) =>
-          n.id === notificationId ? { ...n, isRead: true } : n
-        )
-      );
-      fetchUnreadCount();
     } catch (error) {
       console.error('Failed to mark as read:', error);
+      // Rollback on error if needed, but for simplicity we'll just log
     }
   };
 
   const handleDelete = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
+      const notification = notifications.find(n => n.id === notificationId);
+      if (!notification) return;
+
+      if (notification.read === false) {
+        const newCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newCount);
+        window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: newCount } }));
+      }
+
       await api.delete(`/api/notifications/${notificationId}`);
       setNotifications(notifications.filter((n) => n.id !== notificationId));
-      fetchUnreadCount();
     } catch (error) {
       console.error('Failed to delete notification:', error);
     }
   };
 
   const handleMarkAllAsRead = async () => {
+    // Optimistic Update
+    setNotifications(prev => prev.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
+    window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: 0 } }));
+
     try {
       await api.put('/api/notifications/mark-all-as-read');
-      setNotifications(
-        notifications.map((n) => ({ ...n, isRead: true }))
-      );
-      setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
@@ -155,21 +172,34 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-6 cursor-pointer transition-all duration-300 relative group border-l-4 ${
-                    !notification.isRead
-                      ? 'bg-indigo-500/5 border-indigo-500'
-                      : 'bg-transparent border-transparent'
-                  } hover:bg-white/5`}
+                  onClick={() => handleMarkAsRead(notification.id)}
+                  className={`p-6 cursor-pointer transition-all duration-500 relative group border-l-4 ${
+                    !notification.read
+                      ? 'bg-indigo-500/[0.07] border-indigo-500 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]'
+                      : 'bg-transparent border-transparent opacity-40 grayscale-[0.8]'
+                  } hover:bg-white/5 hover:opacity-100 hover:grayscale-0`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {!notification.isRead && <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse shadow-glow"></span>}
-                        <h4 className="font-bold text-[13px] text-slate-900 dark:text-white leading-tight">
+                      <div className="flex items-center gap-3 mb-2">
+                        {!notification.read ? (
+                          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.8)] animate-pulse"></span>
+                        ) : (
+                          <div className="w-2.5 h-2.5 border border-white/20 rounded-full"></div>
+                        )}
+                        <h4 className={`text-[14px] leading-tight transition-colors ${
+                          !notification.read 
+                            ? 'font-black text-slate-900 dark:text-white' 
+                            : 'font-medium text-slate-500 dark:text-slate-400'
+                        }`}>
                           {notification.title}
                         </h4>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+                      <p className={`text-[12px] line-clamp-2 mb-3 leading-relaxed ${
+                        !notification.read 
+                          ? 'text-slate-700 dark:text-slate-200 font-medium' 
+                          : 'text-slate-500 dark:text-slate-500 font-normal'
+                      }`}>
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-3">
@@ -181,20 +211,11 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                          </span>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                      {!notification.isRead && (
-                        <button
-                          onClick={(e) => handleMarkAsRead(notification.id, e)}
-                          title="Đã đọc"
-                          className="w-8 h-8 flex items-center justify-center bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-lg"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                        </button>
-                      )}
+                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                       <button
                         onClick={(e) => handleDelete(notification.id, e)}
-                        title="Xóa"
-                        className="w-8 h-8 flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-lg"
+                        title="Xóa thông báo"
+                        className="w-8 h-8 flex items-center justify-center bg-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-lg backdrop-blur-md"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>

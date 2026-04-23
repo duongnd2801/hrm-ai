@@ -36,9 +36,9 @@ public class Notification {
     @Builder.Default
     private NotificationType type = NotificationType.INFO;
 
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
-    private boolean isRead = false;
+    private boolean read = false;
 
     @Column(name = "related_entity_type")
     private String relatedEntityType; // e.g., "APOLOGY", "LEAVE_REQUEST", "OT_REQUEST"

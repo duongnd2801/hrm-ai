@@ -549,10 +549,15 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Status:** ✅ Completed.
 - [2026-04-23T10:55:00+07:00] **Business Logic Hardening - Edge Case Patch**:
   - **Apology Module:**
-    - Prevented self-approval: Reviewer cannot be the same as the requester.
+    - Prevented self-approval: Reviewer cannot be the same as the requester (Exempted ADMIN role).
     - Allowed re-submission: Rejected apologies are now deleted upon creating a new one for the same date, bypassing unique constraints and allowing correction.
   - **Project Module:**
     - Implemented 100% Contribution Cap: Before adding/updating a member, the system validates that their total contribution across all active projects does not exceed 100%.
   - **Company Structure:**
     - Deletion Protection: Added checks to prevent deleting Departments or Positions if they still have active employees assigned.
   - **Status:** ✅ Completed (Backend).
+- [2026-04-23T13:30:00+07:00] **Real-time Notifications Optimization**:
+  - **Backend:** Implemented `SseService` and `/api/notifications/subscribe` for instant event pushing.
+  - **Frontend:** Integrated `EventSource` in `Header.tsx` for real-time badge updates.
+  - **Synchronization:** Used `CustomEvent` ('notifications-updated') to sync unread counts between `Header` and `NotificationPanel` instantly upon user actions (mark as read/delete).
+  - **Result:** Notifications now update instantly without waiting for the 30s poll.

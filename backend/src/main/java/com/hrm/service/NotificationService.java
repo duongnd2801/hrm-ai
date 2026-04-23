@@ -20,10 +20,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final SseService sseService;
 
     /**
      * Get current authenticated user
@@ -51,14 +53,27 @@ public class NotificationService {
                 .title(title)
                 .message(message)
                 .type(type)
-                .isRead(false)
+                .read(false)
                 .relatedEntityType(relatedEntityType)
                 .relatedEntityId(relatedEntityId)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         Notification saved = notificationRepository.save(notification);
-        return NotificationDTO.fromEntity(saved);
+        NotificationDTO dto = NotificationDTO.fromEntity(saved);
+        
+        // Push SSE update AFTER commit to avoid race conditions
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.sendNotification(user.getId(), dto);
+                    sseService.sendUnreadCount(user.getId(), notificationRepository.countUnreadByUser(user));
+                }
+            }
+        );
+        
+        return dto;
     }
 
     /**
@@ -86,7 +101,7 @@ public class NotificationService {
     public PageResponse<NotificationDTO> getMyUnreadNotifications(int page, int size) {
         User user = getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-        Page<Notification> notifications = notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user, pageable);
+        Page<Notification> notifications = notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(user, pageable);
 
         return new PageResponse<>(
                 notifications.getContent().stream()
@@ -120,10 +135,20 @@ public class NotificationService {
             throw new RuntimeException("Bạn không có quyền truy cập thông báo này");
         }
 
-        notification.setRead(true);
-        notification.setReadAt(LocalDateTime.now());
-        Notification updated = notificationRepository.save(notification);
-        return NotificationDTO.fromEntity(updated);
+        notificationRepository.updateReadStatus(notificationId, true, LocalDateTime.now());
+        log.info("Notification {} marked as read for user {}", notificationId, currentUser.getEmail());
+        
+        // Push count update AFTER commit
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.sendUnreadCount(currentUser.getId(), notificationRepository.countUnreadByUser(currentUser));
+                }
+            }
+        );
+        
+        return NotificationDTO.fromEntity(notificationRepository.findById(notificationId).orElse(null));
     }
 
     /**
@@ -132,15 +157,19 @@ public class NotificationService {
     @Transactional
     public void markAllAsRead() {
         User user = getCurrentUser();
-        Page<Notification> unread = notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user, PageRequest.of(0, 1000));
         LocalDateTime now = LocalDateTime.now();
-
-        unread.getContent().forEach(notification -> {
-            notification.setRead(true);
-            notification.setReadAt(now);
-        });
-
-        notificationRepository.saveAll(unread.getContent());
+        notificationRepository.markAllAsReadForUser(user, now);
+        log.info("Marked all notifications as read for user {}", user.getEmail());
+        
+        // Push count update AFTER commit
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.sendUnreadCount(user.getId(), 0);
+                }
+            }
+        );
     }
 
     /**
@@ -157,6 +186,16 @@ public class NotificationService {
         }
 
         notificationRepository.delete(notification);
+        
+        // Push count update AFTER commit
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.sendUnreadCount(currentUser.getId(), notificationRepository.countUnreadByUser(currentUser));
+                }
+            }
+        );
     }
 
     /**
@@ -165,6 +204,6 @@ public class NotificationService {
     @Transactional
     public void deleteAllReadNotifications() {
         User user = getCurrentUser();
-        notificationRepository.deleteByUserAndIsRead(user, true);
+        notificationRepository.deleteByUserAndRead(user, true);
     }
 }
