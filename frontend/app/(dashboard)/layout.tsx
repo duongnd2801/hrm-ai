@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!session) return null;
 
   return (
-    <AuthProvider>
+    <AuthProvider session={session}>
       <div className="flex h-screen overflow-hidden relative bg-white dark:bg-[#020617] transition-colors duration-500 text-slate-900 dark:text-white">
         {/* Background Image */}
         <div 

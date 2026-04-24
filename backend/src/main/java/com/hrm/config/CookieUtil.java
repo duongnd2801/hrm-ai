@@ -4,11 +4,14 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * Utility class for managing HttpOnly auth cookies.
  * Centralises cookie creation/clearing to avoid duplication.
  */
+@Component
 public final class CookieUtil {
 
     public static final String ACCESS_COOKIE  = "hrm_access";
@@ -22,6 +25,13 @@ public final class CookieUtil {
     // Device cookie TTL: 1 year
     private static final long DEVICE_MAX_AGE = 365L * 24 * 60 * 60;
 
+    private static boolean secureCookie = true;
+
+    @Value("${app.cookie.secure:true}")
+    public void setSecureCookie(boolean secure) {
+        CookieUtil.secureCookie = secure;
+    }
+
     private CookieUtil() {}
 
     /**
@@ -31,7 +41,7 @@ public final class CookieUtil {
         if (deviceId != null) {
             ResponseCookie device = ResponseCookie.from(DEVICE_COOKIE, deviceId)
                     .httpOnly(true)
-                    .secure(false)   // TODO: set true in production
+                    .secure(secureCookie)
                     .path("/")
                     .maxAge(DEVICE_MAX_AGE)
                     .sameSite("Lax")
@@ -49,7 +59,7 @@ public final class CookieUtil {
         if (accessToken != null) {
             ResponseCookie access = ResponseCookie.from(ACCESS_COOKIE, accessToken)
                     .httpOnly(true)
-                    .secure(false)   // TODO: set true in production (HTTPS)
+                    .secure(secureCookie)
                     .path("/")
                     .maxAge(ACCESS_MAX_AGE)
                     .sameSite("Lax")
@@ -60,7 +70,7 @@ public final class CookieUtil {
         if (refreshToken != null) {
             ResponseCookie refresh = ResponseCookie.from(REFRESH_COOKIE, refreshToken)
                     .httpOnly(true)
-                    .secure(false)   // TODO: set true in production (HTTPS)
+                    .secure(secureCookie)
                     .path("/")   // changed from /api/auth to / for consistency and visibility
                     .maxAge(REFRESH_MAX_AGE)
                     .sameSite("Lax")
@@ -75,7 +85,7 @@ public final class CookieUtil {
     public static void clearAuthCookies(HttpServletResponse response) {
         ResponseCookie clearAccess = ResponseCookie.from(ACCESS_COOKIE, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(secureCookie)
                 .path("/")
                 .maxAge(0)
                 .sameSite("Lax")
@@ -83,7 +93,7 @@ public final class CookieUtil {
 
         ResponseCookie clearRefresh = ResponseCookie.from(REFRESH_COOKIE, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(secureCookie)
                 .path("/")
                 .maxAge(0)
                 .sameSite("Lax")

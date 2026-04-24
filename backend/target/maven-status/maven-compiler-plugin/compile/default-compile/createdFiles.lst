@@ -14,6 +14,7 @@ com\hrm\entity\Holiday$HolidayBuilder.class
 com\hrm\service\ProjectService.class
 com\hrm\entity\Department$DepartmentBuilder.class
 com\hrm\dto\ChangePasswordRequest.class
+com\hrm\service\NotificationService$1.class
 com\hrm\security\CustomUserDetails.class
 com\hrm\repository\DepartmentRepository.class
 com\hrm\entity\Role$RoleBuilder.class
@@ -58,6 +59,7 @@ com\hrm\entity\Project$ProjectBuilder.class
 com\hrm\entity\Position.class
 com\hrm\entity\Employee$EmployeeBuilder.class
 com\hrm\service\ChatService.class
+com\hrm\service\NotificationService$3.class
 com\hrm\repository\ProjectRepository.class
 com\hrm\entity\CompanyConfig.class
 com\hrm\config\SecurityHeadersFilter.class
@@ -86,6 +88,7 @@ com\hrm\controller\AttendanceController.class
 com\hrm\dto\ResetPasswordRequest.class
 com\hrm\controller\UserManagementController.class
 com\hrm\service\OTRequestService.class
+com\hrm\service\NotificationService$2.class
 com\hrm\dto\ImportResultResponse$ImportResultResponseBuilder.class
 com\hrm\dto\EmployeeStatsDTO$EmployeeStatsDTOBuilder.class
 com\hrm\dto\AttendanceSummaryDTO.class
@@ -112,6 +115,7 @@ com\hrm\config\CorsConfig.class
 com\hrm\service\ApologyService.class
 com\hrm\dto\EmployeeDTO.class
 com\hrm\service\CompanyService.class
+com\hrm\service\NotificationService$4.class
 com\hrm\entity\Position$PositionBuilder.class
 com\hrm\repository\LeaveRequestRepository.class
 com\hrm\dto\TeamMatrixDTO.class
@@ -131,6 +135,7 @@ com\hrm\entity\AttendanceStatus.class
 com\hrm\dto\EmployeeProjectResponse.class
 com\hrm\entity\User$UserBuilder.class
 com\hrm\dto\ProjectMemberResponse$ProjectMemberResponseBuilder.class
+com\hrm\service\SseService.class
 com\hrm\dto\ReviewRequest.class
 com\hrm\dto\LeaveCreateRequest.class
 com\hrm\entity\AuditLog.class
@@ -140,6 +145,7 @@ com\hrm\service\RateLimitService.class
 com\hrm\dto\ApologyCreateRequest.class
 com\hrm\entity\Attendance.class
 com\hrm\dto\EmployeeProjectResponse$EmployeeProjectResponseBuilder.class
+com\hrm\dto\ManualAttendanceRequest.class
 com\hrm\service\ChatToolService$HolidayDto.class
 com\hrm\controller\RoleController.class
 com\hrm\dto\AuthResponse.class

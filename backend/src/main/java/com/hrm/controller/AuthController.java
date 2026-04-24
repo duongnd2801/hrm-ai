@@ -155,10 +155,7 @@ public class AuthController {
                 .filter(a -> !roleAuthorities.contains(a))
                 .collect(java.util.stream.Collectors.toList());
 
-        Employee employee = employeeRepository.findAll().stream()
-                .filter(e -> email.equals(e.getEmail()))
-                .findFirst()
-                .orElse(null);
+        Employee employee = employeeRepository.findByEmail(email).orElse(null);
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", email);

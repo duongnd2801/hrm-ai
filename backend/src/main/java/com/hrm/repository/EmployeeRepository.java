@@ -18,6 +18,7 @@ import com.hrm.entity.Employee;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     boolean existsByEmail(String email);
+    Optional<Employee> findByEmail(String email);
 
     Optional<Employee> findByUserId(UUID userId);
 

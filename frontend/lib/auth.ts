@@ -4,7 +4,13 @@ const SESSION_KEY = 'hrm_session';
 
 export function saveSession(session: UserSession): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    const safeSession = {
+      email: session.email,
+      role: session.role,
+      employeeId: session.employeeId,
+      profileCompleted: session.profileCompleted
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(safeSession));
   }
 }
 
@@ -13,7 +19,14 @@ export function getSession(): UserSession | null {
   const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as UserSession;
+    const session = JSON.parse(raw) as Partial<UserSession>;
+    return {
+      email: session.email || '',
+      role: session.role || 'EMPLOYEE',
+      employeeId: session.employeeId,
+      profileCompleted: session.profileCompleted,
+      permissions: session.permissions || []
+    } as UserSession;
   } catch {
     return null;
   }

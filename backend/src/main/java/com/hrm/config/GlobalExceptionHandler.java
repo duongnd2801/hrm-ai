@@ -134,7 +134,7 @@ public class GlobalExceptionHandler {
         
         Map<String, Object> body = new HashMap<>();
         body.put("error", "Internal Server Error");
-        body.put("message", ex.getMessage() != null ? ex.getMessage() : "Lỗi máy chủ nội bộ");
+        body.put("message", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);

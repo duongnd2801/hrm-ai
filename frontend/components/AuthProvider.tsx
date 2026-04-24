@@ -16,23 +16,15 @@ const AuthContext = createContext<AuthContextType>({
   refreshSession: () => {},
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const isClient = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const [version, setVersion] = useState(0);
-
-  const refreshSession = () => {
-    setVersion((prev) => prev + 1);
-  };
-
-  const session = useMemo(() => (isClient ? getSession() : null), [isClient, version]);
-  const loading = !isClient;
-
+export function AuthProvider({ 
+  children, 
+  session 
+}: { 
+  children: React.ReactNode;
+  session: UserSession | null;
+}) {
   return (
-    <AuthContext.Provider value={{ session, loading, refreshSession }}>
+    <AuthContext.Provider value={{ session, loading: !session, refreshSession: () => {} }}>
       {children}
     </AuthContext.Provider>
   );
