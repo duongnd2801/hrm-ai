@@ -42,18 +42,3 @@ export function clearSession(): void {
 export function isAuthenticated(): boolean {
   return getSession() !== null;
 }
-
-export function getRole(): string | null {
-  return getSession()?.role ?? null;
-}
-
-export function hasRole(...roles: string[]): boolean {
-  const role = getRole();
-  return role !== null && roles.includes(role);
-}
-
-export function hasPermission(code: string): boolean {
-  const session = getSession();
-  if (!session || !session.permissions) return false;
-  return session.permissions.includes(code);
-}

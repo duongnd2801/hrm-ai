@@ -33,3 +33,12 @@ export function AuthProvider({
 export function useSession() {
   return useContext(AuthContext);
 }
+
+export function useRBAC() {
+  const { session } = useSession();
+  
+  return {
+    hasRole: (...roles: string[]) => session !== null && roles.includes(session.role),
+    hasPermission: (code: string) => session?.permissions?.includes(code) ?? false,
+  };
+}

@@ -24,11 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     async function initSession() {
-      // 1. Try local metadata first for fast render
-      const local = getSession();
-      if (local) setSession(local);
-
-      // 2. Verify with backend /me (handles refresh and cookie check)
+      // Fetch full session with permissions from backend /me
       const current = await fetchCurrentSession();
       if (current) {
         setSession(current);
@@ -42,8 +38,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     void initSession();
   }, [router]);
 
-  // Show spinner during initial load
-  if (loading && !session) {
+  // Show spinner during initial load or while fetching session
+  if (loading) {
     return (
       <div className="h-screen w-screen bg-slate-950 flex items-center justify-center transition-opacity duration-700">
         <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin shadow-2xl shadow-indigo-500/20" />
