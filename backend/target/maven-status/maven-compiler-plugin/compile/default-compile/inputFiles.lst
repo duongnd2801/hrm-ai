@@ -20,6 +20,8 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\Department.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\HrmApplication.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\CustomUserDetailsService.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ToolPlannerService.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\LlmGateway.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\ProjectStatus.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\SseService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\entity\LeaveType.java
@@ -51,6 +53,7 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\Hol
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\UserRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\OTCreateRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\UserManagementDTO.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ChatHistoryService.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\config\CacheNames.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\CompanyConfigRepository.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\security\CachedBodyHttpServletRequest.java
@@ -151,3 +154,4 @@ C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\Company
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\dto\ProjectUpdateRequest.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\controller\DashboardController.java
 C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\repository\AttendanceRepository.java
+C:\Users\duong\OneDrive\Desktop\hrm-ai\backend\src\main\java\com\hrm\service\ToolDispatcherService.java

@@ -1,4 +1,4 @@
-# Session Memory
+﻿# Session Memory
 
 Quy định: chỉ ghi tiếp (append), không xóa lịch sử cũ.
 
@@ -561,3 +561,11 @@ Toàn bộ activity log và ghi chú gốc vẫn được giữ nguyên bên dư
   - **Frontend:** Integrated `EventSource` in `Header.tsx` for real-time badge updates.
   - **Synchronization:** Used `CustomEvent` ('notifications-updated') to sync unread counts between `Header` and `NotificationPanel` instantly upon user actions (mark as read/delete).
   - **Result:** Notifications now update instantly without waiting for the 30s poll.
+
+
+- [2026-04-24] **Phase Refactoring - Split ChatService**:
+  - Tach thanh cong ChatService.java (1454 dong) thanh 4 service theo chuan SRP:
+    - LlmGateway, ToolPlannerService, ToolDispatcherService, ChatHistoryService
+  - ChatService.java con ~140 dong, dong vai tro Orchestrator.
+  - Bug fix: go "a" sau khi hoi luong -> chatbot tra loi sai. Fixed bang cach them guard cho tin nhan cuc ngan.
+  - Status: Compile thanh cong.
