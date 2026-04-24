@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getSession } from '@/lib/auth';
 import { fetchCurrentSession } from '@/lib/api';
 import type { UserSession } from '@/types';
 import Sidebar from '@/components/Sidebar';
@@ -14,7 +13,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(true);
-  const [session, setSession] = useState<UserSession | null>(null);
+  const [ session, setSession] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
   const redirectingRef = useRef(false);
 

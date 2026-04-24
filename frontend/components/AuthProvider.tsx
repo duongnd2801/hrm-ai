@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useMemo, useState, useSyncExternalStore } from 'react';
-import { getSession } from '@/lib/auth';
+
 import { UserSession } from '@/types';
 
 interface AuthContextType {

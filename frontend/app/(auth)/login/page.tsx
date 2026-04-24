@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveSession, isAuthenticated } from '@/lib/auth';
-import api from '@/lib/api';
+import api, { fetchCurrentSession } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,9 +14,11 @@ export default function LoginPage() {
 
   // If already authenticated, redirect to dashboard immediately
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.replace('/dashboard');
-    }
+    fetchCurrentSession().then((session) => {
+      if (session) {
+        router.replace('/dashboard');
+      }
+    });
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,15 +41,6 @@ export default function LoginPage() {
     try {
       const res = await api.post('/api/auth/login', { email, password });
       const data = res.data;
-      
-      // Save only non-sensitive metadata locally
-      saveSession({
-        email: data.email,
-        role: data.role,
-        employeeId: data.employeeId,
-        profileCompleted: data.profileCompleted,
-        permissions: Array.isArray(data.permissions) ? data.permissions : [],
-      });
 
       const mustComplete =
         data.role === 'EMPLOYEE' &&

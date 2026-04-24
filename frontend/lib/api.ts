@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
-import { clearSession, saveSession } from './auth';
+import { clearSession } from './auth';
 import type { ChatHistoryItem, ChatMessageRequest, ChatMessageResponse, UserSession } from '@/types';
 import { resolveApiBaseUrl } from './runtimeApiBase';
 
@@ -24,7 +24,6 @@ export async function fetchCurrentSession(): Promise<UserSession | null> {
   try {
     const response = await api.get('/api/auth/me');
     const session = response.data as UserSession;
-    saveSession(session);
     return session;
   } catch {
     clearSession();

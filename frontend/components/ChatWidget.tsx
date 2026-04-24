@@ -2,8 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { chatApi } from '@/lib/api';
-import { getSession } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import { useSession } from './AuthProvider';
 
 type UiMessage = {
   id: string;
@@ -36,9 +36,8 @@ const LEGACY_STORAGE_KEY = 'hrm_chat_widget_history_v1';
 const SESSIONS_STORAGE_KEY = 'hrm_chat_widget_sessions_v2';
 const ACTIVE_SESSION_STORAGE_KEY = 'hrm_chat_widget_active_session_v2';
 
-function storageKey(base: string) {
-  const email = getSession()?.email?.trim().toLowerCase();
-  const safeEmail = email ? email.replace(/[^a-z0-9@._-]/g, '_') : 'guest';
+function storageKey(base: string, email?: string) {
+  const safeEmail = email ? email.trim().toLowerCase().replace(/[^a-z0-9@._-]/g, '_') : 'guest';
   return `${base}:${safeEmail}`;
 }
 
@@ -99,6 +98,7 @@ function ChatBubbleIcon() {
 }
 
 export default function ChatWidget() {
+  const { session } = useSession();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -125,9 +125,9 @@ export default function ChatWidget() {
     let mounted = true;
 
     async function bootstrap() {
-      const sessionsKey = storageKey(SESSIONS_STORAGE_KEY);
-      const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY);
-      const legacyKey = storageKey(LEGACY_STORAGE_KEY);
+      const sessionsKey = storageKey(SESSIONS_STORAGE_KEY, session?.email);
+      const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY, session?.email);
+      const legacyKey = storageKey(LEGACY_STORAGE_KEY, session?.email);
 
       try {
         const rawSessions = localStorage.getItem(sessionsKey);
@@ -211,8 +211,8 @@ export default function ChatWidget() {
 
   useEffect(() => {
     if (sessions.length === 0) return;
-    const sessionsKey = storageKey(SESSIONS_STORAGE_KEY);
-    const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY);
+    const sessionsKey = storageKey(SESSIONS_STORAGE_KEY, session?.email);
+    const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY, session?.email);
     localStorage.setItem(sessionsKey, JSON.stringify(sessions.slice(0, 40)));
     if (activeSessionId) {
       localStorage.setItem(activeKey, activeSessionId);

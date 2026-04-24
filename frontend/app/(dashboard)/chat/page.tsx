@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { chatApi } from '@/lib/api';
-import { getSession } from '@/lib/auth';
+import { useSession } from '@/components/AuthProvider';
 
 type UiMessage = {
   id: string;
@@ -22,9 +22,8 @@ type ChatSession = {
 const SESSIONS_STORAGE_KEY = 'hrm_chat_widget_sessions_v2';
 const ACTIVE_SESSION_STORAGE_KEY = 'hrm_chat_widget_active_session_v2';
 
-function storageKey(base: string) {
-  const email = getSession()?.email?.trim().toLowerCase();
-  const safeEmail = email ? email.replace(/[^a-z0-9@._-]/g, '_') : 'guest';
+function storageKey(base: string, email?: string) {
+  const safeEmail = email ? email.trim().toLowerCase().replace(/[^a-z0-9@._-]/g, '_') : 'guest';
   return `${base}:${safeEmail}`;
 }
 
@@ -56,6 +55,7 @@ function sortSessions(list: ChatSession[]) {
 }
 
 export default function ChatPage() {
+  const { session } = useSession();
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState('');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -71,39 +71,42 @@ export default function ChatPage() {
   const messages = useMemo(() => activeSession?.messages ?? [], [activeSession]);
 
   useEffect(() => {
-    const sessionsKey = storageKey(SESSIONS_STORAGE_KEY);
-    const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY);
-    try {
-      const rawSessions = localStorage.getItem(sessionsKey);
-      const rawActive = localStorage.getItem(activeKey);
-      if (rawSessions) {
-        const parsed = JSON.parse(rawSessions) as ChatSession[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const sorted = sortSessions(parsed);
-          setSessions(sorted);
-          setActiveSessionId(
-            rawActive && sorted.some((s) => s.id === rawActive) ? rawActive : sorted[0].id
-          );
-          return;
+    async function bootstrap() {
+      const sessionsKey = storageKey(SESSIONS_STORAGE_KEY, session?.email);
+      const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY, session?.email);
+      try {
+        const rawSessions = localStorage.getItem(sessionsKey);
+        const rawActive = localStorage.getItem(activeKey);
+        if (rawSessions) {
+          const parsed = JSON.parse(rawSessions) as ChatSession[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const sorted = sortSessions(parsed);
+            setSessions(sorted);
+            setActiveSessionId(
+              rawActive && sorted.some((s) => s.id === rawActive) ? rawActive : sorted[0].id
+            );
+            return;
+          }
         }
+      } catch (e) {
+        console.error('Failed to load sessions', e);
       }
-    } catch (e) {
-      console.error('Failed to load sessions', e);
+      const empty = createEmptySession();
+      setSessions([empty]);
+      setActiveSessionId(empty.id);
     }
-    const empty = createEmptySession();
-    setSessions([empty]);
-    setActiveSessionId(empty.id);
-  }, []);
+    bootstrap();
+  }, [session?.email]);
 
   useEffect(() => {
     if (sessions.length === 0) return;
-    const sessionsKey = storageKey(SESSIONS_STORAGE_KEY);
-    const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY);
-    localStorage.setItem(sessionsKey, JSON.stringify(sessions.slice(0, 50)));
+    const sessionsKey = storageKey(SESSIONS_STORAGE_KEY, session?.email);
+    const activeKey = storageKey(ACTIVE_SESSION_STORAGE_KEY, session?.email);
+    localStorage.setItem(sessionsKey, JSON.stringify(sessions.slice(0, 40)));
     if (activeSessionId) {
       localStorage.setItem(activeKey, activeSessionId);
     }
-  }, [sessions, activeSessionId]);
+  }, [sessions, activeSessionId, session?.email]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
