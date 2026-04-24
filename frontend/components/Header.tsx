@@ -41,40 +41,14 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
         if (Date.now() - manualUpdateRef.current > 3000 || isManual) {
           setUnreadCount(response.data);
         }
-      } catch (error) {
+      } catch {
         // silently fail
       }
     };
-    
+
     fetchUnreadCount();
 
-    // 1. SSE Connection via Proxy (Same-origin to fix 401 cookie issue)
-    const sseUrl = '/api-proxy/notifications/subscribe';
-    const eventSource = new EventSource(sseUrl, { withCredentials: true });
-
-    eventSource.onopen = () => {
-      console.log('SSE: Connection established');
-    };
-
-    eventSource.addEventListener('unread-count', (event) => {
-      const newCount = parseInt(event.data);
-      // Only update if no manual update recently
-      if (Date.now() - manualUpdateRef.current > 3000) {
-        setUnreadCount(newCount);
-      }
-    });
-
-    eventSource.addEventListener('notification', (event) => {
-      console.log('SSE New Notification received');
-      // No need to fetch, unread-count event will follow or arrive simultaneously
-      window.dispatchEvent(new CustomEvent('notifications-updated'));
-    });
-
-    eventSource.onerror = (err) => {
-      console.error('SSE Error:', err);
-    };
-
-    // 2. Custom Event for local sync (when user marks as read in panel)
+    // Local sync: khi user đọc thông báo trong panel
     const handleLocalSync = (e: any) => {
       manualUpdateRef.current = Date.now();
       if (e.detail && typeof e.detail.count === 'number') {
@@ -85,11 +59,10 @@ export default function Header({ session, collapsed, onToggleSidebar, pathname }
     };
     window.addEventListener('notifications-updated', handleLocalSync);
 
-    // Backup polling (faster fallback if SSE fails)
-    const interval = setInterval(fetchUnreadCount, 10000); 
+    // Polling mỗi 10s
+    const interval = setInterval(fetchUnreadCount, 10000);
 
     return () => {
-      eventSource.close();
       window.removeEventListener('notifications-updated', handleLocalSync);
       clearInterval(interval);
     };

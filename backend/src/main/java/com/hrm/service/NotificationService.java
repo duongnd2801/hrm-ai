@@ -61,6 +61,7 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
         NotificationDTO dto = NotificationDTO.fromEntity(saved);
+        long unreadCount = notificationRepository.countUnreadByUser(user);
         
         // Push SSE update AFTER commit to avoid race conditions
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
@@ -68,7 +69,7 @@ public class NotificationService {
                 @Override
                 public void afterCommit() {
                     sseService.sendNotification(user.getId(), dto);
-                    sseService.sendUnreadCount(user.getId(), notificationRepository.countUnreadByUser(user));
+                    sseService.sendUnreadCount(user.getId(), unreadCount);
                 }
             }
         );
@@ -138,12 +139,14 @@ public class NotificationService {
         notificationRepository.updateReadStatus(notificationId, true, LocalDateTime.now());
         log.info("Notification {} marked as read for user {}", notificationId, currentUser.getEmail());
         
+        long unreadCount = notificationRepository.countUnreadByUser(currentUser);
+
         // Push count update AFTER commit
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
             new org.springframework.transaction.support.TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sseService.sendUnreadCount(currentUser.getId(), notificationRepository.countUnreadByUser(currentUser));
+                    sseService.sendUnreadCount(currentUser.getId(), unreadCount);
                 }
             }
         );
@@ -166,7 +169,7 @@ public class NotificationService {
             new org.springframework.transaction.support.TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sseService.sendUnreadCount(user.getId(), 0);
+                    sseService.sendUnreadCount(user.getId(), 0L);
                 }
             }
         );
@@ -186,13 +189,14 @@ public class NotificationService {
         }
 
         notificationRepository.delete(notification);
+        long unreadCount = notificationRepository.countUnreadByUser(currentUser);
         
         // Push count update AFTER commit
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
             new org.springframework.transaction.support.TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sseService.sendUnreadCount(currentUser.getId(), notificationRepository.countUnreadByUser(currentUser));
+                    sseService.sendUnreadCount(currentUser.getId(), unreadCount);
                 }
             }
         );
